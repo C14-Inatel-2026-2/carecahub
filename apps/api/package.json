@@ -1,4 +1,7 @@
 {
   "name": "api",
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "yarn@4.9.2",
+  "dependencies": {
+    "fastify": "^5.12.1"
+  }
 }
