@@ -8,7 +8,7 @@ if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is not defined');
 }
 
-const db = drizzle(databaseUrl);
+const db = drizzle({ connection: { connectionString: databaseUrl }, schema })
 
 export default db;
 export { db, schema };
