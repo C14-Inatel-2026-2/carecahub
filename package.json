@@ -2,7 +2,10 @@
   "name": "carecahub",
   "packageManager": "yarn@4.9.2",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
