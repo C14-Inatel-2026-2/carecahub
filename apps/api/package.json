@@ -2,11 +2,16 @@
   "name": "api",
   "type": "module",
   "packageManager": "yarn@4.9.2",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "dependencies": {
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.12.1",
     "fastify-drizzle": "^1.0.5",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "vitest": "^4.1.11"
   }
 }
