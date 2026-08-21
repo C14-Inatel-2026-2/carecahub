@@ -1,3 +1,3 @@
-import { usersTable } from './users';
+import { usersTable } from './users.js';
 
 export { usersTable as users };
