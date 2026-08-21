@@ -1,5 +1,6 @@
 {
   "name": "api",
+  "type": "module",
   "packageManager": "yarn@4.9.2",
   "dependencies": {
     "dotenv": "^17.4.2",
