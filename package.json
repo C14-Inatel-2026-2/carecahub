@@ -1,4 +1,13 @@
 {
   "name": "carecahub",
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "yarn@4.9.2",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "test": "turbo test"
+  }
 }
