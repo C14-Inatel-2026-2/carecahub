@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,
+    "checkJs": true,
+    // "baseUrl": "."
+    "paths": {
+      "#db": ["./db/index.js"],
+      "#db/*": ["./db/*"],
+      "#src/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.js",
+    "db/**/*.js",
+    "drizzle.config.js"
+  ]
+}

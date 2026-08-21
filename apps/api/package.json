@@ -6,6 +6,11 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "imports": {
+    "#db": "./db/index.js",
+    "#db/*": "./db/*",
+    "#src/*": "./src/*"
+  },
   "dependencies": {
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
