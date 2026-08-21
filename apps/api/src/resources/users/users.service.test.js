@@ -1,9 +1,11 @@
+// @ts-nocheck
+
 import { describe, expect, it, vi } from 'vitest';
 import { getUsers } from './users.service.js';
-import { findManyUsers } from './users.repository.js';
+import { listUsers } from './users.repository.js';
 
 vi.mock(import('./users.repository.js'), () => ({
-  findManyUsers: vi.fn(),
+  listUsers: vi.fn(),
 }));
 
 describe('getUsers', () => {
@@ -21,11 +23,11 @@ describe('getUsers', () => {
       },
     ];
 
-    vi.mocked(findManyUsers).mockResolvedValue(expectedUsers);
+    vi.mocked(listUsers).mockResolvedValue(expectedUsers);
 
     const result = await getUsers();
 
-    expect(findManyUsers).toHaveBeenCalledOnce();
+    expect(listUsers).toHaveBeenCalledOnce();
     expect(result).toEqual(expectedUsers);
   });
 });
