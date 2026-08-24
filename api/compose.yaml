@@ -1,0 +1,33 @@
+volumes:
+  ignite_pg_vol:
+  ignite_redis_vol:
+
+networks:
+  ignite_net:
+    name: ignite_net
+
+services:
+  ignite_db:
+    container_name: ignite_db
+    image: postgres:18-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ignite
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    networks:
+      - ignite_net
+    volumes:
+      - ignite_pg_vol:/var/lib/postgresql
+  ignite_redis:
+    container_name: ignite_redis
+    image: redis:8-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - ignite_net
+    volumes:
+      - ignite_redis_vol:/data

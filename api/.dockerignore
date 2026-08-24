@@ -1,0 +1,54 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log*
+*.log
+
+# Build artifacts
+dist
+coverage
+.nyc_output
+build
+out
+
+# Development
+.env
+.env.*
+!.env.example
+.github
+.vscode
+.idea
+.agents
+.claude
+*.log
+commitlint.config.js
+biome.json
+docker-compose*
+vitest.config.ts
+/src/providers/database/generated
+
+# Testing
+test
+**/*.spec.ts
+**/*.test.ts
+
+# Documentation
+docs
+README.md
+CHANGELOG.md
+AGENTS.md
+
+# Miscellaneous
+.DS_Store
+Thumbs.db
+
+# Dev only
+data
+security-reports
+security-scripts
