@@ -1,7 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { users } from '@/providers/database/generated/prisma/client'
-import { user_role, user_status } from '@/providers/database/generated/prisma/enums'
+import { USER_ROLES, USER_STATUSES } from '@db'
+import type { UserRole, UserStatus } from '@db'
 import { BaseDto } from '@/utils/dtos/base.dto'
+
+export type GetUserDtoRecord = {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  status: UserStatus
+  two_factor: boolean
+  created_at: Date
+  updated_at: Date
+  deleted_at: Date | null
+}
 
 export class GetUserDto extends BaseDto<GetUserDto> {
   @ApiProperty()
@@ -10,16 +22,16 @@ export class GetUserDto extends BaseDto<GetUserDto> {
   @ApiProperty()
   email: string
 
-  @ApiProperty({ enum: user_role })
-  role: user_role
+  @ApiProperty({ enum: USER_ROLES })
+  role: UserRole
 
-  @ApiProperty({ enum: user_status })
-  status: user_status
+  @ApiProperty({ enum: USER_STATUSES })
+  status: UserStatus
 
   @ApiProperty()
   twoFactor: boolean
 
-  static toDto(user: users): GetUserDto {
+  static toDto(user: GetUserDtoRecord): GetUserDto {
     return {
       id: user.id,
       name: user.name,

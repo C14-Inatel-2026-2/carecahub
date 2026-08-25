@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { BaseDto } from '@/dtos/base.dto'
+import { BaseDto } from '@/utils/dtos/base.dto'
 
 export class ProfilePictureDto extends BaseDto<ProfilePictureDto> {
   @ApiProperty({

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty, IsString } from 'class-validator'
-import { user_role, user_status } from '@/providers/database/generated/prisma/enums'
+import { USER_ROLES, USER_STATUSES } from '@db'
+import type { UserRole, UserStatus } from '@db'
 
 export class LoginDto {
   @ApiProperty()
@@ -24,11 +25,11 @@ export class LoggedUser {
   @ApiProperty({ example: 'john.doe@example.com' })
   email?: string
 
-  @ApiProperty({ example: 'admin', enum: user_role })
-  role: user_role
+  @ApiProperty({ example: 'admin', enum: USER_ROLES })
+  role: UserRole
 
-  @ApiProperty({ example: 'active', enum: user_status })
-  status: user_status
+  @ApiProperty({ example: 'active', enum: USER_STATUSES })
+  status: UserStatus
 
   @ApiProperty({ example: false })
   twoFactor: boolean

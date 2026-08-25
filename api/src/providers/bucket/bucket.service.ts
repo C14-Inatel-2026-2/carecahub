@@ -11,13 +11,14 @@ import {
   InternalServerErrorException,
   UnsupportedMediaTypeException,
 } from '@nestjs/common'
+import { eq, inArray } from 'drizzle-orm'
 import sharp from 'sharp'
 import { env } from '@/providers/config/env'
 import { exceptionsDictionary, ONE_MINUTE_IN_MS } from '@/types'
 import { streamToBuffer } from '@/utils/streamToBuffer'
 import { CacheService } from '../cache/cache.service'
 import { CacheKey } from '../cache/cache.types'
-import { PrismaService } from '../database/prisma.service'
+import { DrizzleService } from '../database/drizzle.service'
 import { CustomLogger } from '../logger/custom-logger.service'
 import { LoggerFactory } from '../logger/logger-factory.service'
 import { IBucketService } from './bucket.interface'
@@ -32,7 +33,7 @@ export class BucketService implements IBucketService {
   s3: S3Client
 
   constructor(
-    private readonly databaseService: PrismaService,
+    private readonly databaseService: DrizzleService,
     private readonly cache: CacheService,
     loggerFactory: LoggerFactory,
   ) {
@@ -199,16 +200,24 @@ export class BucketService implements IBucketService {
 
       this.logger.log(`File successfully uploaded to S3 - Key: ${key}`)
 
-      return this.databaseService.bucketFile.create({
-        data: {
+      const [bucketFile] = await this.databaseService.bucketFiles
+        .insert({
           key,
           filename: this.normalizeFileName(file.originalname),
           size: file.size,
           url,
-          isPublic,
-        },
-        select: { id: true, key: true, url: true, createdAt: true, filename: true, size: true },
-      })
+          is_public: isPublic,
+        })
+        .returning({
+          id: this.databaseService.bucketFiles.table.id,
+          key: this.databaseService.bucketFiles.table.key,
+          url: this.databaseService.bucketFiles.table.url,
+          createdAt: this.databaseService.bucketFiles.table.created_at,
+          filename: this.databaseService.bucketFiles.table.filename,
+          size: this.databaseService.bucketFiles.table.size,
+        })
+
+      return bucketFile
     } catch (error) {
       this.logger.error(`S3 Upload error - Key: ${key}, Error: ${JSON.stringify(error, null, 2)}`)
       throw new InternalServerErrorException(exceptionsDictionary.internalServerErrorErrKey)
@@ -254,10 +263,13 @@ export class BucketService implements IBucketService {
       //   }),
       // );
 
-      await this.databaseService.bucketFile.update({
-        where: { key },
-        data: { deletedAt: new Date() },
-      })
+      await this.databaseService.bucketFiles
+        .update()
+        .set({
+          deleted_at: new Date(),
+          updated_at: new Date(),
+        })
+        .where(eq(this.databaseService.bucketFiles.table.key, key))
     } catch (error) {
       this.logger.error(JSON.stringify(error))
       throw new InternalServerErrorException(exceptionsDictionary.internalServerErrorErrKey)
@@ -283,10 +295,13 @@ export class BucketService implements IBucketService {
         }),
       )
 
-      await this.databaseService.bucketFile.updateMany({
-        where: { key: { in: keys } },
-        data: { deletedAt: new Date() },
-      })
+      await this.databaseService.bucketFiles
+        .update()
+        .set({
+          deleted_at: new Date(),
+          updated_at: new Date(),
+        })
+        .where(inArray(this.databaseService.bucketFiles.table.key, keys))
     } catch (error) {
       this.logger.error(JSON.stringify(error))
       throw new InternalServerErrorException(exceptionsDictionary.internalServerErrorErrKey)
@@ -306,10 +321,13 @@ export class BucketService implements IBucketService {
       //   }),
       // );
 
-      await this.databaseService.bucketFile.updateMany({
-        where: { key: { in: keys } },
-        data: { deletedAt: new Date() },
-      })
+      await this.databaseService.bucketFiles
+        .update()
+        .set({
+          deleted_at: new Date(),
+          updated_at: new Date(),
+        })
+        .where(inArray(this.databaseService.bucketFiles.table.key, keys))
     } catch (error) {
       this.logger.error(JSON.stringify(error))
       throw new InternalServerErrorException(exceptionsDictionary.internalServerErrorErrKey)

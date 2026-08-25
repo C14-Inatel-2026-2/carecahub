@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { MailerService } from '@nestjs-modules/mailer'
+import { inArray } from 'drizzle-orm'
 import { env } from '@/providers/config/env'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
@@ -7,7 +8,7 @@ import { ONE_DAY_IN_MS, SysParams } from '@/types'
 import { isAfter, subHours } from '@/utils/date'
 import { CacheService } from '../cache/cache.service'
 import { CacheKey } from '../cache/cache.types'
-import { PrismaService } from '../database/prisma.service'
+import { DrizzleService } from '../database/drizzle.service'
 import { MailProps } from './mail.types'
 
 @Injectable()
@@ -23,7 +24,7 @@ export class MailService {
   } | null = null
   constructor(
     private readonly mailerService: MailerService,
-    private readonly database: PrismaService,
+    private readonly database: DrizzleService,
     private readonly cache: CacheService,
     loggerFactory: LoggerFactory,
   ) {
@@ -70,18 +71,16 @@ export class MailService {
     const parameterMap = this.systemParameterCache
 
     if (!parameterMap) {
-      const sysParams = await this.database.sys_params.findMany({
-        where: {
-          key: {
-            in: [
-              SysParams.PLATFORM_COLOR,
-              SysParams.PLATFORM_LOGO,
-              SysParams.PLATFORM_NAME,
-              SysParams.PLATFORM_URL,
-            ],
-          },
-        },
-      })
+      const sysParams = await this.database.sysParams
+        .select(this.database.sysParams.columns)
+        .where(
+          inArray(this.database.sysParams.table.key, [
+            SysParams.PLATFORM_COLOR,
+            SysParams.PLATFORM_LOGO,
+            SysParams.PLATFORM_NAME,
+            SysParams.PLATFORM_URL,
+          ]),
+        )
 
       this.systemParameterCache = {
         platformColor:

@@ -13,16 +13,13 @@ docker compose up -d
 # 2. Install dependencies
 pnpm install
 
-# 3. Generate Prisma client
+# 3. Generate Drizzle migration files
 pnpm db:g
 
 # 4. Run database migrations
 pnpm db:m
 
-# 5. Seed database with sample data (optional)
-pnpm db:seed:dev
-
-# 6. Start development server
+# 5. Start development server
 pnpm dev
 ```
 
@@ -37,10 +34,10 @@ pnpm dev
 
 ```bash
 # Database
-pnpm db:g              # Generate Prisma client
-pnpm db:m              # Run migrations (dev)
-pnpm db:migrate        # Deploy migrations (production)
-pnpm db:seed           # Seed with basic data
+pnpm db:g              # Generate Drizzle migration files
+pnpm db:m              # Run migrations
+pnpm db:migrate        # Run production migrations
+pnpm db:deploy         # Alias for migrations
 
 # Development
 pnpm dev               # Start with hot reload
@@ -56,9 +53,9 @@ docker push xxxxxxxxxx.dkr.ecr.us-east-1.amazonaws.com/my-api:latest
 
 ## Resource structure
 
-Every resource must contain a module, controller, interface, service and DTOs. Keep controllers thin, put business rules in services, and use the shared `QueryDto` for lists and `ServiceOutput<T>` for service results. DTOs must map the current Prisma schema and must never expose sensitive fields such as passwords. DTOs may extend `BaseDto`; services should return static toDto most of the time, with `ServiceOutput<T>` enforcing the TypeScript contract.
+Every resource must contain a module, controller, interface, service and DTOs. Keep controllers thin, put business rules in services, and use the shared `QueryDto` for lists and `ServiceOutput<T>` for service results. DTOs must map the current Drizzle-backed schema and must never expose sensitive fields such as passwords. DTOs may extend `BaseDto`; services should return static toDto most of the time, with `ServiceOutput<T>` enforcing the TypeScript contract.
 
 Register each resource module in `src/app.module.ts`. Use `@User()` in controllers
 for authenticated ownership and enforce owner-or-admin access in the service.
-List only non-deleted rows, map Prisma records through a response DTO, and soft
+List only non-deleted rows, map database records through a response DTO, and soft
 delete by setting `deleted_at`.

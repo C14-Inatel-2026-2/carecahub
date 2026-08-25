@@ -27,7 +27,13 @@ describe('ApiSecretGuard', () => {
     const canActivate = guard.canActivate(executionContextMock)
     assert.strictEqual(canActivate, true)
 
-    assert.ok(executionContextMock.switchToHttp().getRequest.mock.callCount() > 0)
+    assert.ok(
+      (
+        executionContextMock.switchToHttp() as unknown as {
+          getRequest: ReturnType<typeof mock.fn>
+        }
+      ).getRequest.mock.callCount() > 0,
+    )
   })
 
   it('throw if token not found in header', async () => {

@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max } from 'class-validator'
 import { TransformInt } from '@/infra/number.transformer'
-import { Prisma } from '@/providers/database/generated/prisma/client'
+
+export const ORDER_TYPES = ['asc', 'desc'] as const
+export type OrderType = (typeof ORDER_TYPES)[number]
 
 export class QueryDto {
   @ApiProperty({
@@ -42,12 +44,12 @@ export class QueryDto {
   @ApiPropertyOptional({
     description: 'The order type',
     required: false,
-    example: 'ASC',
-    enum: Prisma.SortOrder,
+    example: 'desc',
+    enum: ORDER_TYPES,
   })
   @IsOptional()
-  @IsEnum(Prisma.SortOrder)
-  orderType?: Prisma.SortOrder
+  @IsEnum(ORDER_TYPES)
+  orderType?: OrderType
 
   @ApiPropertyOptional({
     description: 'The search query',

@@ -1,11 +1,13 @@
 import { randomBytes } from 'node:crypto'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { eq } from 'drizzle-orm'
 import { CookieOptions, Request as ExpressRequest, Response } from 'express'
+import type { UserRole, UserStatus } from '@db'
 import { CacheService } from '@/providers/cache/cache.service'
 import { CacheKey } from '@/providers/cache/cache.types'
 import { env } from '@/providers/config/env'
-import { PrismaService } from '@/providers/database/prisma.service'
+import { DrizzleService } from '@/providers/database/drizzle.service'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { MailService } from '@/providers/mail/mail.service'
@@ -25,6 +27,7 @@ import { LoginDto, LoginResponseDto, LogoutDto, TwoFactorAuthDto } from './dtos/
 import { GetMeDto, UpdateMeDto } from './dtos/me.dto'
 import { ChangePasswordDto, RecoverPasswordDto, ResetPasswordDto } from './dtos/password.dto'
 import { AuthTokens, RefreshTokenDto } from './dtos/tokens.dto'
+import type { GetUserDtoRecord } from '../users/dto/get-user.dto'
 
 const sameSiteDict: Record<typeof env.ENV_SCOPE, CookieOptions['sameSite']> = {
   local: 'lax',
@@ -40,7 +43,7 @@ export class AuthService implements IAuthService {
   readonly refreshTokenTTL = ONE_DAY_IN_SECONDS
   readonly cacheTTL = ONE_DAY_IN_MS
   constructor(
-    private database: PrismaService,
+    private database: DrizzleService,
     private cache: CacheService,
     private jwtService: JwtService,
     private mailService: MailService,
@@ -49,17 +52,7 @@ export class AuthService implements IAuthService {
     this.logger = loggerFactory.create(AuthService.name)
   }
 
-  private toLoggedUser(user: {
-    id: string
-    name: string
-    email: string
-    role: import('@/providers/database/generated/prisma/enums').user_role
-    status: import('@/providers/database/generated/prisma/enums').user_status
-    two_factor: boolean
-    created_at: Date
-    updated_at: Date
-    deleted_at: Date | null
-  }): GetMeDto {
+  private toLoggedUser(user: GetUserDtoRecord): GetMeDto {
     return {
       id: user.id,
       name: user.name,
@@ -123,11 +116,9 @@ export class AuthService implements IAuthService {
   }
 
   async login(input: LoginDto): ServiceOutput<LoginResponseDto> {
-    const user = await this.database.users.findUnique({
-      where: {
-        email: input.username,
-      },
-    })
+    const [user] = await this.database.users
+      .select(this.database.users.authColumns)
+      .where(eq(this.database.users.table.email, input.username))
 
     this.logger.info('11111111111111')
 
@@ -179,7 +170,7 @@ export class AuthService implements IAuthService {
       ok: true,
       accessToken,
       refreshToken,
-      user: this.toLoggedUser(user),
+      user: this.toLoggedUser(user as GetUserDtoRecord),
       twoFactorAuth: false,
       friendlyMessage: 'Login efetuado.',
     }
@@ -223,40 +214,42 @@ export class AuthService implements IAuthService {
   }
 
   async me(userId: string): ServiceOutput<GetMeDto> {
-    const user = await this.database.users.findUnique({
-      where: { id: userId },
-    })
+    const [user] = await this.database.users
+      .select(this.database.users.publicColumns)
+      .where(eq(this.database.users.table.id, userId))
 
     if (!user) {
       throw new UnauthorizedException()
     }
 
-    return { ok: true, ...this.toLoggedUser(user) }
+    return { ok: true, ...this.toLoggedUser(user as GetUserDtoRecord) }
   }
 
   async updateMe(userId: string, input: UpdateMeDto): ServiceOutput<GetMeDto> {
     const { ...userData } = input
 
-    const user = await this.database.users.findUnique({
-      where: { id: userId },
-    })
+    const [user] = await this.database.users
+      .select(this.database.users.publicColumns)
+      .where(eq(this.database.users.table.id, userId))
 
     if (!user) {
       return { ok: false, errKey: ErrKeys.unauthorized }
     }
 
-    const updatedUser = await this.database.users.update({
-      where: { id: userId },
-      data: {
+    const [updatedUser] = await this.database.users
+      .update()
+      .set({
         ...userData,
-      },
-    })
+        updated_at: new Date(),
+      })
+      .where(eq(this.database.users.table.id, userId))
+      .returning()
 
     if (!updatedUser) {
       return { ok: false, errKey: ErrKeys.notFound }
     }
 
-    return { ok: true, ...this.toLoggedUser(updatedUser) }
+    return { ok: true, ...this.toLoggedUser(updatedUser as GetUserDtoRecord) }
   }
 
   async twoFactorAuth(input: TwoFactorAuthDto): ServiceOutput<AuthTokens> {
@@ -281,9 +274,9 @@ export class AuthService implements IAuthService {
   }
 
   async recoverPassword(input: RecoverPasswordDto): Promise<void> {
-    const user = await this.database.users.findFirst({
-      where: { email: input.email },
-    })
+    const [user] = await this.database.users
+      .select(this.database.users.publicColumns)
+      .where(eq(this.database.users.table.email, input.email))
 
     if (!user) {
       this.logger.warn(`Password recovery attempt for non-existing email: ${input.email}`)
@@ -326,10 +319,9 @@ export class AuthService implements IAuthService {
         throw new UnauthorizedException('Invalid or expired token')
       }
 
-      const user = await this.database.users.findFirst({
-        where: { email: cachedEmail },
-        select: { id: true, password: true },
-      })
+      const [user] = await this.database.users
+        .select(this.database.users.passwordColumns)
+        .where(eq(this.database.users.table.email, cachedEmail))
 
       if (!user) {
         throw new UnauthorizedException('User not found')
@@ -337,10 +329,13 @@ export class AuthService implements IAuthService {
 
       const hashedPassword = await hashPassword(input.password)
 
-      await this.database.users.update({
-        where: { id: user.id },
-        data: { password: hashedPassword },
-      })
+      await this.database.users
+        .update()
+        .set({
+          password: hashedPassword,
+          updated_at: new Date(),
+        })
+        .where(eq(this.database.users.table.id, user.id))
 
       await this.cache.delete({
         key: CacheKey.recoverPasswordToken,
@@ -357,10 +352,9 @@ export class AuthService implements IAuthService {
   }
 
   async changePassword(userId: string, input: ChangePasswordDto) {
-    const user = await this.database.users.findUnique({
-      where: { id: userId },
-      select: { id: true, password: true },
-    })
+    const [user] = await this.database.users
+      .select(this.database.users.passwordColumns)
+      .where(eq(this.database.users.table.id, userId))
     if (!user?.password) {
       throw new UnauthorizedException()
     }
@@ -372,10 +366,13 @@ export class AuthService implements IAuthService {
 
     const hashedPassword = await hashPassword(input.newPassword)
 
-    await this.database.users.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    })
+    await this.database.users
+      .update()
+      .set({
+        password: hashedPassword,
+        updated_at: new Date(),
+      })
+      .where(eq(this.database.users.table.id, userId))
 
     this.logger.log(`Password changed successfully for user ${userId}`)
   }

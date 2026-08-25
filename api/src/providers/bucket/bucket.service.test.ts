@@ -3,7 +3,7 @@ import { beforeEach, describe, it, mock } from 'node:test'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import sharp from 'sharp'
 import { CacheService } from '../cache/cache.service'
-import { PrismaService } from '../database/prisma.service'
+import { DrizzleService } from '../database/drizzle.service'
 import { LoggerFactory } from '../logger/logger-factory.service'
 import { BucketService } from './bucket.service'
 
@@ -14,25 +14,36 @@ describe('BucketService Image Resizing', () => {
   let sendToS3: ReturnType<typeof mock.fn>
 
   beforeEach(async () => {
-    createBucketFile = mock.fn(async () => ({
-      key: 'test-key',
-      url: 'test-url',
-      createdAt: new Date(),
+    const returningBucketFile = mock.fn(async () => [
+      {
+        key: 'test-key',
+        url: 'test-url',
+        createdAt: new Date(),
+      },
+    ])
+    const insertBucketFile = mock.fn(() => ({
+      returning: returningBucketFile,
     }))
-    const mockPrismaService = { bucketFile: { create: createBucketFile } }
+    createBucketFile = insertBucketFile
+    const mockDrizzleService = {
+      bucketFiles: {
+        table: {},
+        insert: insertBucketFile,
+      },
+    }
     const mockCacheService = { get: mock.fn(), set: mock.fn() }
     const mockLogger = { log: mock.fn(), error: mock.fn() }
     const mockLoggerFactory = { create: mock.fn(() => mockLogger) }
 
     service = new BucketService(
-      mockPrismaService as unknown as PrismaService,
+      mockDrizzleService as unknown as DrizzleService,
       mockCacheService as unknown as CacheService,
       mockLoggerFactory as unknown as LoggerFactory,
     )
 
     // Mock S3 send
     sendToS3 = mock.fn(async () => ({}))
-    service.s3.send = sendToS3 as typeof service.s3.send
+    service.s3.send = sendToS3 as unknown as typeof service.s3.send
   })
 
   it('should resize and convert image to jpeg', async () => {
@@ -71,12 +82,11 @@ describe('BucketService Image Resizing', () => {
     // Verify database call
     assert.strictEqual(createBucketFile.mock.callCount(), 1)
     const databaseInput = createBucketFile.mock.calls[0].arguments[0] as {
-      data: { filename: string; size: number }
-      select: object
+      filename: string
+      size: number
     }
-    assert.strictEqual(databaseInput.data.filename, 'test-image.jpg')
-    assert.strictEqual(typeof databaseInput.data.size, 'number')
-    assert.ok(databaseInput.select)
+    assert.strictEqual(databaseInput.filename, 'test-image.jpg')
+    assert.strictEqual(typeof databaseInput.size, 'number')
   })
 
   it('should not resize SVG files', async () => {

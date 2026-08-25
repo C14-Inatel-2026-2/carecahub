@@ -29,8 +29,8 @@ Web: `http://localhost:5173`
 
 ## New feature checklist
 
-1. Add or update the model in `api/drizzle/schema.prisma`.
-2. Create and apply a Prisma migration.
+1. Add or update the model in `api/drizzle`.
+2. Create and apply a Drizzle migration.
 3. Add the Nest resource: module, controller, service, interface, and DTOs.
 4. Register the resource module in `api/src/app.module.ts`.
 5. Add frontend Zod schemas, inferred request and response types in `web/src/types/<domain>.ts`.

@@ -12,5 +12,12 @@ export const executionContextMock: ExecutionContext = {
   getType: mock.fn(),
   switchToRpc: mock.fn(),
   switchToWs: mock.fn(),
-  switchToHttp: mock.fn(() => ({ getRequest: requestMock, getResponse: responseMock })),
+  switchToHttp: mock.fn(
+    () =>
+      ({
+        getRequest: requestMock,
+        getResponse: responseMock,
+        getNext: mock.fn(),
+      }) as ReturnType<ExecutionContext['switchToHttp']>,
+  ) as ExecutionContext['switchToHttp'],
 }

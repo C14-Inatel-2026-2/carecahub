@@ -7,7 +7,7 @@
     "includes": [
       "**/src/**/*.ts",
       "**/test/**/*.ts",
-      "**/prisma/**/*.ts",
+      "**/drizzle/**/*.ts",
       "!**/node_modules/",
       "!**/dist/",
       "!src/providers/database/generated/**/*.ts"

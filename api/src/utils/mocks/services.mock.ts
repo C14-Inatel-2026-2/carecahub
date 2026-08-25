@@ -7,32 +7,13 @@ import { BucketService } from '@/providers/bucket/bucket.service'
 import { CacheService } from '@/providers/cache/cache.service'
 import { CACHE_INSTANCE } from '@/providers/cache/cache.types'
 import { CorrelationIdService } from '@/providers/correlation-id'
-import { Prisma } from '@/providers/database/generated/prisma/client'
-import { PrismaService } from '@/providers/database/prisma.service'
+import { DrizzleService } from '@/providers/database/drizzle.service'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { MailService } from '@/providers/mail/mail.service'
 import { AuthService } from '@/resources/auth/auth.service'
 
 type MockFunction = Mock<(...args: never[]) => unknown>
-
-export interface PrismaMockService {
-  create: MockFunction
-  createMany: MockFunction
-  count: MockFunction
-  findMany: MockFunction
-  findFirst: MockFunction
-  findUnique: MockFunction
-  findUniqueOrThrow: MockFunction
-  findOneOrThrow: MockFunction
-  update: MockFunction
-  updateMany: MockFunction
-  delete: MockFunction
-  deleteMany: MockFunction
-  groupBy: MockFunction
-  aggregate: MockFunction
-  upsert: MockFunction
-}
 
 // biome-ignore lint/suspicious/noExplicitAny: cant infer any here
 export type Constructor<T> = new (...args: any[]) => T
@@ -83,38 +64,51 @@ export const CorrelationIdServiceMock: CorrelationIdServiceMockType = {
   updateContext: globalThisMock(),
 }
 
-export const PrismaServiceMock = Object.fromEntries(
-  Object.values(Prisma.ModelName).map((modelName) => {
-    const propertyName = modelName.charAt(0).toLowerCase() + modelName.slice(1)
-    return [
-      propertyName,
-      {
-        create: globalThisMock(),
-        createMany: globalThisMock(),
-        count: globalThisMock(),
-        findMany: globalThisMock(),
-        findFirst: globalThisMock(),
-        findUnique: globalThisMock(),
-        findUniqueOrThrow: globalThisMock(),
-        findOneOrThrow: globalThisMock(),
-        update: globalThisMock(),
-        updateMany: globalThisMock(),
-        delete: globalThisMock(),
-        deleteMany: globalThisMock(),
-        groupBy: globalThisMock(),
-        aggregate: globalThisMock(),
-        upsert: globalThisMock(),
-      },
-    ]
-  }),
-) as Record<Uncapitalize<Prisma.ModelName>, PrismaMockService>
+export const DrizzleServiceMock = {
+  db: {
+    select: globalThisMock(),
+    insert: globalThisMock(),
+    update: globalThisMock(),
+  },
+  users: {
+    table: {},
+    columns: {},
+    publicColumns: {},
+    authColumns: {},
+    passwordColumns: {},
+    select: globalThisMock(),
+    insert: globalThisMock(),
+    update: globalThisMock(),
+  },
+  posts: {
+    table: {},
+    columns: {},
+    select: globalThisMock(),
+    insert: globalThisMock(),
+    update: globalThisMock(),
+  },
+  bucketFiles: {
+    table: {},
+    columns: {},
+    select: globalThisMock(),
+    insert: globalThisMock(),
+    update: globalThisMock(),
+  },
+  sysParams: {
+    table: {},
+    columns: {},
+    select: globalThisMock(),
+    insert: globalThisMock(),
+    update: globalThisMock(),
+  },
+}
 
 export const serviceMocks = [
   { provide: JwtService, useValue: JwtServiceMock },
   { provide: CorrelationIdService, useValue: CorrelationIdServiceMock },
   { provide: MailService, useValue: MailServiceMock },
   { provide: AuthService, useValue: AuthServiceMock },
-  { provide: PrismaService, useValue: PrismaServiceMock },
+  { provide: DrizzleService, useValue: DrizzleServiceMock },
   { provide: CACHE_INSTANCE, useValue: CacheManagerMock },
   { provide: Reflector, useValue: ReflectorMock },
   { provide: BucketService, useValue: BucketServiceMock },

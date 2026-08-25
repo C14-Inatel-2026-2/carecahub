@@ -16,7 +16,6 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 
 COPY . .
 ENV DATABASE_URL="postgresql://user:password@localhost/db"
-RUN pnpm prisma generate
 RUN pnpm build
 RUN pnpm prune --prod
 
@@ -25,8 +24,8 @@ ENV NODE_ENV=production
 WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app/dist ./dist
-COPY --from=builder /usr/src/app/prisma ./prisma
-COPY --from=builder /usr/src/app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /usr/src/app/drizzle ./drizzle
+COPY --from=builder /usr/src/app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /usr/src/app/package.json ./package.json
 COPY --from=builder /usr/src/app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /usr/src/app/node_modules ./node_modules

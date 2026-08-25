@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
-import { user_role } from '@/providers/database/generated/prisma/enums'
+import type { UserRole } from '@db'
 
 export const ROLE_METADATA_KEY = 'RequiredRoleMetadata'
 
@@ -27,6 +27,6 @@ export class RolesGuard implements CanActivate {
   }
 }
 
-export function Roles(roles: user_role[]) {
+export function Roles(roles: UserRole[]) {
   return applyDecorators(SetMetadata(ROLE_METADATA_KEY, roles || []), UseGuards(RolesGuard))
 }

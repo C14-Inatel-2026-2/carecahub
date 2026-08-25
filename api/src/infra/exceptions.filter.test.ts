@@ -17,8 +17,8 @@ describe('AllExceptionsFilter', () => {
     const response: Partial<Response> = {}
     status = mock.fn(() => response)
     json = mock.fn()
-    response.status = status as Response['status']
-    response.json = json as Response['json']
+    response.status = status as unknown as Response['status']
+    response.json = json as unknown as Response['json']
 
     mockArgumentsHost = {
       switchToHttp: mock.fn(() => ({

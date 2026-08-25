@@ -3,7 +3,7 @@ import { beforeEach, describe, it, mock } from 'node:test'
 import { JwtService } from '@nestjs/jwt'
 import { Response } from 'express'
 import { CacheService } from '@/providers/cache/cache.service'
-import { PrismaService } from '@/providers/database/prisma.service'
+import { DrizzleService } from '@/providers/database/drizzle.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { MailService } from '@/providers/mail/mail.service'
 import { UserMetadata } from '@/types'
@@ -27,7 +27,7 @@ describe('AuthService', () => {
       return calls === 1 ? 'access-token' : 'refresh-token'
     })
     service = new AuthService(
-      {} as PrismaService,
+      {} as DrizzleService,
       {} as CacheService,
       { sign } as unknown as JwtService,
       {} as MailService,

@@ -1,9 +1,9 @@
 import assert from 'node:assert'
 import { describe, it } from 'node:test'
 import { endOfDay, startOfDay } from './date'
-import { buildDateFieldQuery, buildStringFieldQuery } from './prisma'
+import { buildDateFieldQuery, buildStringFieldQuery } from './query-filters'
 
-describe('Prisma Utils', () => {
+describe('Query Filter Utils', () => {
   describe('buildStringFieldQuery', () => {
     it('should return contains query for non-empty string', () => {
       const result = buildStringFieldQuery('test search')
