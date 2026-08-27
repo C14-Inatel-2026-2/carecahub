@@ -31,7 +31,7 @@
 
 **Interfaces:**
 - Consumes: `process.env.DATABASE_URL`
-- Produces: `DrizzleService`, schema exports, enum exports, table helpers for `users`, `posts`, `bucketFiles`, and `sysParams`
+- Produces: `DrizzleService`, schema exports, enum exports, table helpers for `users`, `posts`, `bucketFiles`, and `systemParams`
 
 - [ ] Write or update a failing test that imports the new database service entrypoint
 - [ ] Run the focused test or typecheck to confirm the Drizzle files do not exist yet

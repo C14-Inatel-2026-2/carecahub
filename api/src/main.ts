@@ -44,10 +44,9 @@ async function bootstrap() {
   const devOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
-    'https://api-sandbox.asaas.com',
   ]
 
-  const allowedOrigins = [env.WEB_URL, 'https://api.asaas.com', ...(isProduction ? [] : devOrigins)]
+  const allowedOrigins = [env.WEB_URL, ...(isProduction ? [] : devOrigins)]
 
   logger.verbose(`ENV_SCOPE: ${env.ENV_SCOPE}`)
   logger.verbose(`WEB_URL: ${env.WEB_URL}`)

@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
-export const sysParamTable = pgTable("SystemParam", {
+const systemParamTable = pgTable("SystemParam", {
   id: uuid("id").defaultRandom().primaryKey(),
   key: varchar("key", { length: 255 }).notNull().unique(),
   value: text("value").notNull(),
@@ -11,3 +11,5 @@ export const sysParamTable = pgTable("SystemParam", {
     .notNull()
     .defaultNow(),
 });
+
+export { systemParamTable as systemParams };

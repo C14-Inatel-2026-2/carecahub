@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { userRoleEnum, userStatusEnum } from "../enums/userEnums";
 
-export const userTable = pgTable("User", {
+const userTable = pgTable("User", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
@@ -24,3 +24,5 @@ export const userTable = pgTable("User", {
     .defaultNow(),
   deleted_at: timestamp("deleted_at", { withTimezone: true }),
 });
+
+export { userTable as users };

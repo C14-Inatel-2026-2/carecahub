@@ -4,7 +4,7 @@ import { inArray } from 'drizzle-orm'
 import { env } from '@/providers/config/env'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
-import { ONE_DAY_IN_MS, SysParams } from '@/types'
+import { ONE_DAY_IN_MS, SystemParams } from '@/types'
 import { isAfter, subHours } from '@/utils/date'
 import { CacheService } from '../cache/cache.service'
 import { CacheKey } from '../cache/cache.types'
@@ -71,23 +71,23 @@ export class MailService {
     const parameterMap = this.systemParameterCache
 
     if (!parameterMap) {
-      const sysParams = await this.database.sysParams
-        .select(this.database.sysParams.columns)
+      const systemParams = await this.database.systemParams
+        .select(this.database.systemParams.columns)
         .where(
-          inArray(this.database.sysParams.table.key, [
-            SysParams.PLATFORM_COLOR,
-            SysParams.PLATFORM_LOGO,
-            SysParams.PLATFORM_NAME,
-            SysParams.PLATFORM_URL,
+          inArray(this.database.systemParams.table.key, [
+            SystemParams.PLATFORM_COLOR,
+            SystemParams.PLATFORM_LOGO,
+            SystemParams.PLATFORM_NAME,
+            SystemParams.PLATFORM_URL,
           ]),
         )
 
       this.systemParameterCache = {
         platformColor:
-          sysParams.find((p) => p.key === SysParams.PLATFORM_COLOR)?.value ?? '#178D5D',
-        platformLogo: sysParams.find((p) => p.key === SysParams.PLATFORM_LOGO)?.value ?? '',
-        platformName: sysParams.find((p) => p.key === SysParams.PLATFORM_NAME)?.value ?? 'Ignite',
-        platformUrl: sysParams.find((p) => p.key === SysParams.PLATFORM_URL)?.value ?? '',
+          systemParams.find((p) => p.key === SystemParams.PLATFORM_COLOR)?.value ?? '#178D5D',
+        platformLogo: systemParams.find((p) => p.key === SystemParams.PLATFORM_LOGO)?.value ?? '',
+        platformName: systemParams.find((p) => p.key === SystemParams.PLATFORM_NAME)?.value ?? 'Ignite',
+        platformUrl: systemParams.find((p) => p.key === SystemParams.PLATFORM_URL)?.value ?? '',
       }
     }
 

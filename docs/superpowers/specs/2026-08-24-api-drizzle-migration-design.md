@@ -100,7 +100,7 @@ Prisma currently exposes a service that is injected directly into other services
 
 - create a `pg.Pool`
 - create a Drizzle database instance
-- expose typed table-oriented helpers such as `database.users`, `database.posts`, `database.bucketFiles`, and `database.sysParams`
+- expose typed table-oriented helpers such as `database.users`, `database.posts`, `database.bucketFiles`, and `database.systemParams`
 - expose schema and transaction typing for internal use
 - close the pool in `onModuleDestroy`
 

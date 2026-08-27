@@ -94,7 +94,7 @@ export const DrizzleServiceMock = {
     insert: globalThisMock(),
     update: globalThisMock(),
   },
-  sysParams: {
+  systemParams: {
     table: {},
     columns: {},
     select: globalThisMock(),

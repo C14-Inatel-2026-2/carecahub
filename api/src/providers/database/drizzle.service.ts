@@ -2,10 +2,10 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type { Logger as DrizzleLogger } from 'drizzle-orm/logger'
 import { Pool } from 'pg'
-import { schema } from '../../../drizzle'
+import { schema } from '@db'
 
 class NestDrizzleLogger implements DrizzleLogger {
-  constructor(private readonly logger: Logger) {}
+  constructor(private readonly logger: Logger) { }
 
   logQuery(query: string, params: unknown[]): void {
     this.logger.debug(`${query} -- params: ${JSON.stringify(params)}`)
@@ -96,33 +96,6 @@ export class DrizzleService implements OnModuleDestroy {
     }
   }
 
-  get posts() {
-    const table = this.schema.posts
-    const db = this.db
-
-    return {
-      table,
-      columns: {
-        id: table.id,
-        title: table.title,
-        content: table.content,
-        user_id: table.user_id,
-        created_at: table.created_at,
-        updated_at: table.updated_at,
-        deleted_at: table.deleted_at,
-      },
-      select(selection) {
-        return db.select(selection).from(table)
-      },
-      insert(values) {
-        return db.insert(table).values(values)
-      },
-      update() {
-        return db.update(table)
-      },
-    }
-  }
-
   get bucketFiles() {
     const table = this.schema.bucketFiles
     const db = this.db
@@ -152,8 +125,8 @@ export class DrizzleService implements OnModuleDestroy {
     }
   }
 
-  get sysParams() {
-    const table = this.schema.sysParams
+  get systemParams() {
+    const table = this.schema.systemParams
     const db = this.db
 
     return {
