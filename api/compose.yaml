@@ -1,33 +1,33 @@
 volumes:
-  ignite_pg_vol:
-  ignite_redis_vol:
+  carecahub_pg_vol:
+  carecahub_redis_vol:
 
 networks:
-  ignite_net:
-    name: ignite_net
+  carecahub_net:
+    name: carecahub_net
 
 services:
-  ignite_db:
-    container_name: ignite_db
+  carecahub_db:
+    container_name: carecahub_db
     image: postgres:18-alpine
     restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: ignite
+      POSTGRES_DB: carecahub
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     networks:
-      - ignite_net
+      - carecahub_net
     volumes:
-      - ignite_pg_vol:/var/lib/postgresql
-  ignite_redis:
-    container_name: ignite_redis
+      - carecahub_pg_vol:/var/lib/postgresql
+  carecahub_redis:
+    container_name: carecahub_redis
     image: redis:8-alpine
     restart: unless-stopped
     ports:
       - "6379:6379"
     networks:
-      - ignite_net
+      - carecahub_net
     volumes:
-      - ignite_redis_vol:/data
+      - carecahub_redis_vol:/data
