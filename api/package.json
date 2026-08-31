@@ -18,6 +18,7 @@
     "db:m": "drizzle-kit migrate",
     "db:migrate": "drizzle-kit migrate",
     "db:deploy": "drizzle-kit migrate",
+    "db:clear": "docker compose stop carecahub_db && docker compose rm -f carecahub_db && docker volume rm api_carecahub_pg_vol && docker compose up -d carecahub_db",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main"
   },
