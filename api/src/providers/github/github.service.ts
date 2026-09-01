@@ -3,27 +3,25 @@ import { Injectable } from "@nestjs/common";
 import { CustomLogger } from "@/providers/logger/custom-logger.service";
 import axios from "axios";
 import { RepositoryResponse } from "./github.types";
+import { env } from "@/providers/config/env";
 
 @Injectable()
 export class GitHubService {
   private axios: axios.AxiosInstance;
 
   constructor(
-    // TODO: Find out how the service configuration will be structured
-    // private readonly configService: ConfigService;
     private readonly logger: CustomLogger,
-    // TODO: Find out how the systemParams will be implemented
+    // TODO: Find out how and if the systemParams will be implemented
     // private readonly systemParamsService: SystemParamsService,
   ) {
-    // TODO: Find out the necessary variables for the GitHub integration
-    // this.axios = axios.create({
-    //   baseURL: this.configService.get('github.baseUrl'),
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     Authorization: `Bearer ${this.configService.get('github.token')}`,
-    //   },
-    //   timeout: this.configService.get('github.timeout'),
-    // });
+    this.axios = axios.create({
+      baseURL: env.GITHUB_BASE_URL,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      },
+      timeout: env.GITHUB_TIMEOUT,
+    });
     this.axios.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -33,11 +31,11 @@ export class GitHubService {
   }
 
   async getRepositoryFromUrl(
+    repositoryOwner: string,
     repositoryUrl: string,
   ): Promise<EitherResponse<RepositoryResponse>> {
     this.logger.info(`GET repository from URL: ${repositoryUrl}`);
     try {
-      const repositoryOwner = "TesteOwner"; // TODO: Make search for repository owner dynamic
       const response = await this.axios.get(
         `/repos/${repositoryOwner}/${repositoryUrl}`,
       );
