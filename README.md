@@ -1,4 +1,4 @@
-# Ignite
+# CarecaHub
 
 ## Run locally
 

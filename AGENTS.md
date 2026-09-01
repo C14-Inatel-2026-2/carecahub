@@ -1,4 +1,4 @@
-# Scoder Ignite
+# CarecaHub
 
 This is a deliberately simple repository with independent `api`, `web`, and `docs`
 folders. It is not a Turborepo or a workspace monorepo.

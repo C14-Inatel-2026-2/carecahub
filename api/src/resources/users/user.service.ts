@@ -53,7 +53,7 @@ export class UsersService implements IUsersService {
           classroom: input.classroom,
           email: input.email,
           password: await hashPassword(input.password),
-          role: 'user',
+          role: 'student',
         })
         .returning(publicColumns)
     } catch (error) {

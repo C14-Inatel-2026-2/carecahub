@@ -1,15 +1,19 @@
-<!DOCTYPE html>
-<html lang='{{lang}}' xmlns='http://www.w3.org/1999/xhtml' xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office'>
+<html
+  lang="{{lang}}"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
   <head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <meta name='format-detection' content='telephone=no'>
-    <meta name='format-detection' content='date=no'>
-    <meta name='format-detection' content='address=no'>
-    <meta name='format-detection' content='email=no'>
-    <meta name='color-scheme' content='light dark'>
-    <meta name='supported-color-schemes' content='light dark'>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="date=no" />
+    <meta name="format-detection" content="address=no" />
+    <meta name="format-detection" content="email=no" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
     <title>{{title}}</title>
     <!--[if gte mso 9]>
     <xml>
@@ -19,182 +23,272 @@
       </o:OfficeDocumentSettings>
     </xml>
     <![endif]-->
-    <style type='text/css'>
+    <style type="text/css">
       /* Reset and base styles */
-      * { box-sizing: border-box; }
-      body, table, td, p, a, li, blockquote { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-      table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-      img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+      * {
+        box-sizing: border-box;
+      }
+      body,
+      table,
+      td,
+      p,
+      a,
+      li,
+      blockquote {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        outline: none;
+        text-decoration: none;
+      }
 
       /* Accessibility improvements */
-      a:hover { text-decoration: underline !important; }
-      a:focus { outline: 2px solid #005fcc; outline-offset: 2px; }
+      a:hover {
+        text-decoration: underline !important;
+      }
+      a:focus {
+        outline: 2px solid #005fcc;
+        outline-offset: 2px;
+      }
 
       /* Font fallbacks */
-      .font-primary { font-family: 'Poppins', 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+      .font-primary {
+        font-family:
+          "Poppins",
+          "Nunito",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Arial,
+          sans-serif;
+      }
 
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
-        .bg-light { background-color: #1a1a1a !important; }
-        .bg-white { background-color: #2d2d2d !important; }
-        .text-dark { color: #ffffff !important; }
-        .text-muted { color: #cccccc !important; }
-        .border-light { border-color: #404040 !important; }
+        .bg-light {
+          background-color: #1a1a1a !important;
+        }
+        .bg-white {
+          background-color: #2d2d2d !important;
+        }
+        .text-dark {
+          color: #ffffff !important;
+        }
+        .text-muted {
+          color: #cccccc !important;
+        }
+        .border-light {
+          border-color: #404040 !important;
+        }
       }
 
       /* Mobile optimizations */
       @media screen and (max-width: 480px) {
-        .mobile-padding { padding: 0 20px !important; }
-        .mobile-text { font-size: 16px !important; line-height: 22px !important; }
-        .mobile-title { font-size: 24px !important; }
-        .mobile-button { padding: 12px 20px !important; font-size: 16px !important; }
-        .mobile-center { text-align: center !important; }
-        .mobile-width { width: 100% !important; }
+        .mobile-padding {
+          padding: 0 20px !important;
+        }
+        .mobile-text {
+          font-size: 16px !important;
+          line-height: 22px !important;
+        }
+        .mobile-title {
+          font-size: 24px !important;
+        }
+        .mobile-button {
+          padding: 12px 20px !important;
+          font-size: 16px !important;
+        }
+        .mobile-center {
+          text-align: center !important;
+        }
+        .mobile-width {
+          width: 100% !important;
+        }
       }
 
       /* High contrast mode support */
       @media (prefers-contrast: high) {
-        .text-muted { color: #000000 !important; }
-        a { text-decoration: underline !important; }
+        .text-muted {
+          color: #000000 !important;
+        }
+        a {
+          text-decoration: underline !important;
+        }
       }
     </style>
   </head>
   <body
-    marginheight='0'
-    topmargin='0'
-    marginwidth='0'
-    style='margin: 0px; padding: 0; background-color: #f2f3f8;'
-    leftmargin='0'
-    class='bg-light'
-    role='document'
+    marginheight="0"
+    topmargin="0"
+    marginwidth="0"
+    style="margin: 0px; padding: 0; background-color: #f2f3f8;"
+    leftmargin="0"
+    class="bg-light"
+    role="document"
   >
     <!--100% body table-->
     <table
-      cellspacing='0'
-      border='0'
-      cellpadding='0'
-      width='100%'
-      bgcolor='#f2f3f8'
-      style='background-color: #f2f3f8;'
-      class='font-primary bg-light'
-      role='presentation'
+      cellspacing="0"
+      border="0"
+      cellpadding="0"
+      width="100%"
+      bgcolor="#f2f3f8"
+      style="background-color: #f2f3f8;"
+      class="font-primary bg-light"
+      role="presentation"
     >
       <tr>
         <td>
           <table
-            style='background-color: #f2f3f8; max-width:670px; margin:0 auto;'
-            width='100%'
-            border='0'
-            align='center'
-            cellpadding='0'
-            cellspacing='0'
-            class='bg-light'
-            role='presentation'
+            style="background-color: #f2f3f8; max-width:670px; margin:0 auto;"
+            width="100%"
+            border="0"
+            align="center"
+            cellpadding="0"
+            cellspacing="0"
+            class="bg-light"
+            role="presentation"
           >
             <tr>
-              <td style='height:80px;' aria-hidden='true'></td>
+              <td style="height:80px;" aria-hidden="true"></td>
             </tr>
             <tr>
-              <td style='text-align:center;' class='mobile-center'>
+              <td style="text-align:center;" class="mobile-center">
                 <a
-                  href='{{webUrl}}'
-                  title='{{title}} - Go to website'
-                  target='_blank'
-                  aria-label='{{title}} logo - Visit our website'
-                  style='text-decoration: none; display: inline-block;'
+                  href="{{webUrl}}"
+                  title="{{title}} - Go to website"
+                  target="_blank"
+                  aria-label="{{title}} logo - Visit our website"
+                  style="text-decoration: none; display: inline-block;"
                 >
-                  <div style='display: inline-flex; align-items: center; gap: 8px; text-decoration: none;'>
+                  <div
+                    style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;"
+                  >
                     <svg
-                      width='40'
-                      height='40'
-                      viewBox='0 0 395 395'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                      style='flex-shrink: 0;'
-                      role='img'
-                      aria-label='Ignite logo'
+                      width="40"
+                      height="40"
+                      viewBox="0 0 395 395"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      style="flex-shrink: 0;"
+                      role="img"
+                      aria-label="CarecaHub logo"
                     >
-                      <title>Ignite</title>
-                      <rect y='117' width='79' height='278' rx='8' fill='{{color}}' />
-                      <rect x='316' width='79' height='300.2' rx='8' fill='{{color}}' />
-                      <rect x='158' y='47' width='79' height='348' rx='8' fill='{{color}}' />
-                      <rect x='102.7' width='134.3' height='63.2' rx='8' fill='{{color}}' />
+                      <title>CarecaHub</title>
+                      <rect
+                        y="117"
+                        width="79"
+                        height="278"
+                        rx="8"
+                        fill="{{color}}"
+                      />
+                      <rect
+                        x="316"
+                        width="79"
+                        height="300.2"
+                        rx="8"
+                        fill="{{color}}"
+                      />
+                      <rect
+                        x="158"
+                        y="47"
+                        width="79"
+                        height="348"
+                        rx="8"
+                        fill="{{color}}"
+                      />
+                      <rect
+                        x="102.7"
+                        width="134.3"
+                        height="63.2"
+                        rx="8"
+                        fill="{{color}}"
+                      />
                     </svg>
                     <span
                       style='font-size: 24px; font-weight: bold; color: {{color}}; font-family: "Poppins", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;'
-                      class='mobile-title'
+                      class="mobile-title"
                     >
-                      Ignite
+                      CarecaHub
                     </span>
                   </div>
                 </a>
               </td>
             </tr>
             <tr>
-              <td style='height:20px;' aria-hidden='true'></td>
+              <td style="height:20px;" aria-hidden="true"></td>
             </tr>
             <tr>
               <td>
                 <table
-                  width='95%'
-                  border='0'
-                  align='center'
-                  cellpadding='0'
-                  cellspacing='0'
-                  style='max-width:670px;background:#fff; border-radius:3px; text-align:center;-webkit-box-shadow:0 6px 18px 0 rgba(0,0,0,.06);-moz-box-shadow:0 6px 18px 0 rgba(0,0,0,.06);box-shadow:0 6px 18px 0 rgba(0,0,0,.06);'
-                  class='bg-white mobile-width'
-                  role='presentation'
+                  width="95%"
+                  border="0"
+                  align="center"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="max-width:670px;background:#fff; border-radius:3px; text-align:center;-webkit-box-shadow:0 6px 18px 0 rgba(0,0,0,.06);-moz-box-shadow:0 6px 18px 0 rgba(0,0,0,.06);box-shadow:0 6px 18px 0 rgba(0,0,0,.06);"
+                  class="bg-white mobile-width"
+                  role="presentation"
                 >
                   <tr>
-                    <td style='height:40px;' aria-hidden='true'></td>
+                    <td style="height:40px;" aria-hidden="true"></td>
                   </tr>
                   <tr>
-                    <td style='padding:0 35px;' class='mobile-padding'>
+                    <td style="padding:0 35px;" class="mobile-padding">
                       <h1
                         style='color:{{color}}; font-weight:500; margin:0;font-size:32px;font-family: "Poppins", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;'
-                        class='mobile-title'
-                        role='heading'
-                        aria-level='1'
+                        class="mobile-title"
+                        role="heading"
+                        aria-level="1"
                       >
                         {{title}}
                       </h1>
                       <span
-                        style='display:inline-block; vertical-align:baseline; margin:29px 0 26px; border-bottom:1px solid #cecece; width:100px;'
-                        class='border-light'
-                        aria-hidden='true'
+                        style="display:inline-block; vertical-align:baseline; margin:29px 0 26px; border-bottom:1px solid #cecece; width:100px;"
+                        class="border-light"
+                        aria-hidden="true"
                       ></span>
                       <p
                         style='color:#455056; font-size:15px;line-height:24px; margin:0; font-family: "Poppins", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;'
-                        class='text-dark mobile-text'
+                        class="text-dark mobile-text"
                       >
                         {{message}}
                       </p>
                       <a
-                        href='{{ctaUrl}}'
+                        href="{{ctaUrl}}"
                         style='background:{{color}};text-decoration:none !important; font-weight:500; margin-top:35px; color:#fff;text-transform:uppercase; font-size:14px;padding:10px 24px;display:inline-block;border-radius:4px; font-family: "Poppins", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;'
-                        class='mobile-button'
-                        role='button'
-                        aria-label='{{CTA}} - Click to proceed'
+                        class="mobile-button"
+                        role="button"
+                        aria-label="{{CTA}} - Click to proceed"
                       >
                         {{CTA}}
                       </a>
                     </td>
                   </tr>
                   <tr>
-                    <td style='height:40px;' aria-hidden='true'></td>
+                    <td style="height:40px;" aria-hidden="true"></td>
                   </tr>
                 </table>
               </td>
             </tr>
             <tr>
-              <td style='height:20px;' aria-hidden='true'></td>
+              <td style="height:20px;" aria-hidden="true"></td>
             </tr>
             <tr>
-              <td style='text-align:center;' class='mobile-center'>
+              <td style="text-align:center;" class="mobile-center">
                 <p
                   style='font-size:14px; color:rgba(69, 80, 86, 0.7411764705882353); line-height:18px; margin:0 0 0; font-family: "Poppins", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;'
-                  class='text-muted'
-                  role='contentinfo'
+                  class="text-muted"
+                  role="contentinfo"
                 >
                   <strong>
                     {{webUrl}}
