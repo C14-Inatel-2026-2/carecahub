@@ -1,4 +1,11 @@
-import { User, schema, SystemParam, BucketFile } from "./schema";
+import {
+  users,
+  schema,
+  systemParams,
+  bucketFiles,
+  repositories,
+  projects,
+} from "./schema";
 
 export {
   USER_ROLE,
@@ -7,10 +14,14 @@ export {
   USER_STATUSES,
 } from "./schema/enums/userEnums";
 export type { UserRole, UserStatus } from "./schema/enums/userEnums";
-export { BucketFile, schema, SystemParam, User };
+export { bucketFiles, schema, systemParams, users, repositories, projects };
 
-export type UserRecord = typeof User.$inferSelect;
-export type NewUserRecord = typeof User.$inferInsert;
-export type BucketFileRecord = typeof BucketFile.$inferSelect;
-export type NewBucketFileRecord = typeof BucketFile.$inferInsert;
-export type SysParamRecord = typeof SystemParam.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type BucketFile = typeof bucketFiles.$inferSelect;
+export type NewBucketFile = typeof bucketFiles.$inferInsert;
+export type SysParam = typeof systemParams.$inferSelect;
+export type Repository = typeof repositories.$inferSelect;
+export type NewRepository = typeof repositories.$inferInsert;
+export type Project = typeof projects.$inferSelect;
+export type NewProject = typeof projects.$inferInsert;

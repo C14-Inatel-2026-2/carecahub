@@ -8,9 +8,9 @@ CREATE TABLE "Project" (
 --> statement-breakpoint
 CREATE TABLE "Repository" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"url" varchar(255),
-	"owner" uuid,
-	"project" uuid,
+	"url" varchar(255) NOT NULL,
+	"owner" uuid NOT NULL,
+	"project" uuid NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,

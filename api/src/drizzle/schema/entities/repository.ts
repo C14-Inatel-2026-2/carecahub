@@ -1,20 +1,17 @@
-import {
-  boolean,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from "./user";
+import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { projects } from "./project";
+import { users } from "./user";
 
 const repositoryTable = pgTable("Repository", {
   id: uuid("id").defaultRandom().primaryKey(),
-  url: varchar("url", { length: 255 }).unique(),
-  ownerId: uuid("owner").references(() => users.id),
-  projectId: uuid("project").references(() => projects.id),
+  url: varchar("url", { length: 255 }).notNull().unique(),
+  ownerId: uuid("owner")
+    .notNull()
+    .references(() => users.id),
+  projectId: uuid("project")
+    .notNull()
+    .references(() => projects.id),
   created_at: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -36,4 +33,4 @@ const repositoryRelations = relations(repositoryTable, ({ one }) => ({
   }),
 }));
 
-export { repositoryTable as repositories, repositoryRelations };
+export { repositoryRelations, repositoryTable as repositories };
