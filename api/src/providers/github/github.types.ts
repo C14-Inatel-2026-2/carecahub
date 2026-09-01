@@ -1,3 +1,10 @@
+export type RepositoryBranchDetails = {
+  name: string
+  protected: boolean
+  default: boolean
+  commitCount: number
+}
+
 export type RepositoryDetails = {
   id: number
   node_id: string
@@ -19,6 +26,8 @@ export type RepositoryDetails = {
   forks_count: number
   open_issues_count: number
   default_branch: string
+  commitCount: number
+  branches: RepositoryBranchDetails[]
   topics: string[]
   visibility: string
   archived: boolean

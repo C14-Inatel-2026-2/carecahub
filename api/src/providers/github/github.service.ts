@@ -3,7 +3,16 @@ import axios, { type AxiosInstance } from 'axios'
 import type { EitherResponse } from '@/infra/http.types'
 import { env } from '@/providers/config/env'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
-import type { RepositoryDetails } from './github.types'
+import type { RepositoryBranchDetails, RepositoryDetails } from './github.types'
+
+type GitHubBranch = {
+  name: string
+  protected: boolean
+}
+
+type GitHubCommit = {
+  sha: string
+}
 
 @Injectable()
 export class GitHubService {
@@ -28,8 +37,31 @@ export class GitHubService {
       const response = await this.axios.get<RepositoryDetails>(
         `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`,
       )
+      const repositoryPath = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`
+      const repositoryBranches = await this.getBranches(repositoryPath)
+      const branches: RepositoryBranchDetails[] = []
+      for (let index = 0; index < repositoryBranches.length; index += 5) {
+        const batch = repositoryBranches.slice(index, index + 5)
+        const batchDetails = await Promise.all(
+          batch.map(
+            async (branch): Promise<RepositoryBranchDetails> => ({
+              name: branch.name,
+              protected: branch.protected,
+              default: branch.name === response.data.default_branch,
+              commitCount: await this.getCommitCount(repositoryPath, branch.name),
+            }),
+          ),
+        )
+        branches.push(...batchDetails)
+      }
+      const defaultBranch = branches.find((branch) => branch.default)
 
-      return { success: true, ...response.data }
+      return {
+        success: true,
+        ...response.data,
+        commitCount: defaultBranch?.commitCount ?? 0,
+        branches,
+      }
     } catch (error) {
       const status = axios.isAxiosError(error) ? error.response?.status : undefined
       const isNotFound = status === 404
@@ -47,6 +79,46 @@ export class GitHubService {
           : 'Falha ao buscar o repositório no GitHub.',
       }
     }
+  }
+
+  private async getBranches(repositoryPath: string): Promise<GitHubBranch[]> {
+    const branches: GitHubBranch[] = []
+    let pageUrl: string | undefined = `${repositoryPath}/branches?per_page=100`
+
+    while (pageUrl) {
+      const response = await this.axios.get<GitHubBranch[]>(pageUrl)
+      branches.push(...response.data)
+      pageUrl = this.getLinkUrl(response.headers.link, 'next')
+    }
+
+    return branches
+  }
+
+  private async getCommitCount(repositoryPath: string, branch: string): Promise<number> {
+    const response = await this.axios.get<GitHubCommit[]>(
+      `${repositoryPath}/commits?sha=${encodeURIComponent(branch)}&per_page=1`,
+    )
+    const lastPage = this.getLinkPage(response.headers.link, 'last')
+    return lastPage ?? response.data.length
+  }
+
+  private getLinkPage(linkHeader: string | undefined, relation: string): number | undefined {
+    const linkUrl = this.getLinkUrl(linkHeader, relation)
+    if (!linkUrl) return undefined
+
+    const page = Number(new URL(linkUrl).searchParams.get('page'))
+    return Number.isInteger(page) && page >= 1 ? page : undefined
+  }
+
+  private getLinkUrl(linkHeader: string | undefined, relation: string): string | undefined {
+    if (!linkHeader) return undefined
+
+    for (const link of linkHeader.split(',')) {
+      const match = link.match(/<([^>]+)>;\s*rel="([^"]+)"/)
+      if (match?.[2] === relation) return match[1]
+    }
+
+    return undefined
   }
 
   private parseRepositoryUrl(repositoryUrl: string) {
