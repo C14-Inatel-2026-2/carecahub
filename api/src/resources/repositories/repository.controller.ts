@@ -1,4 +1,4 @@
-import { Body, Get, Post, Query } from '@nestjs/common'
+import { Body, Delete, Get, Post, Query } from '@nestjs/common'
 import { ApiController } from '@/infra/controller.decorator'
 import { Roles } from '@/infra/roles.guard'
 import { User } from '@/infra/user.decorator'
@@ -24,7 +24,13 @@ export class RepositoryController {
   }
 
   @Get(':id')
+  @Roles(['admin'])
   findOne(@User() requester: UserMetadata, @UUIDParam() id: string) {
     return this.repositoryService.findOne(id, requester)
+  }
+
+  @Delete(':id')
+  remove(@User() requester: UserMetadata, @UUIDParam() id: string) {
+    return this.repositoryService.remove(id, requester)
   }
 }

@@ -2,6 +2,7 @@ import { projects, repositories, users } from '@db'
 import { Injectable } from '@nestjs/common'
 import { and, count, desc, eq, ilike, isNull, ne } from 'drizzle-orm'
 import { DrizzleService } from '@/providers/database/drizzle.service'
+import { GitHubService } from '@/providers/github/github.service'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { ErrKeys, ServiceOutput, UserMetadata } from '@/types'
@@ -22,6 +23,7 @@ export class RepositoryService implements IRepositoryService {
 
   constructor(
     private readonly database: DrizzleService,
+    private readonly gitHubService: GitHubService,
     loggerFactory: LoggerFactory,
   ) {
     this.logger = loggerFactory.create(RepositoryService.name)
@@ -125,7 +127,13 @@ export class RepositoryService implements IRepositoryService {
     const repository = await this.getRecord(id)
     if (!repository) return { ok: false, errKey: ErrKeys.notFound }
 
-    return { ok: true, ...GetRepositoryDto.toDto(repository) }
+    const githubResult = await this.gitHubService.getRepositoryFromUrl(repository.url)
+    if (!githubResult.success) {
+      return { ok: true, ...GetRepositoryDto.toDto(repository, null) }
+    }
+
+    const { success: _success, ...details } = githubResult
+    return { ok: true, ...GetRepositoryDto.toDto(repository, details) }
   }
 
   async remove(id: string, _requester: UserMetadata): Promise<ServiceOutput<object>> {

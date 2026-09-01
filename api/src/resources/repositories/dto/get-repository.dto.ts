@@ -1,5 +1,6 @@
 import type { Project, User } from '@db'
 import { ApiProperty } from '@nestjs/swagger'
+import type { RepositoryDetails } from '@/providers/github/github.types'
 import { BaseDto } from '@/utils/dtos/base.dto'
 
 export type GetRepositoryDtoRecord = {
@@ -22,12 +23,19 @@ export class GetRepositoryDto extends BaseDto<GetRepositoryDto> {
   @ApiProperty()
   project: Project
 
-  static toDto(repository: GetRepositoryDtoRecord): GetRepositoryDto {
+  @ApiProperty({ nullable: true })
+  details: RepositoryDetails | null
+
+  static toDto(
+    repository: GetRepositoryDtoRecord,
+    details: RepositoryDetails | null = null,
+  ): GetRepositoryDto {
     return {
       id: repository.id,
       url: repository.url,
       owner: repository.owner,
       project: repository.project,
+      details,
       createdAt: repository.created_at,
       updatedAt: repository.updated_at,
       deletedAt: repository.deleted_at ?? undefined,
