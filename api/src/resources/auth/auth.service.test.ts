@@ -12,6 +12,31 @@ import { AuthService } from './auth.service'
 describe('AuthService', () => {
   let service: AuthService
   let sign: ReturnType<typeof mock.fn>
+  let queryResults: unknown[]
+
+  class QueryResult<T> implements PromiseLike<T> {
+    constructor(private readonly result: T) {}
+    from() {
+      return this
+    }
+    where() {
+      return this
+    }
+    set() {
+      return this
+    }
+    returning() {
+      return this
+    }
+
+    // biome-ignore lint/suspicious/noThenProperty: Drizzle query builders are awaitable
+    then<TResult1 = T, TResult2 = never>(
+      onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
+      onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+    ): PromiseLike<TResult1 | TResult2> {
+      return Promise.resolve(this.result).then(onfulfilled, onrejected)
+    }
+  }
 
   const makePayload = (overrides: Partial<UserMetadata> = {}): UserMetadata => ({
     userId: 'user-1',
@@ -21,13 +46,15 @@ describe('AuthService', () => {
   })
 
   beforeEach(() => {
+    queryResults = []
+    const nextQuery = () => new QueryResult(queryResults.shift())
     let calls = 0
     sign = mock.fn(() => {
       calls += 1
       return calls === 1 ? 'access-token' : 'refresh-token'
     })
     service = new AuthService(
-      {} as DrizzleService,
+      { db: { select: nextQuery, update: nextQuery } } as unknown as DrizzleService,
       {} as CacheService,
       { sign } as unknown as JwtService,
       {} as MailService,
@@ -60,5 +87,59 @@ describe('AuthService', () => {
     service.clearTokenCookies({ clearCookie } as unknown as Response)
 
     assert.strictEqual(clearCookie.mock.callCount(), 2)
+  })
+
+  it('returns the authenticated user from the database', async () => {
+    const createdAt = new Date('2026-01-01T00:00:00Z')
+    const updatedAt = new Date('2026-01-02T00:00:00Z')
+    queryResults.push([
+      {
+        id: 'user-1',
+        name: 'Test User',
+        email: 'test@example.com',
+        role: 'user',
+        status: 'active',
+        two_factor: false,
+        created_at: createdAt,
+        updated_at: updatedAt,
+        deleted_at: null,
+      },
+    ])
+
+    const result = await service.me('user-1')
+
+    assert.deepEqual(result, {
+      ok: true,
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      role: 'user',
+      status: 'active',
+      twoFactor: false,
+      createdAt,
+      updatedAt,
+      deletedAt: undefined,
+    })
+  })
+
+  it('rejects login for an inactive user', async () => {
+    queryResults.push([
+      {
+        id: 'user-1',
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'hashed-password',
+        role: 'user',
+        status: 'inactive',
+        two_factor: false,
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+      },
+    ])
+
+    const result = await service.login({ username: 'test@example.com', password: 'secret' })
+
+    assert.deepEqual(result, { ok: false, errKey: 'unauthorizedErrKey' })
   })
 })

@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { USER_ROLES, USER_STATUSES } from '@db'
 import type { UserRole, UserStatus } from '@db'
+import { USER_ROLES, USER_STATUSES } from '@db'
+import { ApiProperty } from '@nestjs/swagger'
 import { BaseDto } from '@/utils/dtos/base.dto'
 
 export type GetUserDtoRecord = {

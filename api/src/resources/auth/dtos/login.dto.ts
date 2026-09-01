@@ -1,7 +1,7 @@
+import type { UserRole, UserStatus } from '@db'
+import { USER_ROLES, USER_STATUSES } from '@db'
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty, IsString } from 'class-validator'
-import { USER_ROLES, USER_STATUSES } from '@db'
-import type { UserRole, UserStatus } from '@db'
 
 export class LoginDto {
   @ApiProperty()

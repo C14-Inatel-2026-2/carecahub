@@ -1,9 +1,9 @@
 import { randomBytes } from 'node:crypto'
+import { users } from '@db'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { eq } from 'drizzle-orm'
 import { CookieOptions, Request as ExpressRequest, Response } from 'express'
-import type { UserRole, UserStatus } from '@db'
 import { CacheService } from '@/providers/cache/cache.service'
 import { CacheKey } from '@/providers/cache/cache.types'
 import { env } from '@/providers/config/env'
@@ -22,18 +22,40 @@ import {
   UserMetadata,
 } from '@/types'
 import { comparePassword, hashPassword } from '@/utils/password'
+import type { GetUserDtoRecord } from '../users/dto/get-user.dto'
 import { IAuthService } from './auth.interface'
 import { LoginDto, LoginResponseDto, LogoutDto, TwoFactorAuthDto } from './dtos/login.dto'
 import { GetMeDto, UpdateMeDto } from './dtos/me.dto'
 import { ChangePasswordDto, RecoverPasswordDto, ResetPasswordDto } from './dtos/password.dto'
 import { AuthTokens, RefreshTokenDto } from './dtos/tokens.dto'
-import type { GetUserDtoRecord } from '../users/dto/get-user.dto'
 
 const sameSiteDict: Record<typeof env.ENV_SCOPE, CookieOptions['sameSite']> = {
   local: 'lax',
   test: 'lax',
   development: 'none',
   production: 'strict',
+}
+
+const publicColumns = {
+  id: users.id,
+  name: users.name,
+  email: users.email,
+  role: users.role,
+  status: users.status,
+  two_factor: users.two_factor,
+  created_at: users.created_at,
+  updated_at: users.updated_at,
+  deleted_at: users.deleted_at,
+}
+
+const authColumns = {
+  ...publicColumns,
+  password: users.password,
+}
+
+const passwordColumns = {
+  id: users.id,
+  password: users.password,
 }
 
 @Injectable()
@@ -116,11 +138,10 @@ export class AuthService implements IAuthService {
   }
 
   async login(input: LoginDto): ServiceOutput<LoginResponseDto> {
-    const [user] = await this.database.users
-      .select(this.database.users.authColumns)
-      .where(eq(this.database.users.table.email, input.username))
-
-    this.logger.info('11111111111111')
+    const [user] = await this.database.db
+      .select(authColumns)
+      .from(users)
+      .where(eq(users.email, input.username))
 
     if (!user?.password || user.status !== 'active') {
       return { ok: false, errKey: ErrKeys.unauthorized }
@@ -137,8 +158,6 @@ export class AuthService implements IAuthService {
       name: user.name,
       role: user.role,
     }
-
-    this.logger.info('22222222222222222222')
 
     const { accessToken, refreshToken } = await this.prepareNewTokens(user.id, jwtPayload)
 
@@ -163,8 +182,6 @@ export class AuthService implements IAuthService {
         friendlyMessage: 'Email enviado.',
       }
     }
-
-    this.logger.info('3333333333333')
 
     return {
       ok: true,
@@ -214,9 +231,10 @@ export class AuthService implements IAuthService {
   }
 
   async me(userId: string): ServiceOutput<GetMeDto> {
-    const [user] = await this.database.users
-      .select(this.database.users.publicColumns)
-      .where(eq(this.database.users.table.id, userId))
+    const [user] = await this.database.db
+      .select(publicColumns)
+      .from(users)
+      .where(eq(users.id, userId))
 
     if (!user) {
       throw new UnauthorizedException()
@@ -228,22 +246,23 @@ export class AuthService implements IAuthService {
   async updateMe(userId: string, input: UpdateMeDto): ServiceOutput<GetMeDto> {
     const { ...userData } = input
 
-    const [user] = await this.database.users
-      .select(this.database.users.publicColumns)
-      .where(eq(this.database.users.table.id, userId))
+    const [user] = await this.database.db
+      .select(publicColumns)
+      .from(users)
+      .where(eq(users.id, userId))
 
     if (!user) {
       return { ok: false, errKey: ErrKeys.unauthorized }
     }
 
-    const [updatedUser] = await this.database.users
-      .update()
+    const [updatedUser] = await this.database.db
+      .update(users)
       .set({
         ...userData,
         updated_at: new Date(),
       })
-      .where(eq(this.database.users.table.id, userId))
-      .returning()
+      .where(eq(users.id, userId))
+      .returning(publicColumns)
 
     if (!updatedUser) {
       return { ok: false, errKey: ErrKeys.notFound }
@@ -274,9 +293,10 @@ export class AuthService implements IAuthService {
   }
 
   async recoverPassword(input: RecoverPasswordDto): Promise<void> {
-    const [user] = await this.database.users
-      .select(this.database.users.publicColumns)
-      .where(eq(this.database.users.table.email, input.email))
+    const [user] = await this.database.db
+      .select(publicColumns)
+      .from(users)
+      .where(eq(users.email, input.email))
 
     if (!user) {
       this.logger.warn(`Password recovery attempt for non-existing email: ${input.email}`)
@@ -319,9 +339,10 @@ export class AuthService implements IAuthService {
         throw new UnauthorizedException('Invalid or expired token')
       }
 
-      const [user] = await this.database.users
-        .select(this.database.users.passwordColumns)
-        .where(eq(this.database.users.table.email, cachedEmail))
+      const [user] = await this.database.db
+        .select(passwordColumns)
+        .from(users)
+        .where(eq(users.email, cachedEmail))
 
       if (!user) {
         throw new UnauthorizedException('User not found')
@@ -329,13 +350,13 @@ export class AuthService implements IAuthService {
 
       const hashedPassword = await hashPassword(input.password)
 
-      await this.database.users
-        .update()
+      await this.database.db
+        .update(users)
         .set({
           password: hashedPassword,
           updated_at: new Date(),
         })
-        .where(eq(this.database.users.table.id, user.id))
+        .where(eq(users.id, user.id))
 
       await this.cache.delete({
         key: CacheKey.recoverPasswordToken,
@@ -352,9 +373,10 @@ export class AuthService implements IAuthService {
   }
 
   async changePassword(userId: string, input: ChangePasswordDto) {
-    const [user] = await this.database.users
-      .select(this.database.users.passwordColumns)
-      .where(eq(this.database.users.table.id, userId))
+    const [user] = await this.database.db
+      .select(passwordColumns)
+      .from(users)
+      .where(eq(users.id, userId))
     if (!user?.password) {
       throw new UnauthorizedException()
     }
@@ -366,13 +388,13 @@ export class AuthService implements IAuthService {
 
     const hashedPassword = await hashPassword(input.newPassword)
 
-    await this.database.users
-      .update()
+    await this.database.db
+      .update(users)
       .set({
         password: hashedPassword,
         updated_at: new Date(),
       })
-      .where(eq(this.database.users.table.id, userId))
+      .where(eq(users.id, userId))
 
     this.logger.log(`Password changed successfully for user ${userId}`)
   }
