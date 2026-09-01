@@ -17,7 +17,7 @@ const userTable = pgTable("User", {
   classroom: varchar("classroom", { length: 2 }),
   email: varchar("email", { length: 255 }).notNull().unique(),
   password: text("password"),
-  role: userRoleEnum("role").notNull().default("user"),
+  role: userRoleEnum("role").notNull().default("student"),
   status: userStatusEnum("status").notNull().default("active"),
   two_factor: boolean("two_factor").notNull().default(false),
   created_at: timestamp("created_at", { withTimezone: true })

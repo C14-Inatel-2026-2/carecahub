@@ -15,6 +15,13 @@
       "when": 1788219895200,
       "tag": "0001_projects_repositories_relations",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788285117002,
+      "tag": "0002_new_user_enums",
+      "breakpoints": true
     }
   ]
 }
