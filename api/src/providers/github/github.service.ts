@@ -1,69 +1,75 @@
-import { EitherResponse } from "@/infra/http.types";
-import { Injectable } from "@nestjs/common";
-import { CustomLogger } from "@/providers/logger/custom-logger.service";
-import axios from "axios";
-import { RepositoryResponse } from "./github.types";
-import { env } from "@/providers/config/env";
+import { Injectable } from '@nestjs/common'
+import axios, { type AxiosInstance } from 'axios'
+import type { EitherResponse } from '@/infra/http.types'
+import { env } from '@/providers/config/env'
+import { CustomLogger } from '@/providers/logger/custom-logger.service'
+import type { RepositoryDetails } from './github.types'
 
 @Injectable()
 export class GitHubService {
-  private axios: axios.AxiosInstance;
+  private readonly axios: AxiosInstance
 
-  constructor(
-    private readonly logger: CustomLogger,
-    // TODO: Find out how and if the systemParams will be implemented
-    // private readonly systemParamsService: SystemParamsService,
-  ) {
+  constructor(private readonly logger: CustomLogger) {
     this.axios = axios.create({
       baseURL: env.GITHUB_BASE_URL,
       headers: {
-        "Content-Type": "application/json",
+        Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        'X-GitHub-Api-Version': '2026-03-10',
       },
       timeout: env.GITHUB_TIMEOUT,
-    });
-    this.axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        return Promise.reject(error);
-      },
-    );
+    })
   }
 
-  async getRepositoryFromUrl(
-    repositoryOwner: string,
-    repositoryUrl: string,
-  ): Promise<EitherResponse<RepositoryResponse>> {
-    this.logger.info(`GET repository from URL: ${repositoryUrl}`);
+  async getRepositoryFromUrl(repositoryUrl: string): Promise<EitherResponse<RepositoryDetails>> {
     try {
-      const response = await this.axios.get(
-        `/repos/${repositoryOwner}/${repositoryUrl}`,
-      );
-      this.logger.info(`Response GET repository by URL, ${response.data}`);
+      const { owner, repository } = this.parseRepositoryUrl(repositoryUrl)
+      this.logger.info(`GET GitHub repository details: ${owner}/${repository}`)
+      const response = await this.axios.get<RepositoryDetails>(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}`,
+      )
 
-      return {
-        success: true,
-        ...response.data,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      this.logger.error("Error get repository: ", err);
+      return { success: true, ...response.data }
+    } catch (error) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined
+      const isNotFound = status === 404
 
-      const isNotFound = err.response?.status === 404;
+      this.logger.error(
+        `Failed to get GitHub repository details: ${error instanceof Error ? error.message : String(error)}`,
+      )
 
       return {
         success: false,
-        errKey:
-          err.response?.data?.errKey ||
-          (isNotFound ? "repositoryNotFound" : "error"),
-        message:
-          err.response?.data?.detail || "Something went wrong, try again",
-        friendlyMessage:
-          err.response?.data?.friendlyMessage ||
-          (isNotFound
-            ? "Repositorio do GitHub nao encontrado. Verifique o URL vinculado."
-            : "Falha ao buscar repositorio no GitHub, tente novamente"),
-      };
+        errKey: isNotFound ? 'repositoryNotFound' : 'error',
+        message: isNotFound ? 'GitHub repository not found' : 'Failed to get GitHub repository',
+        friendlyMessage: isNotFound
+          ? 'Repositório do GitHub não encontrado. Verifique a URL vinculada.'
+          : 'Falha ao buscar o repositório no GitHub.',
+      }
     }
+  }
+
+  private parseRepositoryUrl(repositoryUrl: string) {
+    const url = new URL(repositoryUrl)
+    if (
+      url.protocol !== 'https:' ||
+      (url.hostname !== 'github.com' && url.hostname !== 'www.github.com') ||
+      url.username ||
+      url.password ||
+      url.port ||
+      url.search ||
+      url.hash
+    ) {
+      throw new Error('Invalid GitHub repository URL')
+    }
+
+    const parts = url.pathname.split('/').filter(Boolean)
+    if (parts.length !== 2) throw new Error('Invalid GitHub repository URL')
+
+    const [owner, rawRepository] = parts
+    const repository = rawRepository.replace(/\.git$/, '')
+    if (!owner || !repository) throw new Error('Invalid GitHub repository URL')
+
+    return { owner, repository }
   }
 }
