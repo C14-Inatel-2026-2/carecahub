@@ -2,23 +2,25 @@ import { relations } from "drizzle-orm";
 import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { projects } from "./project";
 import { users } from "./user";
+import { repositoryTypeEnum } from "../enums/repositoryEnums";
 
 const repositoryTable = pgTable("Repository", {
   id: uuid("id").defaultRandom().primaryKey(),
   url: varchar("url", { length: 255 }).notNull().unique(),
+  repositoryType: repositoryTypeEnum("repository_type").notNull(),
   ownerId: uuid("owner")
     .notNull()
     .references(() => users.id),
   projectId: uuid("project")
     .notNull()
     .references(() => projects.id),
-  created_at: timestamp("created_at", { withTimezone: true })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-  updated_at: timestamp("updated_at", { withTimezone: true })
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-  deleted_at: timestamp("deleted_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
 const repositoryRelations = relations(repositoryTable, ({ one }) => ({
