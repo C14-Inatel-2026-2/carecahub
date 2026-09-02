@@ -15,7 +15,13 @@ export class GetUserQueryDto extends QueryDto {
   })
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value;
+    }
+
+    return value.split(",");
+  })
   @IsEnum(USER_ROLE, { each: true })
   roles?: UserRole[];
 }

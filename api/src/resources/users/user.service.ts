@@ -1,6 +1,16 @@
 import { USER_ROLES, type UserRole, users } from "@db";
 import { Injectable } from "@nestjs/common";
-import { and, count, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNull,
+  or,
+} from "drizzle-orm";
 import { DrizzleService } from "@/providers/database/drizzle.service";
 import { CustomLogger } from "@/providers/logger/custom-logger.service";
 import { LoggerFactory } from "@/providers/logger/logger-factory.service";
@@ -117,7 +127,7 @@ export class UsersService implements IUsersService {
         .select(publicColumns)
         .from(users)
         .where(where)
-        .orderBy(desc(users.createdAt))
+        .orderBy(asc(users.name))
         .offset(query.skip)
         .limit(query.take),
       this.database.db.select({ count: count() }).from(users).where(where),
