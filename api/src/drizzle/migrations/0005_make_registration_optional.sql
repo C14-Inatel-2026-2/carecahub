@@ -1,0 +1,1 @@
+ALTER TABLE "User" ALTER COLUMN "registration" DROP NOT NULL;

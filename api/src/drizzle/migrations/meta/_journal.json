@@ -29,6 +29,20 @@
       "when": 1788369325804,
       "tag": "0003_wide_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788371374082,
+      "tag": "0004_add_mentor_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788372980284,
+      "tag": "0005_make_registration_optional",
+      "breakpoints": true
     }
   ]
 }

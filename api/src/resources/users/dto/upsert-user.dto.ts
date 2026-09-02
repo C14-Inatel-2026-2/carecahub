@@ -1,12 +1,15 @@
+import { USER_ROLES, type UserRole } from '@db'
 import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger'
 import {
   IsEmail,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
   IsStrongPassword,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator'
 
 export class CreateUserDto {
@@ -15,9 +18,13 @@ export class CreateUserDto {
   @MinLength(3)
   name: string
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @ValidateIf(
+    (dto: CreateUserDto, value: unknown) =>
+      ['mentor', 'student'].includes(dto.role) || value !== undefined,
+  )
   @IsInt()
-  registration: number
+  registration?: number
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -39,6 +46,10 @@ export class CreateUserDto {
   @IsString()
   @IsStrongPassword()
   password: string
+
+  @ApiProperty({ enum: USER_ROLES })
+  @IsIn(USER_ROLES)
+  role: UserRole
 }
 
 export class UpdateUserDto extends PartialType(OmitType(CreateUserDto, ['password'])) {}

@@ -44,7 +44,7 @@ export function LoginPage() {
     const next =
       requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
         ? requestedPath
-        : appRoutes.posts;
+        : appRoutes.users;
     navigate(next, { replace: true });
   }
 

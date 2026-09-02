@@ -1,25 +1,23 @@
-import { users } from "@db";
-import { Injectable } from "@nestjs/common";
-import { and, count, desc, eq, ilike, isNull, or } from "drizzle-orm";
-import { DrizzleService } from "@/providers/database/drizzle.service";
-import { CustomLogger } from "@/providers/logger/custom-logger.service";
-import { LoggerFactory } from "@/providers/logger/logger-factory.service";
-import { ErrKeys, ServiceOutput, UserMetadata } from "@/types";
-import { QueryDto } from "@/utils/dtos/query.dto";
-import { hashPassword } from "@/utils/password";
-import type { GetUserDtoRecord } from "./dto/get-user.dto";
-import { GetUserDto } from "./dto/get-user.dto";
-import { CreateUserDto, UpdateUserDto } from "./dto/upsert-user.dto";
-import {
-  GetUserOutput,
-  IUsersService,
-  ListUserOutput,
-  UpsertUserOutput,
-} from "./user.interface";
+import { USER_ROLES, type UserRole, users } from '@db'
+import { Injectable } from '@nestjs/common'
+import { and, count, desc, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
+import { DrizzleService } from '@/providers/database/drizzle.service'
+import { CustomLogger } from '@/providers/logger/custom-logger.service'
+import { LoggerFactory } from '@/providers/logger/logger-factory.service'
+import { ErrKeys, ServiceOutput, UserMetadata } from '@/types'
+import { QueryDto } from '@/utils/dtos/query.dto'
+import { hashPassword } from '@/utils/password'
+import type { GetUserDtoRecord } from './dto/get-user.dto'
+import { GetUserDto } from './dto/get-user.dto'
+import { CreateUserDto, UpdateUserDto } from './dto/upsert-user.dto'
+import { GetUserOutput, IUsersService, ListUserOutput, UpsertUserOutput } from './user.interface'
 
 const publicColumns = {
   id: users.id,
   name: users.name,
+  registration: users.registration,
+  githubName: users.githubName,
+  classroom: users.classroom,
   email: users.email,
   role: users.role,
   status: users.status,
@@ -27,29 +25,33 @@ const publicColumns = {
   createdAt: users.createdAt,
   updatedAt: users.updatedAt,
   deletedAt: users.deletedAt,
-};
+}
 
 @Injectable()
 export class UsersService implements IUsersService {
-  private readonly logger: CustomLogger;
+  private readonly logger: CustomLogger
 
   constructor(
     private readonly database: DrizzleService,
     loggerFactory: LoggerFactory,
   ) {
-    this.logger = loggerFactory.create(UsersService.name);
+    this.logger = loggerFactory.create(UsersService.name)
   }
 
-  async register(input: CreateUserDto): Promise<UpsertUserOutput> {
+  async register(input: CreateUserDto, requester: UserMetadata): Promise<UpsertUserOutput> {
+    if (!this.canManage(requester, input.role)) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
+
     const [exists] = await this.database.db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.email, input.email));
-    if (exists) return { ok: false, errKey: ErrKeys.alreadyExists };
+      .where(eq(users.email, input.email))
+    if (exists) return { ok: false, errKey: ErrKeys.alreadyExists }
 
-    let user: GetUserDtoRecord;
+    let user: GetUserDtoRecord
     try {
-      [user] = await this.database.db
+      ;[user] = await this.database.db
         .insert(users)
         .values({
           name: input.name,
@@ -58,32 +60,33 @@ export class UsersService implements IUsersService {
           classroom: input.classroom,
           email: input.email,
           password: await hashPassword(input.password),
-          role: "student",
+          role: input.role,
         })
-        .returning(publicColumns);
+        .returning(publicColumns)
     } catch (error) {
       if (this.isUniqueViolation(error)) {
-        return { ok: false, errKey: ErrKeys.alreadyExists };
+        return { ok: false, errKey: ErrKeys.alreadyExists }
       }
-      throw error;
+      throw error
     }
 
-    return { ok: true, ...GetUserDto.toDto(user) };
+    return { ok: true, ...GetUserDto.toDto(user) }
   }
 
-  async findAll(
-    query: QueryDto,
-    _requester?: UserMetadata,
-  ): Promise<ListUserOutput> {
+  async findAll(query: QueryDto, requester?: UserMetadata): Promise<ListUserOutput> {
+    const allowedRoles = this.allowedTargetRoles(requester)
+    if (allowedRoles.length === 0) {
+      return { ok: true, totalCount: 0, data: [] }
+    }
+
+    const roleScope = inArray(users.role, allowedRoles)
     const where = query.search
       ? and(
           isNull(users.deletedAt),
-          or(
-            ilike(users.name, `%${query.search}%`),
-            ilike(users.email, `%${query.search}%`),
-          ),
+          roleScope,
+          or(ilike(users.name, `%${query.search}%`), ilike(users.email, `%${query.search}%`)),
         )
-      : isNull(users.deletedAt);
+      : and(isNull(users.deletedAt), roleScope)
     const [userRows, totalCount] = await Promise.all([
       this.database.db
         .select(publicColumns)
@@ -93,23 +96,26 @@ export class UsersService implements IUsersService {
         .offset(query.skip)
         .limit(query.take),
       this.database.db.select({ count: count() }).from(users).where(where),
-    ]);
+    ])
 
     return {
       ok: true,
       totalCount: Number(totalCount[0]?.count ?? 0),
       data: userRows.map((user) => GetUserDto.toDto(user)),
-    };
+    }
   }
 
-  async findOne(id: string, _requester?: UserMetadata): Promise<GetUserOutput> {
+  async findOne(id: string, requester?: UserMetadata): Promise<GetUserOutput> {
     const [user] = await this.database.db
       .select(publicColumns)
       .from(users)
-      .where(and(eq(users.id, id), isNull(users.deletedAt)));
-    if (!user) return { ok: false, errKey: ErrKeys.notFound };
+      .where(and(eq(users.id, id), isNull(users.deletedAt)))
+    if (!user) return { ok: false, errKey: ErrKeys.notFound }
+    if (!this.canManage(requester, user.role)) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
 
-    return { ok: true, ...GetUserDto.toDto(user) };
+    return { ok: true, ...GetUserDto.toDto(user) }
   }
 
   async update(
@@ -120,59 +126,71 @@ export class UsersService implements IUsersService {
     const [user] = await this.database.db
       .select(publicColumns)
       .from(users)
-      .where(and(eq(users.id, id), isNull(users.deletedAt)));
-    if (!user) return { ok: false, errKey: ErrKeys.notFound };
+      .where(and(eq(users.id, id), isNull(users.deletedAt)))
+    if (!user) return { ok: false, errKey: ErrKeys.notFound }
+    if (!this.canManage(_requester, user.role)) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
+    if (input.role && !this.canManage(_requester, input.role)) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
 
     if (input.email && input.email !== user.email) {
       const [emailInUse] = await this.database.db
         .select({ id: users.id })
         .from(users)
-        .where(eq(users.email, input.email));
-      if (emailInUse) return { ok: false, errKey: ErrKeys.alreadyExists };
+        .where(eq(users.email, input.email))
+      if (emailInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
     }
 
-    let updatedUser: GetUserDtoRecord;
+    let updatedUser: GetUserDtoRecord
     try {
-      [updatedUser] = await this.database.db
+      ;[updatedUser] = await this.database.db
         .update(users)
         .set({ ...input, updatedAt: new Date() })
         .where(eq(users.id, id))
-        .returning(publicColumns);
+        .returning(publicColumns)
     } catch (error) {
       if (this.isUniqueViolation(error)) {
-        return { ok: false, errKey: ErrKeys.alreadyExists };
+        return { ok: false, errKey: ErrKeys.alreadyExists }
       }
-      throw error;
+      throw error
     }
 
-    return { ok: true, ...GetUserDto.toDto(updatedUser) };
+    return { ok: true, ...GetUserDto.toDto(updatedUser) }
   }
 
-  async remove(
-    id: string,
-    _requester: UserMetadata,
-  ): Promise<ServiceOutput<object>> {
+  async remove(id: string, _requester: UserMetadata): Promise<ServiceOutput<object>> {
     const [user] = await this.database.db
-      .select({ id: users.id })
+      .select({ id: users.id, role: users.role })
       .from(users)
-      .where(and(eq(users.id, id), isNull(users.deletedAt)));
-    if (!user) return { ok: false, errKey: ErrKeys.notFound };
+      .where(and(eq(users.id, id), isNull(users.deletedAt)))
+    if (!user) return { ok: false, errKey: ErrKeys.notFound }
+    if (!this.canManage(_requester, user.role)) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
 
     await this.database.db
       .update(users)
-      .set({ status: "deleted", deletedAt: new Date(), updatedAt: new Date() })
-      .where(eq(users.id, id));
+      .set({ status: 'deleted', deletedAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, id))
 
-    this.logger.log(`User ${id} removed`);
-    return { ok: true };
+    this.logger.log(`User ${id} removed`)
+    return { ok: true }
   }
 
-  private isUniqueViolation(error: unknown): error is { code: "23505" } {
-    return (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "23505"
-    );
+  private isUniqueViolation(error: unknown): error is { code: '23505' } {
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === '23505'
+  }
+
+  private allowedTargetRoles(requester?: UserMetadata): UserRole[] {
+    if (requester?.role === 'admin') return [...USER_ROLES]
+    if (requester?.role === 'teacher') return ['mentor', 'student']
+    if (requester?.role === 'mentor') return ['student']
+    return []
+  }
+
+  private canManage(requester: UserMetadata | undefined, targetRole: UserRole): boolean {
+    return this.allowedTargetRoles(requester).includes(targetRole)
   }
 }

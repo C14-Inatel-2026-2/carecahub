@@ -3,6 +3,7 @@ import {
   CallHandler,
   ConflictException,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NestInterceptor,
@@ -33,6 +34,12 @@ export function throwErrKey(errKey: ErrKeys) {
       })
     case 'unauthorized':
       throw new UnauthorizedException({
+        message,
+        friendlyMessage,
+        errKey,
+      })
+    case 'forbidden':
+      throw new ForbiddenException({
         message,
         friendlyMessage,
         errKey,

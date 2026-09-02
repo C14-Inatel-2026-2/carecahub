@@ -18,7 +18,9 @@ const commonPages = [
 
 export const pagesByRole: Record<UserRole, AppRoute[]> = {
   admin: [...commonPages, appRoutes.users],
-  user: [...commonPages],
+  teacher: [...commonPages, appRoutes.users],
+  mentor: [...commonPages, appRoutes.users],
+  student: [...commonPages],
 }
 
 export function AuthLayout() {

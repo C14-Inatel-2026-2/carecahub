@@ -10,7 +10,7 @@ export type GetUserOutput = ServiceOutput<GetUserDto>
 export type ListUserOutput = ServiceOutput<List<GetUserDto>>
 
 export abstract class IUsersService {
-  abstract register(input: CreateUserDto): Promise<UpsertUserOutput>
+  abstract register(input: CreateUserDto, requester: UserMetadata): Promise<UpsertUserOutput>
   abstract findAll(query: QueryDto, requester?: UserMetadata): Promise<ListUserOutput>
   abstract findOne(id: string, requester?: UserMetadata): Promise<GetUserOutput>
   abstract update(
