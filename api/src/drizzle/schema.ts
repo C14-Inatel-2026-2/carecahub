@@ -1,12 +1,12 @@
 import {
-  users,
   bucketFiles,
-  systemParams,
   projects,
   repositories,
   repositoryRelations,
-} from "./schema/entities";
-import { userRoleEnum, userStatusEnum } from "./schema/enums";
+  systemParams,
+  users,
+} from './schema/entities'
+import { repositoryTypeEnum, userRoleEnum, userStatusEnum } from './schema/enums'
 
 export const schema = {
   users,
@@ -14,19 +14,21 @@ export const schema = {
   systemParams,
   repositories,
   projects,
+  repositoryTypeEnum,
   userRoleEnum,
   userStatusEnum,
   repositoryRelations,
-};
+}
 
-export default schema;
+export default schema
 export {
-  users,
   bucketFiles,
-  systemParams,
-  repositories,
   projects,
+  repositories,
   repositoryRelations,
+  repositoryTypeEnum,
+  systemParams,
   userRoleEnum,
   userStatusEnum,
-};
+  users,
+}
