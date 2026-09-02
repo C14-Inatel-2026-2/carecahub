@@ -37,19 +37,20 @@ export function AppHeader({ user }: AppHeaderProps) {
   return (
     <header className="flex min-h-12 items-center justify-between gap-3 border-b bg-card/70 px-3 py-2 md:px-5">
       <SidebarTrigger />
-      <div className="flex flex-wrap items-center justify-end gap-2 text-sm">
+      <div className="flex flex-wrap items-center justify-end gap-2 text-sm py-2">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button size="sm" variant="ghost" className="font-normal" />
+              <Button size="xl" variant="ghost" className="font-normal" />
             }
           >
-            <CircleUserRound />
-            <span className="hidden sm:inline">{user.name}</span>
-            <span className="hidden sm:inline">
-              {userRoleLabels[user.role]}
-            </span>
-            <ChevronDown className="size-3.5" />
+            <CircleUserRound className="size-9" />
+            <div className="hidden sm:flex flex-col items-start gap-1 leading-tight">
+              <span className="text-base font-semibold">{user.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {userRoleLabels[user.role]}
+              </span>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-56">
             <DropdownMenuGroup>
