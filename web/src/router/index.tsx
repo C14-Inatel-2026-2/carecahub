@@ -1,8 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "../components/layout/auth-layout";
 import { LoginPage } from "../modules/auth/login-page";
-import { UsersListPage } from "../modules/users/list-page";
+import { UsersPage } from "../modules/users/users-page";
+import { ProjectsPage } from "../modules/projects/projects-page";
 import { appRoutes } from "./routes";
+import { GroupsPage } from "@/modules/groups/groups-page";
 
 export const router = createBrowserRouter([
   { path: appRoutes.login, Component: LoginPage },
@@ -11,11 +13,15 @@ export const router = createBrowserRouter([
     children: [
       {
         path: appRoutes.users,
-        children: [
-          { index: true, Component: UsersListPage },
-          // { path: ":id", Component: UsersPage },
-          // { path: ":id/edit", Component: UsersPage },
-        ],
+        children: [{ index: true, Component: UsersPage }],
+      },
+      {
+        path: appRoutes.projects,
+        children: [{ index: true, Component: ProjectsPage }],
+      },
+      {
+        path: appRoutes.groups,
+        children: [{ index: true, Component: GroupsPage }],
       },
     ],
   },

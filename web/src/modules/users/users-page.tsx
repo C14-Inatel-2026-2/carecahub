@@ -16,7 +16,7 @@ import { CreateUserDialog } from "./dialogs/create-user-dialog";
 import { DeleteUserDialog } from "./dialogs/delete-user-dialog";
 import { EditUserDialog } from "./dialogs/edit-user-dialog";
 
-export function UsersListPage() {
+export function UsersPage() {
   const user = useUser((state) => state.user);
 
   const getVisibleRoles = (role: User["role"] | undefined) => {
