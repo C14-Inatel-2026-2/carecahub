@@ -15,13 +15,13 @@ const bucketFileTable = pgTable("BucketFile", {
   size: integer("size").notNull(),
   url: text("url").notNull().default(""),
   is_public: boolean("is_public").notNull().default(false),
-  created_at: timestamp("created_at", { withTimezone: true })
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-  updated_at: timestamp("updated_at", { withTimezone: true })
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-  deleted_at: timestamp("deleted_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
 export { bucketFileTable as bucketFiles };

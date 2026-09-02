@@ -10,7 +10,7 @@ import { BucketService } from './bucket.service'
 // Mock dependencies
 describe('BucketService Image Resizing', () => {
   let service: BucketService
-  let createBucketFile: ReturnType<typeof mock.fn>
+  let insertBucketFileValues: ReturnType<typeof mock.fn>
   let sendToS3: ReturnType<typeof mock.fn>
 
   beforeEach(async () => {
@@ -21,14 +21,14 @@ describe('BucketService Image Resizing', () => {
         createdAt: new Date(),
       },
     ])
-    const insertBucketFile = mock.fn(() => ({
+    insertBucketFileValues = mock.fn(() => ({
       returning: returningBucketFile,
     }))
-    createBucketFile = insertBucketFile
     const mockDrizzleService = {
-      bucketFiles: {
-        table: {},
-        insert: insertBucketFile,
+      db: {
+        insert: mock.fn(() => ({
+          values: insertBucketFileValues,
+        })),
       },
     }
     const mockCacheService = { get: mock.fn(), set: mock.fn() }
@@ -80,8 +80,8 @@ describe('BucketService Image Resizing', () => {
     assert.strictEqual(file.mimetype, 'image/jpeg')
 
     // Verify database call
-    assert.strictEqual(createBucketFile.mock.callCount(), 1)
-    const databaseInput = createBucketFile.mock.calls[0].arguments[0] as {
+    assert.strictEqual(insertBucketFileValues.mock.callCount(), 1)
+    const databaseInput = insertBucketFileValues.mock.calls[0].arguments[0] as {
       filename: string
       size: number
     }

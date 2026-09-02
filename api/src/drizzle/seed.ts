@@ -52,8 +52,8 @@ export async function seed(
           password: adminPassword,
           role: "admin",
           status: "active",
-          deleted_at: null,
-          updated_at: new Date(),
+          deletedAt: null,
+          updatedAt: new Date(),
         })
         .onConflictDoUpdate({
           target: users.id,
@@ -66,8 +66,8 @@ export async function seed(
             password: adminPassword,
             role: "admin",
             status: "active",
-            deleted_at: null,
-            updated_at: new Date(),
+            deletedAt: null,
+            updatedAt: new Date(),
           },
         });
 
@@ -83,8 +83,8 @@ export async function seed(
           password: userPassword,
           role: "student",
           status: "active",
-          deleted_at: null,
-          updated_at: new Date(),
+          deletedAt: null,
+          updatedAt: new Date(),
         })
         .onConflictDoUpdate({
           target: users.id,
@@ -97,8 +97,8 @@ export async function seed(
             password: userPassword,
             role: "student",
             status: "active",
-            deleted_at: null,
-            updated_at: new Date(),
+            deletedAt: null,
+            updatedAt: new Date(),
           },
         });
 
@@ -107,15 +107,15 @@ export async function seed(
         .values({
           id: seedIds.project,
           projectName: "CarecaHub Seed Project",
-          deleted_at: null,
-          updated_at: new Date(),
+          deletedAt: null,
+          updatedAt: new Date(),
         })
         .onConflictDoUpdate({
           target: projects.id,
           set: {
             projectName: "CarecaHub Seed Project",
-            deleted_at: null,
-            updated_at: new Date(),
+            deletedAt: null,
+            updatedAt: new Date(),
           },
         });
 
@@ -126,8 +126,8 @@ export async function seed(
           url: "https://github.com/octocat/Hello-World",
           ownerId: seedIds.student,
           projectId: seedIds.project,
-          deleted_at: null,
-          updated_at: new Date(),
+          deletedAt: null,
+          updatedAt: new Date(),
         })
         .onConflictDoUpdate({
           target: repositories.id,
@@ -135,8 +135,8 @@ export async function seed(
             url: "https://github.com/octocat/Hello-World",
             ownerId: seedIds.student,
             projectId: seedIds.project,
-            deleted_at: null,
-            updated_at: new Date(),
+            deletedAt: null,
+            updatedAt: new Date(),
           },
         });
     });

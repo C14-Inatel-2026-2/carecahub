@@ -18,7 +18,7 @@ folders. It is not a Turborepo or a workspace monorepo.
 - API resources live in `api/src/resources/<resource>/` and include a module,
   controller, service, interface, and DTOs. Register each module in `AppModule`.
 - API list endpoints use `QueryDto`; services return `ServiceOutput<T>` and soft
-  delete records with `deleted_at`.
+  delete records with `deletedAt`.
 - Frontend validation schemas and form requests live in `web/src/types/<domain>.ts` and use `z.infer<typeof schema>`.
 - Frontend mutations use `writer("METHOD /path", options)` and handle its
   `{ ok, data | error }` result. Reads use the SWR fetcher/hooks.

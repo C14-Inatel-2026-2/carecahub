@@ -9,5 +9,5 @@ Every resource must include a module, controller, interface, service and DTOs.
 - DTOs may extend `BaseDto`. Services return static toDto most of the time; `ServiceOutput<T>` enforces the TypeScript contract.
 - Register resource modules in `AppModule`. Use `@User()` for ownership and keep
   authorization checks in the service when access depends on the record owner.
-- List records with `deleted_at: null`, map database records through a response DTO,
-  and soft delete by setting `deleted_at`.
+- List records with `deletedAt: null`, map database records through a response DTO,
+  and soft delete by setting `deletedAt`.

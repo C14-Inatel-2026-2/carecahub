@@ -58,4 +58,4 @@ Every resource must contain a module, controller, interface, service and DTOs. K
 Register each resource module in `src/app.module.ts`. Use `@User()` in controllers
 for authenticated ownership and enforce owner-or-admin access in the service.
 List only non-deleted rows, map database records through a response DTO, and soft
-delete by setting `deleted_at`.
+delete by setting `deletedAt`.
