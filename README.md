@@ -41,4 +41,4 @@ Web: `http://localhost:5173`
 
 ---
 
-Keep it simple. By Gabriel Silva
+Keep it simple.
