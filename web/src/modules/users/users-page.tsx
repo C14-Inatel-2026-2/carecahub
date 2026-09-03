@@ -56,6 +56,16 @@ export function UsersPage() {
     },
     { header: "E-mail", accessorKey: "email", sortable: true },
     {
+      header: "Turma",
+      accessorKey: "classroom",
+      sortable: true,
+      cell: (listedUser) => (
+        <span className="font-medium text-foreground">
+          {listedUser.classroom || "—"}
+        </span>
+      ),
+    },
+    {
       header: "Função",
       accessorKey: "role",
       sortable: false,
