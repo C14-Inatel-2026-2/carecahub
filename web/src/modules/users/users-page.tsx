@@ -117,7 +117,8 @@ export function UsersPage() {
             {user?.role === "admin" ? "Usuários" : "Alunos"}
           </h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Gerencie as contas com acesso ao CarecaHub.
+            Gerencie {user?.role === "admin" ? "os usuários" : "os alunos"} com
+            acesso ao CarecaHub.
           </p>
         </div>
         <div className="flex w-full items-center gap-2 sm:w-auto">
