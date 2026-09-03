@@ -3,7 +3,7 @@ import { writer } from "@/api/writer";
 import { Dialog } from "@/components/ui/dialog";
 import type { User, UserRole } from "@/types/user";
 import { updateUserSchema } from "@/types/user";
-import { UserFormDialog } from "./mentor-form-dialog";
+import { MentorFormDialog } from "./mentor-form-dialog";
 
 export function EditUserDialog({
   user,
@@ -20,7 +20,7 @@ export function EditUserDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <UserFormDialog
+      <MentorFormDialog
         title="Editar usuário"
         description="Atualize os dados básicos da conta."
         submitLabel="Salvar alterações"
