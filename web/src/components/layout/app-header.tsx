@@ -1,4 +1,4 @@
-import { ChevronDown, CircleUserRound, KeyRound, LogOut } from "lucide-react";
+import { CircleUserRound, KeyRound, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { writer } from "@/api/writer";

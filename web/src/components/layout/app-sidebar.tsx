@@ -1,4 +1,4 @@
-import { BookUser, Users, Boxes } from "lucide-react";
+import { BookUser, Users, Boxes, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import { appRoutes } from "@/router/routes";
 import type { LoggedUser } from "@/types/auth";
+import { pagesByRole } from "./auth-layout";
 
 export function AppSidebar({ user }: { user: LoggedUser }) {
   const location = useLocation();
@@ -41,7 +42,7 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
           </SidebarGroupLabel>*/}
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {user.role !== "student" && (
+              {pagesByRole[user.role].includes(appRoutes.users) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     isActive={location.pathname === appRoutes.users}
@@ -54,20 +55,20 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-              {user.role !== "student" && (
+              {pagesByRole[user.role].includes(appRoutes.mentors) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    isActive={location.pathname === appRoutes.projects}
-                    tooltip="Projetos"
+                    isActive={location.pathname === appRoutes.mentors}
+                    tooltip="Monitores"
                     className="h-9 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent"
-                    render={<Link to={appRoutes.projects} />}
+                    render={<Link to={appRoutes.mentors} />}
                   >
-                    <Boxes />
-                    <span>Projetos</span>
+                    <User />
+                    <span>Monitores</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-              {user.role !== "student" && (
+              {pagesByRole[user.role].includes(appRoutes.groups) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     isActive={location.pathname === appRoutes.groups}
@@ -77,6 +78,19 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
                   >
                     <Users />
                     <span>Grupos</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {pagesByRole[user.role].includes(appRoutes.projects) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={location.pathname === appRoutes.projects}
+                    tooltip="Projetos"
+                    className="h-9 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent"
+                    render={<Link to={appRoutes.projects} />}
+                  >
+                    <Boxes />
+                    <span>Projetos</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}

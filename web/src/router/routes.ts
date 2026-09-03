@@ -2,6 +2,7 @@ export const appRoutes = {
   home: "/",
   login: "/login",
   users: "/users",
+  mentors: "/mentors",
   projects: "/projects",
   groups: "/groups",
   profile: "/profile",

@@ -5,6 +5,7 @@ import { UsersPage } from "../modules/users/users-page";
 import { ProjectsPage } from "../modules/projects/projects-page";
 import { appRoutes } from "./routes";
 import { GroupsPage } from "@/modules/groups/groups-page";
+import { MentorsPage } from "@/modules/mentors/mentors-page";
 
 export const router = createBrowserRouter([
   { path: appRoutes.login, Component: LoginPage },
@@ -14,6 +15,10 @@ export const router = createBrowserRouter([
       {
         path: appRoutes.users,
         children: [{ index: true, Component: UsersPage }],
+      },
+      {
+        path: appRoutes.mentors,
+        children: [{ index: true, Component: MentorsPage }],
       },
       {
         path: appRoutes.projects,

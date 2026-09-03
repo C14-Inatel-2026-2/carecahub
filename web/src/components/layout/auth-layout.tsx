@@ -25,6 +25,7 @@ export const pagesByRole: Record<UserRole, AppRoute[]> = {
   teacher: [
     ...commonPages,
     appRoutes.users,
+    appRoutes.mentors,
     appRoutes.projects,
     appRoutes.groups,
   ],

@@ -11,29 +11,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUser } from "@/stores/use-user";
 import { type User, userRoleLabels } from "@/types/user";
-import { DeleteUserDialog } from "./dialogs/delete-user-dialog";
-import { EditUserDialog } from "./dialogs/edit-user-dialog";
+import { DeleteUserDialog } from "./dialogs/delete-mentor-dialog";
+import { EditUserDialog } from "./dialogs/edit-mentor-dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { CreateUserDialog } from "./dialogs/create-user-dialog";
+import { CreateMentorDialog } from "./dialogs/create-mentor-dialog";
 import { getBadgeClassNamesByRole } from "@/lib/badges";
 
-export function UsersPage() {
+export function MentorsPage() {
   const user = useUser((state) => state.user);
-
-  const getVisibleRoles = (role: User["role"] | undefined) => {
-    switch (role) {
-      case "admin":
-        return ["admin", "teacher", "mentor", "student"];
-      case "teacher":
-        return ["student"];
-      case "mentor":
-        return ["student"];
-      default:
-        return [];
-    }
-  };
 
   const {
     data: users,
@@ -41,7 +28,7 @@ export function UsersPage() {
     mutate,
   } = useList({
     endpoint: "/users",
-    params: { take: 100, roles: getVisibleRoles(user?.role) },
+    params: { take: 100, roles: "mentor" },
     disabled: !user || user.role === "student",
   });
   const [search, setSearch] = useState("");
@@ -103,11 +90,9 @@ export function UsersPage() {
     <section className="w-full px-4 py-5 md:px-6 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-lg font-medium">
-            {user?.role === "admin" ? "Usuários" : "Alunos"}
-          </h1>
+          <h1 className="text-lg font-medium">Monitores</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Gerencie as contas com acesso ao CarecaHub.
+            Gerencie as os monitores da disciplina dentro do CarecaHub.
           </p>
         </div>
         <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -115,18 +100,18 @@ export function UsersPage() {
             htmlFor="users-search"
             className="relative min-w-0 flex-1 sm:w-72 sm:flex-none"
           >
-            <span className="sr-only">Buscar usuários</span>
+            <span className="sr-only">Buscar monitores</span>
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-icon-muted" />
             <Input
               id="users-search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="pl-8"
-              placeholder="Buscar usuários…"
+              placeholder="Buscar monitores…"
             />
           </label>
           {user && (
-            <CreateUserDialog
+            <CreateMentorDialog
               requesterRole={user.role}
               onCreated={() => void mutate()}
             />
@@ -149,12 +134,12 @@ export function UsersPage() {
           }}
           emptyStateIcon={<Users className="size-8 text-icon-muted" />}
           emptyStateTitle={
-            search ? "Nenhum usuário encontrado" : "Nenhum usuário"
+            search ? "Nenhum monitor encontrado" : "Nenhum monitor"
           }
           emptyStateDescription={
             search
               ? "Tente outro nome, e-mail ou função."
-              : "Crie a primeira conta de usuário."
+              : "Crie a primeira conta de monitor."
           }
         />
       </div>
@@ -192,14 +177,14 @@ function UserActions({
         <DropdownMenuContent align="end" className="min-w-44">
           <DropdownMenuItem onClick={() => setEditOpen(true)}>
             <Pencil />
-            Editar usuário
+            Editar monitor
           </DropdownMenuItem>
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
             onClick={() => setDeleteOpen(true)}
           >
             <Trash2 />
-            Excluir usuário
+            Excluir monitor
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
