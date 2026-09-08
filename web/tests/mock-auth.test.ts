@@ -53,19 +53,17 @@ describe('mock authentication', () => {
   it('rejects an unknown account or an invalid password', () => {
     const storage = new MemoryStorage()
 
-    expect(
-      () =>
-        loginMockUser(storage, {
-          username: 'desconhecido@carecahub.com',
-          password: 'Careca!123',
-        })
+    expect(() =>
+      loginMockUser(storage, {
+        username: 'desconhecido@carecahub.com',
+        password: 'Careca!123',
+      })
     ).toThrow(/E-mail ou senha inválidos/)
-    expect(
-      () =>
-        loginMockUser(storage, {
-          username: 'admin@carecahub.com',
-          password: 'senha-incorreta',
-        })
+    expect(() =>
+      loginMockUser(storage, {
+        username: 'admin@carecahub.com',
+        password: 'senha-incorreta',
+      })
     ).toThrow(/E-mail ou senha inválidos/)
   })
 
