@@ -13,6 +13,8 @@ export function GroupsPage() {
           </p>
         </div>
       </div>
+
+      <div className="mt-5" /*aria-busy={isLoadingGroups}*/></div>
     </section>
   );
 }
