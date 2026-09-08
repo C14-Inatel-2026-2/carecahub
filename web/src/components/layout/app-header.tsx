@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { logoutMockUser } from "@/mocks/auth";
+import { isMockAPIEnabled } from "@/mocks/config";
 import { ChangePasswordDialog } from "@/modules/auth/dialogs/change-password-dialog";
 import { appRoutes } from "@/router/routes";
 import { useUser } from "@/stores/use-user";
@@ -29,7 +31,11 @@ export function AppHeader({ user }: AppHeaderProps) {
   const [passwordOpen, setPasswordOpen] = useState(false);
 
   async function logout() {
-    await writer("POST /auth/logout", { body: undefined, silent: true });
+    if (isMockAPIEnabled) {
+      logoutMockUser(localStorage);
+    } else {
+      await writer("POST /auth/logout", { body: undefined, silent: true });
+    }
     clearUser();
     navigate(appRoutes.login, { replace: true });
   }
