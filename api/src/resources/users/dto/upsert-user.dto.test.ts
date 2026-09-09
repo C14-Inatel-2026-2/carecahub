@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
 import { validate } from 'class-validator'
+import { describe, it } from 'vitest'
 import { CreateUserDto } from './upsert-user.dto'
 
 function createDto(role: CreateUserDto['role'], registration?: number) {
