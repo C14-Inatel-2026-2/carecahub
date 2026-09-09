@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
-import { beforeEach, describe, it, mock } from 'node:test'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import sharp from 'sharp'
+import { beforeEach, describe, it, vi } from 'vitest'
 import { CacheService } from '../cache/cache.service'
 import { DrizzleService } from '../database/drizzle.service'
 import { LoggerFactory } from '../logger/logger-factory.service'
@@ -10,30 +10,30 @@ import { BucketService } from './bucket.service'
 // Mock dependencies
 describe('BucketService Image Resizing', () => {
   let service: BucketService
-  let insertBucketFileValues: ReturnType<typeof mock.fn>
-  let sendToS3: ReturnType<typeof mock.fn>
+  let insertBucketFileValues: ReturnType<typeof vi.fn>
+  let sendToS3: ReturnType<typeof vi.fn>
 
   beforeEach(async () => {
-    const returningBucketFile = mock.fn(async () => [
+    const returningBucketFile = vi.fn(async () => [
       {
         key: 'test-key',
         url: 'test-url',
         createdAt: new Date(),
       },
     ])
-    insertBucketFileValues = mock.fn(() => ({
+    insertBucketFileValues = vi.fn(() => ({
       returning: returningBucketFile,
     }))
     const mockDrizzleService = {
       db: {
-        insert: mock.fn(() => ({
+        insert: vi.fn(() => ({
           values: insertBucketFileValues,
         })),
       },
     }
-    const mockCacheService = { get: mock.fn(), set: mock.fn() }
-    const mockLogger = { log: mock.fn(), error: mock.fn() }
-    const mockLoggerFactory = { create: mock.fn(() => mockLogger) }
+    const mockCacheService = { get: vi.fn(), set: vi.fn() }
+    const mockLogger = { log: vi.fn(), error: vi.fn() }
+    const mockLoggerFactory = { create: vi.fn(() => mockLogger) }
 
     service = new BucketService(
       mockDrizzleService as unknown as DrizzleService,
@@ -42,7 +42,7 @@ describe('BucketService Image Resizing', () => {
     )
 
     // Mock S3 send
-    sendToS3 = mock.fn(async () => ({}))
+    sendToS3 = vi.fn(async () => ({}))
     service.s3.send = sendToS3 as unknown as typeof service.s3.send
   })
 
@@ -69,8 +69,8 @@ describe('BucketService Image Resizing', () => {
     await service.upload({ file, isPublic: false })
 
     // Verify S3 send was called
-    assert.strictEqual(sendToS3.mock.callCount(), 1)
-    const callArgs = sendToS3.mock.calls[0].arguments[0]
+    assert.strictEqual(sendToS3.mock.calls.length, 1)
+    const callArgs = sendToS3.mock.calls[0][0]
     assert.ok(callArgs instanceof PutObjectCommand)
     const putCommand = callArgs as PutObjectCommand
     assert.strictEqual(putCommand.input.ContentType, 'image/jpeg')
@@ -80,8 +80,8 @@ describe('BucketService Image Resizing', () => {
     assert.strictEqual(file.mimetype, 'image/jpeg')
 
     // Verify database call
-    assert.strictEqual(insertBucketFileValues.mock.callCount(), 1)
-    const databaseInput = insertBucketFileValues.mock.calls[0].arguments[0] as {
+    assert.strictEqual(insertBucketFileValues.mock.calls.length, 1)
+    const databaseInput = insertBucketFileValues.mock.calls[0][0] as {
       filename: string
       size: number
     }
@@ -102,7 +102,7 @@ describe('BucketService Image Resizing', () => {
 
     await service.upload({ file, isPublic: false })
 
-    const callArgs = sendToS3.mock.calls[0].arguments[0] as PutObjectCommand
+    const callArgs = sendToS3.mock.calls[0][0] as PutObjectCommand
     assert.strictEqual(callArgs.input.ContentType, 'image/svg+xml')
     assert.strictEqual(file.buffer, svgBuffer)
     assert.strictEqual(file.originalname, 'test-icon.svg')
@@ -120,7 +120,7 @@ describe('BucketService Image Resizing', () => {
 
     await service.upload({ file, isPublic: false })
 
-    const callArgs = sendToS3.mock.calls[0].arguments[0] as PutObjectCommand
+    const callArgs = sendToS3.mock.calls[0][0] as PutObjectCommand
     assert.strictEqual(callArgs.input.ContentType, 'application/pdf')
     assert.strictEqual(file.buffer, pdfBuffer)
   })
