@@ -22,7 +22,6 @@ import {
   UserMetadata,
 } from "@/types";
 import { comparePassword, hashPassword } from "@/utils/password";
-import type { GetUserDtoRecord } from "../users/dto/get-user.dto";
 import { IAuthService } from "./auth.interface";
 import {
   LoginDto,
@@ -67,6 +66,19 @@ const passwordColumns = {
   password: users.password,
 };
 
+type LoggedUserRecord = Pick<
+  typeof users.$inferSelect,
+  | "id"
+  | "name"
+  | "email"
+  | "role"
+  | "status"
+  | "two_factor"
+  | "createdAt"
+  | "updatedAt"
+  | "deletedAt"
+>;
+
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly logger: CustomLogger;
@@ -83,7 +95,7 @@ export class AuthService implements IAuthService {
     this.logger = loggerFactory.create(AuthService.name);
   }
 
-  private toLoggedUser(user: GetUserDtoRecord): GetMeDto {
+  private toLoggedUser(user: LoggedUserRecord): GetMeDto {
     return {
       id: user.id,
       name: user.name,
@@ -212,7 +224,7 @@ export class AuthService implements IAuthService {
       ok: true,
       accessToken,
       refreshToken,
-      user: this.toLoggedUser(user as GetUserDtoRecord),
+      user: this.toLoggedUser(user),
       twoFactorAuth: false,
       friendlyMessage: "Login efetuado.",
     };
@@ -268,7 +280,7 @@ export class AuthService implements IAuthService {
       throw new UnauthorizedException();
     }
 
-    return { ok: true, ...this.toLoggedUser(user as GetUserDtoRecord) };
+    return { ok: true, ...this.toLoggedUser(user) };
   }
 
   async updateMe(userId: string, input: UpdateMeDto): ServiceOutput<GetMeDto> {
@@ -296,7 +308,7 @@ export class AuthService implements IAuthService {
       return { ok: false, errKey: ErrKeys.notFound };
     }
 
-    return { ok: true, ...this.toLoggedUser(updatedUser as GetUserDtoRecord) };
+    return { ok: true, ...this.toLoggedUser(updatedUser) };
   }
 
   async twoFactorAuth(input: TwoFactorAuthDto): ServiceOutput<AuthTokens> {

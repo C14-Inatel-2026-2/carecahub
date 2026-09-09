@@ -1,8 +1,8 @@
-import type { Mock } from 'node:test'
-import { mock } from 'node:test'
 import { Reflector } from '@nestjs/core'
 import { JwtService } from '@nestjs/jwt'
 import { Cacheable } from 'cacheable'
+import type { Mock } from 'vitest'
+import { vi } from 'vitest'
 import { BucketService } from '@/providers/bucket/bucket.service'
 import { CacheService } from '@/providers/cache/cache.service'
 import { CACHE_INSTANCE } from '@/providers/cache/cache.types'
@@ -33,7 +33,7 @@ function prepareMock<T>(c: Constructor<T>): T {
 }
 
 function globalThisMock(): MockFunction {
-  return mock.fn() as MockFunction
+  return vi.fn() as MockFunction
 }
 
 // Providers
@@ -57,9 +57,9 @@ export interface CorrelationIdServiceMockType {
 }
 
 export const CorrelationIdServiceMock: CorrelationIdServiceMockType = {
-  getCorrelationId: mock.fn(() => undefined) as MockFunction,
-  getContext: mock.fn(() => undefined) as MockFunction,
-  generateId: mock.fn(() => 'mock-correlation-id') as MockFunction,
+  getCorrelationId: vi.fn(() => undefined) as MockFunction,
+  getContext: vi.fn(() => undefined) as MockFunction,
+  generateId: vi.fn(() => 'mock-correlation-id') as MockFunction,
   run: globalThisMock(),
   updateContext: globalThisMock(),
 }

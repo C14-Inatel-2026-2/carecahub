@@ -52,7 +52,13 @@ export class RepositoryService implements IRepositoryService {
       const [urlInUse] = await this.database.db
         .select({ id: repositories.id })
         .from(repositories)
-        .where(and(eq(repositories.url, input.url), ne(repositories.id, input.id)))
+        .where(
+          and(
+            eq(repositories.url, input.url),
+            ne(repositories.id, input.id),
+            isNull(repositories.deletedAt),
+          ),
+        )
 
       if (urlInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
 
@@ -76,7 +82,7 @@ export class RepositoryService implements IRepositoryService {
     const [urlInUse] = await this.database.db
       .select({ id: repositories.id })
       .from(repositories)
-      .where(eq(repositories.url, input.url))
+      .where(and(eq(repositories.url, input.url), isNull(repositories.deletedAt)))
 
     if (urlInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
 

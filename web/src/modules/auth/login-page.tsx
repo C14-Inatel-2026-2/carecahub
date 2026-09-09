@@ -11,6 +11,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { loginMockUser } from "@/mocks/auth";
+import { isMockAPIEnabled } from "@/mocks/config";
 import { appRoutes } from "@/router/routes";
 import { useUser } from "@/stores/use-user";
 import { loginSchema } from "@/types/auth";
@@ -28,6 +30,19 @@ export function LoginPage() {
 
   async function submit(values: LoginFormValues) {
     form.clearErrors("root");
+    if (isMockAPIEnabled) {
+      try {
+        setUser(loginMockUser(localStorage, values));
+        navigateAfterLogin();
+      } catch (error) {
+        form.setError("root", {
+          message:
+            error instanceof Error ? error.message : "Não foi possível entrar.",
+        });
+      }
+      return;
+    }
+
     const result = await writer("POST /auth/login", {
       body: values,
       silent: true,
@@ -40,11 +55,15 @@ export function LoginPage() {
     }
 
     setUser(result.data.user);
+    navigateAfterLogin();
+  }
+
+  function navigateAfterLogin() {
     const requestedPath = searchParams.get("next");
     const next =
       requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
         ? requestedPath
-        : appRoutes.users;
+        : appRoutes.home;
     navigate(next, { replace: true });
   }
 

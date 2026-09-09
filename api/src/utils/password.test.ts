@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import { describe, it } from 'vitest'
 import { comparePassword, hashPassword } from './password'
 
 describe('Password Utils', () => {

@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { logoutMockUser } from "@/mocks/auth";
+import { isMockAPIEnabled } from "@/mocks/config";
 import { ChangePasswordDialog } from "@/modules/auth/dialogs/change-password-dialog";
 import { appRoutes } from "@/router/routes";
 import { useUser } from "@/stores/use-user";
@@ -29,15 +31,19 @@ export function AppHeader({ user }: AppHeaderProps) {
   const [passwordOpen, setPasswordOpen] = useState(false);
 
   async function logout() {
-    await writer("POST /auth/logout", { body: undefined, silent: true });
+    if (isMockAPIEnabled) {
+      logoutMockUser(localStorage);
+    } else {
+      await writer("POST /auth/logout", { body: undefined, silent: true });
+    }
     clearUser();
     navigate(appRoutes.login, { replace: true });
   }
 
   return (
-    <header className="flex min-h-12 items-center justify-between gap-3 border-b bg-card/70 px-3 py-2 md:px-5">
-      <SidebarTrigger />
-      <div className="flex flex-wrap items-center justify-end gap-2 text-sm py-2">
+    <header className="flex min-h-16 items-center justify-between gap-3 border-b bg-card/70 px-3 py-2 md:px-5">
+      <SidebarTrigger className="md:hidden" />
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 py-2 text-sm">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={

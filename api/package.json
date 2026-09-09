@@ -9,8 +9,8 @@
   "scripts": {
     "lint": "biome check .",
     "format": "biome check --write .",
-    "test": "NODE_ENV=test tsx --test src/**/*.test.ts",
-    "test:utils": "NODE_ENV=test tsx --test src/utils/*.test.ts",
+    "test": "NODE_ENV=test vitest run",
+    "test:utils": "NODE_ENV=test vitest run src/utils/*.test.ts",
     "build": "nest build",
     "start": "nest start",
     "dev": "nest start --watch",
@@ -69,6 +69,7 @@
     "source-map-support": "^0.5.21",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.23.12",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^5.0.0"
   }
 }

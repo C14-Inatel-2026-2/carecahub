@@ -43,6 +43,13 @@
       "when": 1788372980284,
       "tag": "0005_make_registration_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788982756653,
+      "tag": "0006_shiny_bloodscream",
+      "breakpoints": true
     }
   ]
 }

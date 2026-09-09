@@ -1,23 +1,23 @@
-import { mock } from 'node:test'
 import { ExecutionContext } from '@nestjs/common'
+import { vi } from 'vitest'
 
-const requestMock = mock.fn(() => ({ headers: { authorization: 'Bearer mock-token' } }))
-const responseMock = mock.fn()
+const requestMock = vi.fn(() => ({ headers: { authorization: 'Bearer mock-token' } }))
+const responseMock = vi.fn()
 
 export const executionContextMock: ExecutionContext = {
-  getHandler: mock.fn(),
-  getClass: mock.fn(),
-  getArgByIndex: mock.fn(),
-  getArgs: mock.fn(),
-  getType: mock.fn(),
-  switchToRpc: mock.fn(),
-  switchToWs: mock.fn(),
-  switchToHttp: mock.fn(
+  getHandler: vi.fn(),
+  getClass: vi.fn(),
+  getArgByIndex: vi.fn(),
+  getArgs: vi.fn(),
+  getType: vi.fn(),
+  switchToRpc: vi.fn(),
+  switchToWs: vi.fn(),
+  switchToHttp: vi.fn(
     () =>
       ({
         getRequest: requestMock,
         getResponse: responseMock,
-        getNext: mock.fn(),
+        getNext: vi.fn(),
       }) as ReturnType<ExecutionContext['switchToHttp']>,
   ) as ExecutionContext['switchToHttp'],
 }
