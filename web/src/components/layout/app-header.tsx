@@ -41,9 +41,9 @@ export function AppHeader({ user }: AppHeaderProps) {
   }
 
   return (
-    <header className="flex min-h-12 items-center justify-between gap-3 border-b bg-card/70 px-3 py-2 md:px-5">
-      <SidebarTrigger />
-      <div className="flex flex-wrap items-center justify-end gap-2 text-sm py-2">
+    <header className="flex min-h-16 items-center justify-between gap-3 border-b bg-card/70 px-3 py-2 md:px-5">
+      <SidebarTrigger className="md:hidden" />
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 py-2 text-sm">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
