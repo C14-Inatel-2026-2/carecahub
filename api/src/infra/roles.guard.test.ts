@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict'
-import { beforeEach, describe, it, mock } from 'node:test'
 import { ExecutionContext } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import { beforeEach, describe, it, vi } from 'vitest'
 import { RolesGuard } from './roles.guard'
 
 describe('RolesGuard', () => {
   let guard: RolesGuard
 
   beforeEach(async () => {
-    guard = new RolesGuard({ getAllAndOverride: mock.fn(() => []) } as unknown as Reflector)
+    guard = new RolesGuard({ getAllAndOverride: vi.fn(() => []) } as unknown as Reflector)
   })
 
   it('define guard instance', () => {
@@ -17,13 +17,13 @@ describe('RolesGuard', () => {
 
   function contextFor(user: object): {
     context: ExecutionContext
-    getRequest: ReturnType<typeof mock.fn>
+    getRequest: ReturnType<typeof vi.fn>
   } {
-    const getRequest = mock.fn(() => ({ user }))
+    const getRequest = vi.fn(() => ({ user }))
     return {
       context: {
-        getHandler: mock.fn(),
-        switchToHttp: mock.fn(() => ({ getRequest })),
+        getHandler: vi.fn(),
+        switchToHttp: vi.fn(() => ({ getRequest })),
       } as unknown as ExecutionContext,
       getRequest,
     }
@@ -32,12 +32,12 @@ describe('RolesGuard', () => {
   it('authorize with success in private route', async () => {
     const { context, getRequest } = contextFor({ role: 'ADMIN' })
     guard = new RolesGuard({
-      getAllAndOverride: mock.fn(() => ['ADMIN', 'MEMBER']),
+      getAllAndOverride: vi.fn(() => ['ADMIN', 'MEMBER']),
     } as unknown as Reflector)
 
     const canActivate = await guard.canActivate(context)
     assert.strictEqual(canActivate, true)
-    assert.strictEqual(getRequest.mock.callCount(), 1)
+    assert.strictEqual(getRequest.mock.calls.length, 1)
   })
 
   it('not authorize if user role is not defined', async () => {
@@ -45,15 +45,15 @@ describe('RolesGuard', () => {
 
     const canActivate = await guard.canActivate(context)
     assert.strictEqual(canActivate, false)
-    assert.strictEqual(getRequest.mock.callCount(), 1)
+    assert.strictEqual(getRequest.mock.calls.length, 1)
   })
 
   it('not authorize if user role is not allowed', async () => {
     const { context, getRequest } = contextFor({ role: 'MEMBER' })
-    guard = new RolesGuard({ getAllAndOverride: mock.fn(() => ['ADMIN']) } as unknown as Reflector)
+    guard = new RolesGuard({ getAllAndOverride: vi.fn(() => ['ADMIN']) } as unknown as Reflector)
 
     const canActivate = await guard.canActivate(context)
     assert.strictEqual(canActivate, false)
-    assert.strictEqual(getRequest.mock.callCount(), 1)
+    assert.strictEqual(getRequest.mock.calls.length, 1)
   })
 })
