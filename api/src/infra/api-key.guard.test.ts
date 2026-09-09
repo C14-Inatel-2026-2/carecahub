@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
-import { beforeEach, describe, it, mock } from 'node:test'
 import { Request } from 'express'
+import { beforeEach, describe, it, vi } from 'vitest'
 import { env } from '@/providers/config/env'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { executionContextMock } from '@/utils/mocks/execution-context.mock'
@@ -12,7 +12,7 @@ describe('ApiSecretGuard', () => {
 
   beforeEach(async () => {
     guard = new ApiSecretGuard({
-      create: mock.fn(() => ({ debug: mock.fn() })),
+      create: vi.fn(() => ({ debug: vi.fn() })),
     } as unknown as LoggerFactory)
   })
 
@@ -21,7 +21,7 @@ describe('ApiSecretGuard', () => {
   })
 
   it('authorize with success in private route', async () => {
-    const extractSecretFromHeader = mock.fn(() => allowedToken)
+    const extractSecretFromHeader = vi.fn(() => allowedToken)
     guard.extractSecretFromHeader = extractSecretFromHeader
 
     const canActivate = guard.canActivate(executionContextMock)
@@ -30,26 +30,26 @@ describe('ApiSecretGuard', () => {
     assert.ok(
       (
         executionContextMock.switchToHttp() as unknown as {
-          getRequest: ReturnType<typeof mock.fn>
+          getRequest: ReturnType<typeof vi.fn>
         }
-      ).getRequest.mock.callCount() > 0,
+      ).getRequest.mock.calls.length > 0,
     )
   })
 
   it('throw if token not found in header', async () => {
-    const extractSecretFromHeader = mock.fn(() => undefined)
+    const extractSecretFromHeader = vi.fn(() => undefined)
     guard.extractSecretFromHeader = extractSecretFromHeader
 
     assert.strictEqual(guard.canActivate(executionContextMock), false)
-    assert.strictEqual(extractSecretFromHeader.mock.callCount(), 1)
+    assert.strictEqual(extractSecretFromHeader.mock.calls.length, 1)
   })
 
   it('throw if token is wrong', async () => {
-    const extractSecretFromHeader = mock.fn(() => 'wrong')
+    const extractSecretFromHeader = vi.fn(() => 'wrong')
     guard.extractSecretFromHeader = extractSecretFromHeader
 
     assert.strictEqual(guard.canActivate(executionContextMock), false)
-    assert.strictEqual(extractSecretFromHeader.mock.callCount(), 1)
+    assert.strictEqual(extractSecretFromHeader.mock.calls.length, 1)
   })
 
   describe('extractTokenFromHeader', () => {
