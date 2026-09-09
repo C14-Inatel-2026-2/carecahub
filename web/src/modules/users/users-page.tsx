@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { CreateUserDialog } from "./dialogs/create-user-dialog";
 import { getBadgeClassNamesByRole } from "@/lib/badges";
+import { mockUsers } from "@/mocks/users";
+import { isMockAPIEnabled } from "@/mocks/config";
 
 export function UsersPage() {
   const user = useUser((state) => state.user);
@@ -36,14 +38,25 @@ export function UsersPage() {
   };
 
   const {
-    data: users,
-    isLoading: isLoadingUsers,
+    data: apiUsers,
+    isLoading: isLoadingApiUsers,
     mutate,
   } = useList({
     endpoint: "/users",
     params: { take: 100, roles: getVisibleRoles(user?.role) },
-    disabled: !user || user.role === "student",
+    disabled: isMockAPIEnabled || !user || user.role === "student",
   });
+
+  const users = isMockAPIEnabled
+    ? mockUsers.filter((mockUser) =>
+        getVisibleRoles(user?.role).includes(mockUser.role),
+      )
+    : apiUsers;
+  const isLoadingUsers = isMockAPIEnabled ? false : isLoadingApiUsers;
+  const refreshUsers = () => {
+    if (!isMockAPIEnabled) void mutate();
+  };
+
   const [search, setSearch] = useState("");
   const columns: ColumnDef<User>[] = [
     {
@@ -113,7 +126,7 @@ export function UsersPage() {
           <UserActions
             user={listedUser}
             requesterRole={user.role}
-            onUpdated={() => void mutate()}
+            onUpdated={refreshUsers}
           />
         ),
     },
@@ -149,7 +162,7 @@ export function UsersPage() {
           {user && (
             <CreateUserDialog
               requesterRole={user.role}
-              onCreated={() => void mutate()}
+              onCreated={refreshUsers}
             />
           )}
         </div>

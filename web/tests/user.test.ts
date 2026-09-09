@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
+import { describe, expect, it } from 'vitest'
 import {
   academicFieldsByRole,
   createUserSchema,
@@ -19,7 +18,7 @@ describe('createUserSchema', () => {
       role: 'mentor',
     })
 
-    assert.deepEqual(result, {
+    expect(result).toEqual({
       name: 'CarecaHub Student',
       registration: 1000002,
       githubName: undefined,
@@ -39,11 +38,11 @@ describe('createUserSchema', () => {
       role: 'student',
     })
 
-    assert.equal(result.success, false)
+    expect(result.success).toBe(false)
   })
 
   it('defines the manageable roles for every requester role', () => {
-    assert.deepEqual(manageableRolesByRole, {
+    expect(manageableRolesByRole).toEqual({
       admin: ['admin', 'teacher', 'mentor', 'student'],
       teacher: ['mentor', 'student'],
       mentor: ['student'],
@@ -60,7 +59,7 @@ describe('createUserSchema', () => {
         role,
       })
 
-      assert.equal(result.success, true)
+      expect(result.success).toBe(true)
     }
   })
 
@@ -73,12 +72,12 @@ describe('createUserSchema', () => {
         role,
       })
 
-      assert.equal(result.success, false)
+      expect(result.success).toBe(false)
     }
   })
 
   it('defines the academic fields shown for each role', () => {
-    assert.deepEqual(academicFieldsByRole, {
+    expect(academicFieldsByRole).toEqual({
       admin: [],
       teacher: [],
       mentor: ['registration', 'githubName'],
@@ -87,9 +86,9 @@ describe('createUserSchema', () => {
   })
 
   it('formats raw role values for display', () => {
-    assert.equal(formatUserRole('admin'), 'Administrador')
-    assert.equal(formatUserRole('teacher'), 'Professor')
-    assert.equal(formatUserRole('mentor'), 'Monitor')
-    assert.equal(formatUserRole('student'), 'Aluno')
+    expect(formatUserRole('admin')).toBe('Administrador')
+    expect(formatUserRole('teacher')).toBe('Professor')
+    expect(formatUserRole('mentor')).toBe('Monitor')
+    expect(formatUserRole('student')).toBe('Aluno')
   })
 })
