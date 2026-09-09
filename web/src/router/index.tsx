@@ -6,12 +6,17 @@ import { ProjectsPage } from "../modules/projects/projects-page";
 import { appRoutes } from "./routes";
 import { GroupsPage } from "@/modules/groups/groups-page";
 import { MentorsPage } from "@/modules/mentors/mentors-page";
+import { HomePage } from "@/modules/home/home-page";
 
 export const router = createBrowserRouter([
   { path: appRoutes.login, Component: LoginPage },
   {
     Component: AuthLayout,
     children: [
+      {
+        path: appRoutes.home,
+        children: [{ index: true, Component: HomePage }],
+      },
       {
         path: appRoutes.users,
         children: [{ index: true, Component: UsersPage }],
