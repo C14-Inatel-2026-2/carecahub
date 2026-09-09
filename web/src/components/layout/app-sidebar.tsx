@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleUserRound,
+  Home,
   KeyRound,
   LogOut,
   User,
@@ -15,8 +16,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -94,6 +93,19 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
       </SidebarHeader>
       <SidebarContent className="px-4 pt-2 group-data-[collapsible=icon]:px-5">
         <SidebarMenu className="gap-0.5">
+          {pagesByRole[user.role].includes(appRoutes.home) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={location.pathname === appRoutes.home}
+                tooltip="Início"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
+                render={<Link to={appRoutes.home} />}
+              >
+                <Home />
+                <span>Início</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           {pagesByRole[user.role].includes(appRoutes.users) && (
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -148,7 +160,7 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
           )}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarSeparator className="w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-[3rem]!" />
+      <SidebarSeparator className="w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-12!" />
       <SidebarFooter className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-1">
         <div className="flex flex-wrap items-center justify-start gap-2 py-2 text-sm group-data-[collapsible=icon]:justify-center">
           <DropdownMenu>

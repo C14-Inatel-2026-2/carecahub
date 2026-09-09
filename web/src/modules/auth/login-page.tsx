@@ -28,8 +28,6 @@ export function LoginPage() {
     defaultValues: { username: "", password: "" },
   });
 
-  console.log("isMockAPIEnabled", isMockAPIEnabled);
-
   async function submit(values: LoginFormValues) {
     form.clearErrors("root");
     if (isMockAPIEnabled) {
@@ -65,7 +63,7 @@ export function LoginPage() {
     const next =
       requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
         ? requestedPath
-        : appRoutes.users;
+        : appRoutes.home;
     navigate(next, { replace: true });
   }
 
