@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import { describe, it } from 'vitest'
 import { endOfDay, startOfDay } from './date'
 import { buildDateFieldQuery, buildStringFieldQuery } from './query-filters'
 
