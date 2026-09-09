@@ -15,7 +15,6 @@ import { DrizzleService } from "@/providers/database/drizzle.service";
 import { CustomLogger } from "@/providers/logger/custom-logger.service";
 import { LoggerFactory } from "@/providers/logger/logger-factory.service";
 import { ErrKeys, ServiceOutput, UserMetadata } from "@/types";
-import { QueryDto } from "@/utils/dtos/query.dto";
 import { hashPassword } from "@/utils/password";
 import type { GetUserDtoRecord, GetUserQueryDto } from "./dto/get-user.dto";
 import { GetUserDto } from "./dto/get-user.dto";
