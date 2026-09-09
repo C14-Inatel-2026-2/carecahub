@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
-import { beforeEach, describe, it, mock } from 'node:test'
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common'
 import { Request, Response } from 'express'
+import { beforeEach, describe, it, vi } from 'vitest'
 import { CorrelationIdService } from '@/providers/correlation-id'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { ErrKeys } from '@/types'
@@ -10,25 +10,25 @@ import { AllExceptionsFilter } from './exceptions.filter'
 describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter
   let mockArgumentsHost: ArgumentsHost
-  let status: ReturnType<typeof mock.fn>
-  let json: ReturnType<typeof mock.fn>
+  let status: ReturnType<typeof vi.fn>
+  let json: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     const response: Partial<Response> = {}
-    status = mock.fn(() => response)
-    json = mock.fn()
+    status = vi.fn(() => response)
+    json = vi.fn()
     response.status = status as unknown as Response['status']
     response.json = json as unknown as Response['json']
 
     mockArgumentsHost = {
-      switchToHttp: mock.fn(() => ({
-        getRequest: mock.fn(() => ({ method: 'GET', url: '/test-endpoint' }) as Partial<Request>),
-        getResponse: mock.fn(() => response),
+      switchToHttp: vi.fn(() => ({
+        getRequest: vi.fn(() => ({ method: 'GET', url: '/test-endpoint' }) as Partial<Request>),
+        getResponse: vi.fn(() => response),
       })),
     } as unknown as ArgumentsHost
 
-    const loggerFactory = { create: mock.fn(() => ({ error: mock.fn() })) }
-    const correlationIdService = { getCorrelationId: mock.fn(() => undefined) }
+    const loggerFactory = { create: vi.fn(() => ({ error: vi.fn() })) }
+    const correlationIdService = { getCorrelationId: vi.fn(() => undefined) }
     filter = new AllExceptionsFilter(
       loggerFactory as unknown as LoggerFactory,
       correlationIdService as unknown as CorrelationIdService,
@@ -36,8 +36,8 @@ describe('AllExceptionsFilter', () => {
   })
 
   function assertResponse(statusCode: HttpStatus, expected: Record<string, unknown>) {
-    assert.deepStrictEqual(status.mock.calls[0].arguments, [statusCode])
-    const body = json.mock.calls[0].arguments[0] as Record<string, unknown>
+    assert.deepStrictEqual(status.mock.calls[0], [statusCode])
+    const body = json.mock.calls[0][0] as Record<string, unknown>
     assert.deepStrictEqual(
       Object.fromEntries(Object.keys(expected).map((key) => [key, body[key]])),
       expected,
