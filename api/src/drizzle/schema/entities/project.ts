@@ -9,7 +9,7 @@ import {
 
 const projectTable = pgTable("Project", {
   id: uuid("id").defaultRandom().primaryKey(),
-  projectName: varchar("project_name", { length: 255 }).notNull(),
+    projectName: varchar("project_name", { length: 255 }).notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
