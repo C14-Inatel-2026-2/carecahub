@@ -1,4 +1,4 @@
-import { BookUser, Users, Boxes, User } from "lucide-react";
+import { BookUser, Users, Boxes, User, CircleUserRound } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -14,6 +14,7 @@ import {
 import { appRoutes } from "@/router/routes";
 import type { LoggedUser } from "@/types/auth";
 import { pagesByRole } from "./auth-layout";
+import { toast } from "sonner";
 
 export function AppSidebar({ user }: { user: LoggedUser }) {
   const location = useLocation();
@@ -94,6 +95,16 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Meu Perfil"
+                  className="h-9 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent"
+                  onClick={() => toast("Indo para o seu perfil…")}
+                >
+                  <CircleUserRound />
+                  <span>Meu Perfil</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
