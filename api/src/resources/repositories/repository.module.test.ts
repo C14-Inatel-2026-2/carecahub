@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
 import { MODULE_METADATA } from '@nestjs/common/constants'
+import { describe, it } from 'vitest'
 import { AppModule } from '@/app.module'
 import { RepositoryModule } from './repository.module'
 
