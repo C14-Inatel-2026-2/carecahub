@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
 import { getTableColumns } from 'drizzle-orm'
+import { describe, it } from 'vitest'
 import { users } from '../entities/user'
 import { USER_ROLE, USER_ROLES } from './userEnums'
 
