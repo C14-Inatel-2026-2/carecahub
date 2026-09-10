@@ -35,7 +35,7 @@ export const pagesByRole: Record<UserRole, AppRoute[]> = {
     appRoutes.projects,
     appRoutes.groups,
   ],
-  student: [...commonPages],
+  student: [...commonPages, appRoutes.myProject],
 };
 
 export function AuthLayout() {
@@ -68,7 +68,6 @@ export function AuthLayout() {
     <SidebarProvider style={{ "--sidebar-width": "19rem" } as CSSProperties}>
       <AppSidebar user={user} />
       <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col bg-muted/30">
-        {/* <AppHeader user={user} /> */}
         <Outlet />
       </SidebarInset>
     </SidebarProvider>

@@ -6,19 +6,19 @@ export const MOCK_USER_PASSWORD = "Careca!123";
 export const mockAuthUsers = [
   {
     id: "mock-admin",
-    name: "Administrador CarecaHub",
+    name: "Admin CarecaHub",
     email: "admin@carecahub.com",
     role: "admin",
   },
   {
     id: "mock-teacher",
-    name: "Professor CarecaHub",
+    name: "Prof. CarecaHub",
     email: "professor@carecahub.com",
     role: "teacher",
   },
   {
     id: "mock-mentor",
-    name: "Monitor CarecaHub",
+    name: "Mon. CarecaHub",
     email: "monitor@carecahub.com",
     role: "mentor",
   },
@@ -33,7 +33,7 @@ export const mockAuthUsers = [
 export const mockUsers = [
   {
     id: "mock-admin",
-    name: "Administrador CarecaHub",
+    name: "Admin CarecaHub",
     email: "admin@carecahub.com",
     githubName: "admin-carecahub",
     role: "admin",
@@ -46,7 +46,7 @@ export const mockUsers = [
   },
   {
     id: "mock-teacher",
-    name: "Professor CarecaHub",
+    name: "Prof. CarecaHub",
     email: "professor@carecahub.com",
     role: "teacher",
     status: "active",
@@ -59,7 +59,7 @@ export const mockUsers = [
   },
   {
     id: "mock-mentor",
-    name: "Monitor CarecaHub",
+    name: "Mon. CarecaHub",
     email: "monitor@carecahub.com",
     role: "mentor",
     status: "active",
