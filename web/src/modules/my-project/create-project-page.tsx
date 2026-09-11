@@ -335,7 +335,7 @@ export function CreateProjectPage() {
       </section>
 
       <Dialog open={discardOpen} onOpenChange={setDiscardOpen}>
-        <DialogContent className="max-w-[420px]! w-[420px]!">
+        <DialogContent className="max-w-105! w-105!">
           <DialogHeader>
             <DialogTitle>Voltar?</DialogTitle>
             <DialogDescription>
