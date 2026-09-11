@@ -7,6 +7,7 @@ import { appRoutes } from "./routes";
 import { GroupsPage } from "@/modules/groups/groups-page";
 import { MentorsPage } from "@/modules/mentors/mentors-page";
 import { HomePage } from "@/modules/home/home-page";
+import { ProfilePage } from "@/modules/profile/profile-page";
 
 export const router = createBrowserRouter([
   { path: appRoutes.login, Component: LoginPage },
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
       {
         path: appRoutes.groups,
         children: [{ index: true, Component: GroupsPage }],
+      },
+      {
+        path: appRoutes.profile,
+        children: [{ index: true, Component: ProfilePage }],
       },
     ],
   },

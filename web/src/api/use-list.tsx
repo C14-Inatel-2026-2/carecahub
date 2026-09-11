@@ -1,24 +1,16 @@
 import useSWR from 'swr'
 import { buildQueryString, type FetcherParams } from '@/api'
 import type { PaginateParams, PaginateResponse } from '@/types/api'
-import type { GetPostResponse } from '@/types/post'
 import type { GetUserResponse } from '@/types/user'
 
-type UseListParams =
-  | {
-      endpoint: '/users'
-      params: PaginateParams
-    }
-  | {
-      endpoint: '/posts'
-      params: PaginateParams
-    }
+type UseListParams = {
+  endpoint: '/users'
+  params: PaginateParams
+}
 
 type ResponseTypeMap = {
   '/users': GetUserResponse
   '/users/:id': GetUserResponse
-  '/posts': GetPostResponse
-  '/posts/:id': GetPostResponse
 }
 
 /**
