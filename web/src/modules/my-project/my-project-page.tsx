@@ -3,10 +3,12 @@ import { UserCard } from "./components/user-card";
 import { InviteUserCard } from "./components/invite-user-card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { appRoutes } from "@/router/routes";
 
 export function MyProjectPage() {
   const mockUsersSlice = mockStudents.slice(0, 5);
+  const navigate = useNavigate();
 
   return (
     <section className="flex flex-1 flex-col w-full px-4 py-5 md:px-6 lg:px-8">
@@ -44,7 +46,10 @@ export function MyProjectPage() {
       <div className="flex-1">
         <div className="flex w-full h-full flex-col gap-4 items-center justify-center">
           <span>Você ainda não possui projeto cadastrado na plataforma.</span>
-          <Button type="button" onClick={() => toast("Criando novo projeto…")}>
+          <Button
+            type="button"
+            onClick={() => navigate(appRoutes.createMyProject)}
+          >
             <Plus />
             Criar projeto
           </Button>
