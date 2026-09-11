@@ -5,6 +5,7 @@ export const appRoutes = {
   mentors: "/mentors",
   projects: "/projects",
   myProject: "/my-project",
+  createMyProject: "/my-project/create",
   groups: "/groups",
   profile: "/profile",
   settings: "/settings",
