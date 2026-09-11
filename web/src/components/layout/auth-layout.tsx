@@ -35,7 +35,7 @@ export const pagesByRole: Record<UserRole, AppRoute[]> = {
     appRoutes.projects,
     appRoutes.groups,
   ],
-  student: [...commonPages, appRoutes.myProject],
+  student: [...commonPages, appRoutes.myProject, appRoutes.createMyProject],
 };
 
 export function AuthLayout() {
