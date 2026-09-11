@@ -164,3 +164,37 @@ describe('GitHubService.getRepositoryFromUrl', () => {
     assert.equal(maximumActiveCommitRequests <= 5, true)
   })
 })
+
+describe('GitHubService.getUserDetails', () => {
+  it('maps selected public fields and encodes the username', async () => {
+    const { service, requestedPaths } = createService({
+      '/users/ada%2Flovelace': {
+        data: {
+          login: 'ada',
+          avatar_url: 'https://avatars.githubusercontent.com/u/1',
+          html_url: 'https://github.com/ada',
+          bio: 'Programmer',
+        },
+      },
+    })
+
+    const result = await service.getUserDetails('ada/lovelace')
+
+    assert.deepEqual(result, {
+      login: 'ada',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/1',
+      profileUrl: 'https://github.com/ada',
+      bio: 'Programmer',
+    })
+    assert.deepEqual(requestedPaths, ['/users/ada%2Flovelace'])
+  })
+
+  it('returns null when GitHub fails', async () => {
+    const service = new GitHubService({ info() {}, error() {} } as never)
+    Object.assign(service, {
+      axios: { get: async () => Promise.reject(new Error('offline')) },
+    })
+
+    assert.equal(await service.getUserDetails('ada'), null)
+  })
+})
