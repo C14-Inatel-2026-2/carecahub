@@ -1,7 +1,8 @@
-// import { useUser } from "@/stores/use-user";
+import { useUser } from "@/stores/use-user";
+import { CreateGroupDialog } from "./dialogs/create-group-dialog";
 
 export function GroupsPage() {
-  //   const user = useUser((state) => state.user);
+  const user = useUser((state) => state.user);
 
   return (
     <section className="w-full px-4 py-5 md:px-6 lg:px-8">
@@ -12,9 +13,11 @@ export function GroupsPage() {
             Gerencie os grupos no CarecaHub.
           </p>
         </div>
-      </div>
 
-      <div className="mt-5" /*aria-busy={isLoadingGroups}*/></div>
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          {user && <CreateGroupDialog />}
+        </div>
+      </div>
     </section>
   );
 }
