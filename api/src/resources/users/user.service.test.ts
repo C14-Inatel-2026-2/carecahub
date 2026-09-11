@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
-import type { GitHubUserDetails } from '@/providers/github/github.types'
 import { ErrKeys } from '@/types'
 import { UsersService } from './user.service'
 
@@ -47,15 +46,11 @@ class QueryResult<T> implements PromiseLike<T> {
   }
 }
 
-function createService(
-  results: unknown[],
-  getUserDetails: (username: string) => Promise<GitHubUserDetails | null> = async () => null,
-) {
+function createService(results: unknown[]) {
   const next = () => new QueryResult(results.shift())
   return new UsersService(
     { db: { select: next, insert: next, update: next } } as never,
     { create: () => ({ log() {}, info() {}, error() {} }) } as never,
-    { getUserDetails } as never,
   )
 }
 
@@ -71,33 +66,24 @@ describe('UsersService', () => {
   it('maps a selected user to its public DTO', async () => {
     const createdAt = new Date('2026-01-01T00:00:00Z')
     const updatedAt = new Date('2026-01-02T00:00:00Z')
-    const gitHubDetails = {
-      login: 'ada',
-      avatarUrl: 'https://avatars.githubusercontent.com/u/1',
-      profileUrl: 'https://github.com/ada',
-      bio: 'Programmer',
-    }
-    const service = createService(
+    const service = createService([
       [
-        [
-          {
-            id: '2ed79018-20fe-4fc2-982c-aecb12d32fb0',
-            name: 'Ada',
-            registration: 12345,
-            githubName: 'ada',
-            classroom: 'A1',
-            email: 'ada@example.com',
-            role: 'student',
-            status: 'active',
-            two_factor: false,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            deletedAt: null,
-          },
-        ],
+        {
+          id: '2ed79018-20fe-4fc2-982c-aecb12d32fb0',
+          name: 'Ada',
+          registration: 12345,
+          githubName: 'ada',
+          classroom: 'A1',
+          email: 'ada@example.com',
+          role: 'student',
+          status: 'active',
+          two_factor: false,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+          deletedAt: null,
+        },
       ],
-      async () => gitHubDetails,
-    )
+    ])
 
     const result = await service.findOne('2ed79018-20fe-4fc2-982c-aecb12d32fb0', admin)
 
@@ -115,94 +101,7 @@ describe('UsersService', () => {
       createdAt,
       updatedAt,
       deletedAt: undefined,
-      gitHubDetails,
     })
-  })
-
-  it('does not request GitHub details for an admin', async () => {
-    let calls = 0
-    const createdAt = new Date('2026-01-01T00:00:00Z')
-    const service = createService(
-      [
-        [
-          {
-            id: 'admin-user-id',
-            name: 'Admin',
-            registration: null,
-            githubName: 'admin-gh',
-            classroom: null,
-            email: 'admin@example.com',
-            role: 'admin',
-            status: 'active',
-            two_factor: false,
-            createdAt,
-            updatedAt: createdAt,
-            deletedAt: null,
-          },
-        ],
-      ],
-      async () => {
-        calls += 1
-        return null
-      },
-    )
-
-    const result = await service.findOne('admin-user-id', admin)
-
-    assert.equal(result.ok, true)
-    if (result.ok) assert.equal(result.gitHubDetails, null)
-    assert.equal(calls, 0)
-  })
-
-  it('enriches eligible users in a list and skips admins', async () => {
-    const createdAt = new Date('2026-01-01T00:00:00Z')
-    const row = (role: 'student' | 'mentor' | 'teacher' | 'admin', githubName: string) => ({
-      id: `${role}-id`,
-      name: role,
-      registration: role === 'student' || role === 'mentor' ? 123 : null,
-      githubName,
-      classroom: role === 'student' ? 'A' : null,
-      email: `${role}@example.com`,
-      role,
-      status: 'active',
-      two_factor: false,
-      createdAt,
-      updatedAt: createdAt,
-      deletedAt: null,
-    })
-    const usernames: string[] = []
-    const service = createService(
-      [
-        [
-          row('student', 'student-gh'),
-          row('mentor', 'mentor-gh'),
-          row('teacher', 'teacher-gh'),
-          row('admin', 'admin-gh'),
-        ],
-        [{ count: 4 }],
-      ],
-      async (username: string) => {
-        usernames.push(username)
-        return {
-          login: username,
-          avatarUrl: `https://avatars.githubusercontent.com/${username}`,
-          profileUrl: `https://github.com/${username}`,
-          bio: null,
-        }
-      },
-    )
-
-    const result = await service.findAll({ skip: 0, take: 20 }, admin)
-
-    assert.equal(result.ok, true)
-    if (result.ok) {
-      assert.equal(result.totalCount, 4)
-      assert.deepEqual(
-        result.data.map((user) => user.gitHubDetails?.login ?? null),
-        ['student-gh', 'mentor-gh', 'teacher-gh', null],
-      )
-    }
-    assert.deepEqual(usernames.sort(), ['mentor-gh', 'student-gh', 'teacher-gh'])
   })
 
   it('maps a database unique constraint violation to alreadyExists', async () => {

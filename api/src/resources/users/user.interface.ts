@@ -1,4 +1,3 @@
-import type { GitHubUserDetails } from '@/providers/github/github.types'
 import { ServiceOutput, UserMetadata } from '@/types'
 import { List } from '@/utils/dtos/base.dto'
 import { QueryDto } from '@/utils/dtos/query.dto'
@@ -7,12 +6,8 @@ import { CreateUserDto, UpdateUserDto } from './dto/upsert-user.dto'
 
 export type UpsertUserOutput = ServiceOutput<GetUserDto>
 
-export type GetUserWithGitHubDetails = GetUserDto & {
-  gitHubDetails: GitHubUserDetails | null
-}
-
-export type GetUserOutput = ServiceOutput<GetUserWithGitHubDetails>
-export type ListUserOutput = ServiceOutput<List<GetUserWithGitHubDetails>>
+export type GetUserOutput = ServiceOutput<GetUserDto>
+export type ListUserOutput = ServiceOutput<List<GetUserDto>>
 
 export abstract class IUsersService {
   abstract register(input: CreateUserDto, requester: UserMetadata): Promise<UpsertUserOutput>
