@@ -12,6 +12,7 @@ import { DatabaseModule } from './providers/database/database.module'
 import { LoggerModule } from './providers/logger/logger.module'
 import { MailModule } from './providers/mail/mail.module'
 import { AuthModule } from './resources/auth/auth.module'
+import { GroupModule } from './resources/groups/group.module'
 import { ProjectModule } from './resources/projects/project.module'
 import { RepositoryModule } from './resources/repositories/repository.module'
 import { UsersModule } from './resources/users/user.module'
@@ -27,6 +28,7 @@ import { UsersModule } from './resources/users/user.module'
     UsersModule,
     RepositoryModule,
     ProjectModule,
+    GroupModule,
     ThrottlerModule.forRoot([
       {
         name: 'short',
