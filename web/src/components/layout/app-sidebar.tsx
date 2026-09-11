@@ -1,5 +1,6 @@
 import {
   BookUser,
+  Box,
   Boxes,
   ChevronLeft,
   ChevronRight,
@@ -8,9 +9,11 @@ import {
   KeyRound,
   LogOut,
   User,
+  UserRound,
   Users,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -158,6 +161,29 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+          {pagesByRole[user.role].includes(appRoutes.myProject) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={location.pathname === appRoutes.myProject}
+                tooltip="Projeto"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
+                render={<Link to={appRoutes.myProject} />}
+              >
+                <Box />
+                <span>Projeto</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Meu Perfil"
+              className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
+              onClick={() => toast("Indo para o seu perfil…")}
+            >
+              <UserRound />
+              <span>Meu Perfil</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarSeparator className="w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-12!" />
