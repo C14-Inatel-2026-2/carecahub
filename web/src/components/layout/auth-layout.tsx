@@ -2,7 +2,6 @@ import type { CSSProperties } from "react";
 import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-// import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { type AppRoute, appRoutes } from "@/router/routes";
