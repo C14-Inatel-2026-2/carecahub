@@ -117,6 +117,14 @@ export type User = {
   createdAt: string
   updatedAt: string
   deletedAt?: string
+  gitHubDetails?: {
+    login: string
+    avatarUrl: string
+    profileUrl: string
+    bio: string | null
+    createdAt: string
+    publicRepos: number
+  } | null
 }
 
 export type GetUserResponse = User
