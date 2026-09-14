@@ -97,7 +97,11 @@ export class UsersService implements IUsersService {
       isNull(users.deletedAt),
       roleFilter,
       query.search
-        ? or(ilike(users.name, `%${query.search}%`), ilike(users.email, `%${query.search}%`))
+        ? or(
+            ilike(users.name, `%${query.search}%`),
+            ilike(users.email, `%${query.search}%`),
+            ilike(users.githubName, `%${query.search}%`),
+          )
         : undefined,
     )
     const [userRows, totalCount] = await Promise.all([
@@ -128,7 +132,7 @@ export class UsersService implements IUsersService {
       .from(users)
       .where(and(eq(users.id, id), isNull(users.deletedAt)))
     if (!user) return { ok: false, errKey: ErrKeys.notFound }
-    if (!this.canManage(requester, user.role)) {
+    if (requester?.userId !== user.id && !this.canManage(requester, user.role)) {
       return { ok: false, errKey: ErrKeys.forbidden }
     }
 

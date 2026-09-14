@@ -10,6 +10,8 @@ export type GitHubUserDetails = {
   avatarUrl: string
   profileUrl: string
   bio: string | null
+  createdAt: string
+  publicRepos: number
 }
 
 export type RepositoryDetails = {

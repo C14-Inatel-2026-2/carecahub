@@ -60,6 +60,51 @@ function createService(
 }
 
 describe('UsersService', () => {
+  it.each(['student', 'mentor', 'teacher', 'admin'])(
+    'allows %s to read their own profile',
+    async (role) => {
+      const user = {
+        id: 'own-id',
+        name: 'Own User',
+        email: 'own@example.com',
+        role,
+        registration: null,
+        githubName: 'own-gh',
+        classroom: null,
+        status: 'active',
+        two_factor: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      }
+      const gitHubDetails = {
+        login: 'own-gh',
+        avatarUrl: 'https://example.com/avatar',
+        profileUrl: 'https://github.com/own-gh',
+        bio: 'Bio',
+        createdAt: '2020-09-01T00:00:00Z',
+        publicRepos: 2,
+      }
+      const service = createService([[user]], async () => gitHubDetails)
+      const result = await service.findOne(user.id, { userId: user.id, name: user.name, role })
+      assert.equal(result.ok, true)
+      if (result.ok) {
+        assert.equal(result.id, user.id)
+        assert.deepEqual(result.gitHubDetails, role === 'admin' ? null : gitHubDetails)
+      }
+    },
+  )
+
+  it('forbids a student from reading another student', async () => {
+    const service = createService([[{ id: 'other-id', role: 'student' }]])
+    const result = await service.findOne('other-id', {
+      userId: 'own-id',
+      name: 'Student',
+      role: 'student',
+    })
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
+
   it('returns notFound when a user does not exist', async () => {
     const service = createService([[]])
 
@@ -76,6 +121,8 @@ describe('UsersService', () => {
       avatarUrl: 'https://avatars.githubusercontent.com/u/1',
       profileUrl: 'https://github.com/ada',
       bio: 'Programmer',
+      createdAt: '2020-09-01T00:00:00Z',
+      publicRepos: 2,
     }
     const service = createService(
       [
@@ -188,6 +235,8 @@ describe('UsersService', () => {
           avatarUrl: `https://avatars.githubusercontent.com/${username}`,
           profileUrl: `https://github.com/${username}`,
           bio: null,
+          createdAt: '2020-09-01T00:00:00Z',
+          publicRepos: 2,
         }
       },
     )

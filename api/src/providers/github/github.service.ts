@@ -19,6 +19,8 @@ type GitHubUserResponse = {
   avatar_url: string
   html_url: string
   bio: string | null
+  created_at: string
+  public_repos: number
 }
 
 @Injectable()
@@ -49,6 +51,8 @@ export class GitHubService {
         avatarUrl: response.data.avatar_url,
         profileUrl: response.data.html_url,
         bio: response.data.bio,
+        createdAt: response.data.created_at,
+        publicRepos: response.data.public_repos,
       }
     } catch (error) {
       this.logger.error(

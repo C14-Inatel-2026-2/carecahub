@@ -174,6 +174,8 @@ describe('GitHubService.getUserDetails', () => {
           avatar_url: 'https://avatars.githubusercontent.com/u/1',
           html_url: 'https://github.com/ada',
           bio: 'Programmer',
+          created_at: '2020-09-01T00:00:00Z',
+          public_repos: 0,
         },
       },
     })
@@ -185,6 +187,8 @@ describe('GitHubService.getUserDetails', () => {
       avatarUrl: 'https://avatars.githubusercontent.com/u/1',
       profileUrl: 'https://github.com/ada',
       bio: 'Programmer',
+      createdAt: '2020-09-01T00:00:00Z',
+      publicRepos: 0,
     })
     assert.deepEqual(requestedPaths, ['/users/ada%2Flovelace'])
   })
