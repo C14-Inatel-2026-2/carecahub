@@ -1,4 +1,4 @@
-import { bucketFiles, projects, repositories, schema, systemParams, users } from './schema'
+import { bucketFiles, projects, repositories, schema, systemParams, users, groups } from './schema'
 
 export type { RepositoryType } from './schema/enums/repositoryEnums'
 export {
@@ -12,7 +12,7 @@ export {
   USER_STATUS,
   USER_STATUSES,
 } from './schema/enums/userEnums'
-export { bucketFiles, projects, repositories, schema, systemParams, users }
+export { bucketFiles, projects, repositories, schema, systemParams, users, groups }
 
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -23,3 +23,5 @@ export type Repository = typeof repositories.$inferSelect
 export type NewRepository = typeof repositories.$inferInsert
 export type Project = typeof projects.$inferSelect
 export type NewProject = typeof projects.$inferInsert
+export type Group = typeof groups.$inferSelect
+export type NewGroup = typeof groups.$inferInsert

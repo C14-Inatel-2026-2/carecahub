@@ -1,9 +1,11 @@
-import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import { type AnyPgColumn, boolean, integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
 import { userRoleEnum, userStatusEnum } from '../enums/userEnums'
+import { groups } from './group'
 
 const userTable = pgTable('User', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
+  groupId: uuid('group_id').references((): AnyPgColumn => groups.id),
   registration: integer('registration').unique(),
   githubName: varchar('github_name', { length: 39 }).unique(),
   classroom: varchar('classroom', { length: 2 }),
