@@ -1,16 +1,6 @@
 import { USER_ROLES, type UserRole, users } from "@db";
 import { Injectable } from "@nestjs/common";
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  ilike,
-  inArray,
-  isNull,
-  or,
-} from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import { DrizzleService } from "@/providers/database/drizzle.service";
 import { CustomLogger } from "@/providers/logger/custom-logger.service";
 import { LoggerFactory } from "@/providers/logger/logger-factory.service";
@@ -25,21 +15,8 @@ import {
   ListUserOutput,
   UpsertUserOutput,
 } from "./user.interface";
-
-const publicColumns = {
-  id: users.id,
-  name: users.name,
-  registration: users.registration,
-  githubName: users.githubName,
-  classroom: users.classroom,
-  email: users.email,
-  role: users.role,
-  status: users.status,
-  two_factor: users.two_factor,
-  createdAt: users.createdAt,
-  updatedAt: users.updatedAt,
-  deletedAt: users.deletedAt,
-};
+import { isUniqueViolation } from "@/utils/query-violations";
+import { userPublicColumns } from "@/drizzle/schema/entities";
 
 @Injectable()
 export class UsersService implements IUsersService {
@@ -78,11 +55,11 @@ export class UsersService implements IUsersService {
           password: await hashPassword(input.password),
           role: input.role,
         })
-        .returning(publicColumns);
+        .returning(userPublicColumns);
 
       return { ok: true, ...GetUserDto.toDto(user as GetUserDtoRecord) };
     } catch (error) {
-      if (this.isUniqueViolation(error)) {
+      if (isUniqueViolation(error)) {
         return { ok: false, errKey: ErrKeys.alreadyExists };
       }
       throw error;
@@ -123,7 +100,7 @@ export class UsersService implements IUsersService {
     );
     const [userRows, totalCount] = await Promise.all([
       this.database.db
-        .select(publicColumns)
+        .select(userPublicColumns)
         .from(users)
         .where(where)
         .orderBy(asc(users.name))
@@ -141,7 +118,7 @@ export class UsersService implements IUsersService {
 
   async findOne(id: string, requester?: UserMetadata): Promise<GetUserOutput> {
     const [user] = await this.database.db
-      .select(publicColumns)
+      .select(userPublicColumns)
       .from(users)
       .where(and(eq(users.id, id), isNull(users.deletedAt)));
     if (!user) return { ok: false, errKey: ErrKeys.notFound };
@@ -158,7 +135,7 @@ export class UsersService implements IUsersService {
     _requester: UserMetadata,
   ): Promise<UpsertUserOutput> {
     const [user] = await this.database.db
-      .select(publicColumns)
+      .select(userPublicColumns)
       .from(users)
       .where(and(eq(users.id, id), isNull(users.deletedAt)));
     if (!user) return { ok: false, errKey: ErrKeys.notFound };
@@ -183,9 +160,9 @@ export class UsersService implements IUsersService {
         .update(users)
         .set({ ...input, updatedAt: new Date() })
         .where(eq(users.id, id))
-        .returning(publicColumns);
+        .returning(userPublicColumns);
     } catch (error) {
-      if (this.isUniqueViolation(error)) {
+      if (isUniqueViolation(error)) {
         return { ok: false, errKey: ErrKeys.alreadyExists };
       }
       throw error;
@@ -212,17 +189,8 @@ export class UsersService implements IUsersService {
       .set({ status: "deleted", deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(users.id, id));
 
-    this.logger.log(`User ${id} removed`);
-    return { ok: true };
-  }
-
-  private isUniqueViolation(error: unknown): error is { code: "23505" } {
-    return (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "23505"
-    );
+    this.logger.log(`User with id ${id} soft deleted.`);
+    return { ok: true, ...GetUserDto.toDto(user as GetUserDtoRecord) };
   }
 
   private allowedTargetRoles(requester?: UserMetadata): UserRole[] {
