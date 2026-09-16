@@ -9,7 +9,8 @@ const systemParamTable = pgTable("SystemParam", {
     .defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
-    .defaultNow(),
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export { systemParamTable as systemParams };
