@@ -10,5 +10,5 @@ export class CreateGroupDto {
     @ApiProperty()
     @IsString()
     @MaxLength(30)
-    friendlyId?: string
+    friendlyId: string
 }
