@@ -3,7 +3,7 @@ import axios, { type AxiosInstance } from 'axios'
 import type { EitherResponse } from '@/infra/http.types'
 import { env } from '@/providers/config/env'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
-import type { RepositoryBranchDetails, RepositoryDetails } from './github.types'
+import type { GitHubUserDetails, RepositoryBranchDetails, RepositoryDetails } from './github.types'
 
 type GitHubBranch = {
   name: string
@@ -12,6 +12,15 @@ type GitHubBranch = {
 
 type GitHubCommit = {
   sha: string
+}
+
+type GitHubUserResponse = {
+  login: string
+  avatar_url: string
+  html_url: string
+  bio: string | null
+  created_at: string
+  public_repos: number
 }
 
 @Injectable()
@@ -28,6 +37,29 @@ export class GitHubService {
       },
       timeout: env.GITHUB_TIMEOUT,
     })
+  }
+
+  async getUserDetails(username: string): Promise<GitHubUserDetails | null> {
+    try {
+      this.logger.info(`GET GitHub user details: ${username}`)
+      const response = await this.axios.get<GitHubUserResponse>(
+        `/users/${encodeURIComponent(username)}`,
+      )
+
+      return {
+        login: response.data.login,
+        avatarUrl: response.data.avatar_url,
+        profileUrl: response.data.html_url,
+        bio: response.data.bio,
+        createdAt: response.data.created_at,
+        publicRepos: response.data.public_repos,
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to get GitHub user details: ${error instanceof Error ? error.message : String(error)}`,
+      )
+      return null
+    }
   }
 
   async getRepositoryFromUrl(repositoryUrl: string): Promise<EitherResponse<RepositoryDetails>> {
