@@ -1,0 +1,154 @@
+pipeline {
+    agent none
+
+    options {
+        timestamps()
+    }
+
+    environment {
+        API_CHANGED = 'false'
+        WEB_CHANGED = 'false'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Setup pnpm') {
+            steps {
+                sh 'corepack enable'
+            }
+        }
+
+        stage('Detect Changes') {
+            agent {
+                label 'pnpm-node'
+            }
+            steps {
+                script {
+                    sh "git fetch origin ${env.CHANGE_TARGET}"
+
+                    def changedFiles = sh(
+                        script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Changed files:"
+                    echo changedFiles
+
+                    def files = changedFiles.readLines()
+
+                    env.API_CHANGED = files.any {
+                        it.startsWith('api/')
+                    }.toString()
+
+                    env.WEB_CHANGED = files.any {
+                        it.startsWith('web/')
+                    }.toString()
+
+                    echo "API changed: ${env.API_CHANGED}"
+                    echo "Web changed: ${env.WEB_CHANGED}"
+                }
+            }
+        }
+
+        stage('Validate') {
+            parallel {
+                stage('API') {
+                    when {
+                        expression {
+                            env.API_CHANGED == 'true'
+                        }
+                    }
+
+                    agent {
+                        label 'pnpm-node'
+                    }
+
+                    stages {
+                        stage('Install') {
+                            steps {
+                                dir('api') {
+                                    sh 'pnpm install --frozen-lockfile'
+                                }
+                            }
+                        }
+
+                        stage('Lint') {
+                            steps {
+                                dir('api') {
+                                    sh 'pnpm lint'
+                                }
+                            }
+                        }
+
+                        stage('Test') {
+                            steps {
+                                dir('api') {
+                                    sh 'pnpm test'
+                                }
+                            }
+                        }
+
+                        stage('Build') {
+                            steps {
+                                dir('api') {
+                                    sh 'pnpm build'
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Web') {
+                    when {
+                        expression {
+                            env.WEB_CHANGED == 'true'
+                        }
+                    }
+
+                    agent {
+                        label 'pnpm-node'
+                    }
+
+                    stages {
+                        stage('Install') {
+                            steps {
+                                dir('web') {
+                                    sh 'pnpm install --frozen-lockfile'
+                                }
+                            }
+                        }
+
+                        stage('Lint') {
+                            steps {
+                                dir('web') {
+                                    sh 'pnpm lint'
+                                }
+                            }
+                        }
+
+                        stage('Test') {
+                            steps {
+                                dir('web') {
+                                    sh 'pnpm test'
+                                }
+                            }
+                        }
+
+                        stage('Build') {
+                            steps {
+                                dir('web') {
+                                    sh 'pnpm build'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
