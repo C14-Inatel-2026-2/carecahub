@@ -2,6 +2,7 @@ import { USER_ROLES, type UserRole, users } from "@db";
 import { Injectable } from "@nestjs/common";
 import { and, asc, count, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import { DrizzleService } from "@/providers/database/drizzle.service";
+import { GitHubService } from "@/providers/github/github.service";
 import { CustomLogger } from "@/providers/logger/custom-logger.service";
 import { LoggerFactory } from "@/providers/logger/logger-factory.service";
 import { ErrKeys, ServiceOutput, UserMetadata } from "@/types";
@@ -11,6 +12,7 @@ import { GetUserDto } from "./dto/get-user.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/upsert-user.dto";
 import {
   GetUserOutput,
+  GetUserWithGitHubDetails,
   IUsersService,
   ListUserOutput,
   UpsertUserOutput,
@@ -25,6 +27,7 @@ export class UsersService implements IUsersService {
   constructor(
     private readonly database: DrizzleService,
     loggerFactory: LoggerFactory,
+    private readonly gitHubService: GitHubService,
   ) {
     this.logger = loggerFactory.create(UsersService.name);
   }
@@ -95,6 +98,7 @@ export class UsersService implements IUsersService {
         ? or(
             ilike(users.name, `%${query.search}%`),
             ilike(users.email, `%${query.search}%`),
+            ilike(users.githubName, `%${query.search}%`),
           )
         : undefined,
     );
@@ -109,10 +113,14 @@ export class UsersService implements IUsersService {
       this.database.db.select({ count: count() }).from(users).where(where),
     ]);
 
+    const data = await Promise.all(
+      userRows.map((user) => this.withGitHubDetails(GetUserDto.toDto(user))),
+    );
+
     return {
       ok: true,
       totalCount: Number(totalCount[0]?.count ?? 0),
-      data: userRows.map((user) => GetUserDto.toDto(user)),
+      data,
     };
   }
 
@@ -122,11 +130,17 @@ export class UsersService implements IUsersService {
       .from(users)
       .where(and(eq(users.id, id), isNull(users.deletedAt)));
     if (!user) return { ok: false, errKey: ErrKeys.notFound };
-    if (!this.canManage(requester, user.role)) {
+    if (
+      requester?.userId !== user.id &&
+      !this.canManage(requester, user.role)
+    ) {
       return { ok: false, errKey: ErrKeys.forbidden };
     }
 
-    return { ok: true, ...GetUserDto.toDto(user) };
+    return {
+      ok: true,
+      ...(await this.withGitHubDetails(GetUserDto.toDto(user))),
+    };
   }
 
   async update(
@@ -205,5 +219,22 @@ export class UsersService implements IUsersService {
     targetRole: UserRole,
   ): boolean {
     return this.allowedTargetRoles(requester).includes(targetRole);
+  }
+
+  private async withGitHubDetails(
+    user: GetUserDto,
+  ): Promise<GetUserWithGitHubDetails> {
+    const eligible =
+      user.role === "student" ||
+      user.role === "mentor" ||
+      user.role === "teacher";
+    if (!eligible || !user.githubName) {
+      return { ...user, gitHubDetails: null };
+    }
+
+    return {
+      ...user,
+      gitHubDetails: await this.gitHubService.getUserDetails(user.githubName),
+    };
   }
 }

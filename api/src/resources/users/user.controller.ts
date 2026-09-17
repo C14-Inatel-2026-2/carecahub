@@ -26,7 +26,7 @@ export class UsersController {
   }
 
   @Get(":id")
-  @Roles(["admin", "teacher", "mentor"])
+  @Roles(["admin", "teacher", "mentor", "student"])
   findOne(@User() requester: UserMetadata, @UUIDParam() id: string) {
     return this.usersService.findOne(id, requester);
   }
