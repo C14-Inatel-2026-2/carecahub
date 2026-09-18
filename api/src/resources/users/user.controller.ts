@@ -4,7 +4,6 @@ import { Roles } from "@/infra/roles.guard";
 import { User } from "@/infra/user.decorator";
 import { UUIDParam } from "@/infra/uuid-param.decorator";
 import { UserMetadata } from "@/types";
-import { QueryDto } from "@/utils/dtos/query.dto";
 import { CreateUserDto, UpdateUserDto } from "./dto/upsert-user.dto";
 import { UsersService } from "./user.service";
 import { GetUserQueryDto } from "./dto/get-user.dto";

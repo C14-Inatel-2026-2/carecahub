@@ -28,7 +28,12 @@ export abstract class IGroupService {
     groupId: string,
     requester: UserMetadata,
   ): Promise<ServiceOutput<object>>;
-  abstract remove(
+  abstract removeUserFromGroup(
+    userId: string,
+    groupId: string,
+    requester: UserMetadata,
+  ): Promise<ServiceOutput<object>>;
+  abstract delete(
     groupId: string,
     requester: UserMetadata,
   ): Promise<ServiceOutput<object>>;

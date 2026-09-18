@@ -10,7 +10,7 @@ import { users } from "./user";
 const groupTable = pgTable("Group", {
   id: uuid("id").defaultRandom().primaryKey(),
   friendlyId: varchar("friendly_id", { length: 30 }).notNull(),
-  creatorId: uuid("creator_id")
+  leaderId: uuid("leader_id")
     .references((): AnyPgColumn => users.id)
     .notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -26,7 +26,7 @@ const groupTable = pgTable("Group", {
 export const groupPublicColumns = {
   id: groupTable.id,
   friendlyId: groupTable.friendlyId,
-  creatorId: groupTable.creatorId,
+  leaderId: groupTable.leaderId,
   createdAt: groupTable.createdAt,
   updatedAt: groupTable.updatedAt,
   deletedAt: groupTable.deletedAt,

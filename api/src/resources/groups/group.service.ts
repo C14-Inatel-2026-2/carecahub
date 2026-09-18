@@ -37,6 +37,10 @@ export class GroupService implements IGroupService {
     return role === "student";
   }
 
+  private isGroupLeader(userId: string, groupLeaderId: string) {
+    return userId === groupLeaderId;
+  }
+
   async create(
     input: CreateGroupDto,
     requester: UserMetadata,
@@ -57,7 +61,7 @@ export class GroupService implements IGroupService {
         .insert(groups)
         .values({
           friendlyId: input.friendlyId,
-          creatorId: input.creatorId,
+          leaderId: input.leaderId,
         })
         .returning(groupPublicColumns);
 
@@ -184,7 +188,54 @@ export class GroupService implements IGroupService {
     }
   }
 
-  async remove(
+  async removeUserFromGroup(
+    userId: string,
+    groupId: string,
+    requester: UserMetadata,
+  ): Promise<ServiceOutput<object>> {
+    if (requester && !this.isStudent(requester.role)) {
+      return { ok: false, errKey: ErrKeys.forbidden };
+    }
+
+    const [groupExists] = await this.database.db
+      .select({ id: groups.id, leaderId: groups.leaderId })
+      .from(groups)
+      .where(eq(groups.id, groupId));
+
+    const [userExists] = await this.database.db
+      .select({ id: users.id, userGroup: users.groupId })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (!groupExists) return { ok: false, errKey: ErrKeys.notFound };
+    if (!userExists) return { ok: false, errKey: ErrKeys.notFound };
+
+    const isLeader = this.isGroupLeader(requester.userId, groupExists.leaderId);
+    const isSelf = requester.userId === userId;
+
+    if (!isLeader && !isSelf) {
+      return { ok: false, errKey: ErrKeys.forbidden };
+    }
+
+    try {
+      const [user] = await this.database.db
+        .update(users)
+        .set({ groupId: null })
+        .where(and(eq(users.id, userId), eq(users.groupId, groupId)))
+        .returning(userPublicColumns);
+
+      if (!user) {
+        return { ok: false, errKey: ErrKeys.notFound };
+      }
+
+      return { ok: true, ...GetUserDto.toDto(user as GetUserDtoRecord) };
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  async delete(
     groupId: string,
     requester: UserMetadata,
   ): Promise<ServiceOutput<object>> {

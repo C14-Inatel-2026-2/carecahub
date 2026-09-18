@@ -2,13 +2,13 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString, Length, MaxLength } from "class-validator";
 
 export class CreateGroupDto {
-    @ApiProperty()
-    @IsString()
-    @Length(36)
-    creatorId: string
+  @ApiProperty()
+  @IsString()
+  @Length(36)
+  leaderId: string;
 
-    @ApiProperty()
-    @IsString()
-    @MaxLength(30)
-    friendlyId: string
+  @ApiProperty()
+  @IsString()
+  @MaxLength(30)
+  friendlyId: string;
 }
