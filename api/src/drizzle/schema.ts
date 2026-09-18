@@ -5,6 +5,7 @@ import {
   repositoryRelations,
   systemParams,
   users,
+  groups,
 } from './schema/entities'
 import { repositoryTypeEnum, userRoleEnum, userStatusEnum } from './schema/enums'
 
@@ -18,6 +19,7 @@ export const schema = {
   userRoleEnum,
   userStatusEnum,
   repositoryRelations,
+  groups,
 }
 
 export default schema
@@ -31,4 +33,5 @@ export {
   userRoleEnum,
   userStatusEnum,
   users,
+  groups,
 }
