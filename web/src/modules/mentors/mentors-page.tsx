@@ -1,7 +1,9 @@
 import { Ellipsis, Pencil, Search, Trash2, Users } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useList } from "@/api";
-import { DataTable, type ColumnDef } from "@/components/data-table";
+import { type ColumnDef, DataTable } from "@/components/data-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,17 +11,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { getBadgeClassNamesByRole } from "@/lib/badges";
+import { cn } from "@/lib/utils";
+import { profileRoute } from "@/router/routes";
 import { useUser } from "@/stores/use-user";
 import { type User, userRoleLabels } from "@/types/user";
+import { CreateMentorDialog } from "./dialogs/create-mentor-dialog";
 import { DeleteUserDialog } from "./dialogs/delete-mentor-dialog";
 import { EditUserDialog } from "./dialogs/edit-mentor-dialog";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { CreateMentorDialog } from "./dialogs/create-mentor-dialog";
-import { getBadgeClassNamesByRole } from "@/lib/badges";
 
 export function MentorsPage() {
+  const navigate = useNavigate();
   const user = useUser((state) => state.user);
 
   const {
@@ -126,6 +129,13 @@ export function MentorsPage() {
           isLoading={isLoadingUsers}
           searchValue={search}
           onSearchChange={setSearch}
+          onRowClick={(listedUser) => {
+            if (listedUser.githubName) {
+              navigate(profileRoute(listedUser.githubName), {
+                state: { user: listedUser },
+              });
+            }
+          }}
           searchFunction={(listedUser, term) => {
             const query = term.toLocaleLowerCase();
             return [listedUser.name, listedUser.email, listedUser.role].some(

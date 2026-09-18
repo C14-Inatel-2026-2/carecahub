@@ -7,9 +7,10 @@ import { appRoutes } from "./routes";
 import { GroupsPage } from "@/modules/groups/groups-page";
 import { MentorsPage } from "@/modules/mentors/mentors-page";
 import { HomePage } from "@/modules/home/home-page";
-import { ProfilePage } from "@/modules/profile/profile-page";
 import { MyProjectPage } from "@/modules/my-project/my-project-page";
 import { CreateProjectPage } from "@/modules/my-project/create-project-page";
+import { ProfilePage } from "@/modules/profile/profile-page";
+import { MyProfilePage } from "@/modules/my-profile/my-profile-page";
 
 export const router = createBrowserRouter([
   { path: appRoutes.login, Component: LoginPage },
@@ -38,7 +39,7 @@ export const router = createBrowserRouter([
       },
       {
         path: appRoutes.profile,
-        children: [{ index: true, Component: ProfilePage }],
+        children: [{ index: true, Component: MyProfilePage }],
       },
       {
         path: appRoutes.myProject,
@@ -48,7 +49,11 @@ export const router = createBrowserRouter([
         path: appRoutes.createMyProject,
         children: [{ index: true, Component: CreateProjectPage }],
       },
+      {
+        path: `${appRoutes.profile}/:githubUsername`,
+        Component: ProfilePage,
+      },
     ],
   },
-  { path: "*", element: <Navigate to={appRoutes.login} replace /> },
-]);
+  { path: '*', element: <Navigate to={appRoutes.login} replace /> },
+])
