@@ -57,6 +57,13 @@
       "when": 1789521286648,
       "tag": "0007_group_table_and_users_new_groupid_column",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789736032022,
+      "tag": "0008_changed_group_creatorid_to_leaderid",
+      "breakpoints": true
     }
   ]
 }
