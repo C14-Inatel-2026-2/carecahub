@@ -100,7 +100,7 @@ function HasProjectCard({
               <FolderGit2 className="size-5" />
               <span>Repositórios ({project.repositories.length})</span>
             </div>
-            <ChevronDown className="size-4 transition-transform group-data-[popup-open]:rotate-180" />
+            <ChevronDown className="size-4 transition-transform group-data-popup-open:rotate-180" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
