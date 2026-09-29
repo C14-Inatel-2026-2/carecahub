@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Repository } from "./repository";
 
 export const technologyOptions = [
   { value: "html", label: "HTML" },
@@ -153,6 +154,33 @@ export const projectFormSchema = z
       });
     }
   });
+
+export const REPOSITORY_TYPE = ["monorepo", "multirepo"] as const;
+export type RepositoryType = (typeof REPOSITORY_TYPE)[number];
+
+export const PROJECT_TAGS = ["monorepo", "multirepo", "missing_repo"] as const;
+export type ProjectTag = (typeof PROJECT_TAGS)[number];
+
+export const projectTagLabels: Record<ProjectTag, string> = {
+  monorepo: "MONOREPO",
+  multirepo: "MULTIREPO",
+  missing_repo: "SEM REPOSITORIO",
+};
+
+export type Project = {
+  id: string;
+  projectName: string;
+  repositoryType?: RepositoryType | null;
+  tags?: ProjectTag[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  repositories: Repository[];
+  commitCount: number;
+  branchCount: number;
+};
+
+export type GetProjectResponse = Project;
 
 export type ProjectFormInput = z.input<typeof projectFormSchema>;
 export type ProjectFormValues = z.output<typeof projectFormSchema>;
