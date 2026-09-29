@@ -1,7 +1,8 @@
-import { projects } from '@db'
+import { projects, repositories } from '@db'
 import { Injectable } from '@nestjs/common'
 import { and, count, desc, eq, ilike, isNull, ne } from 'drizzle-orm'
 import { DrizzleService } from '@/providers/database/drizzle.service'
+import { GitHubService } from '@/providers/github/github.service'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { ErrKeys, UserMetadata } from '@/types'
@@ -23,6 +24,7 @@ export class ProjectService implements IProjectService {
 
   constructor(
     private readonly database: DrizzleService,
+    private readonly gitHubService: GitHubService,
     loggerFactory: LoggerFactory,
   ) {
     this.logger = loggerFactory.create(ProjectService.name)
@@ -113,7 +115,7 @@ export class ProjectService implements IProjectService {
     return {
       ok: true,
       totalCount: Number(totalCount[0]?.count ?? 0),
-      data: projectRows.map((project) => GetProjectDto.toDto(project)),
+      data: await Promise.all(projectRows.map((project) => this.withRepositoryStats(project))),
     }
   }
 
@@ -121,7 +123,7 @@ export class ProjectService implements IProjectService {
     const project = await this.getRecord(id)
     if (!project) return { ok: false, errKey: ErrKeys.notFound }
 
-    return { ok: true, ...GetProjectDto.toDto(project) }
+    return { ok: true, ...(await this.withRepositoryStats(project)) }
   }
 
   async remove(id: string, _requester: UserMetadata): Promise<RemoveProjectOutput> {
@@ -144,6 +146,7 @@ export class ProjectService implements IProjectService {
   private readonly selection = {
     id: projects.id,
     projectName: projects.projectName,
+    repositoryType: projects.repositoryType,
     createdAt: projects.createdAt,
     updatedAt: projects.updatedAt,
     deletedAt: projects.deletedAt,
@@ -156,5 +159,35 @@ export class ProjectService implements IProjectService {
       .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
 
     return project
+  }
+
+  private async withRepositoryStats(project: GetProjectDtoRecord): Promise<GetProjectDto> {
+    const repositoryRows = await this.database.db
+      .select({ id: repositories.id, url: repositories.url })
+      .from(repositories)
+      .where(and(eq(repositories.projectId, project.id), isNull(repositories.deletedAt)))
+
+    const projectRepositories = await Promise.all(
+      repositoryRows.map(async (repository) => {
+        const githubRepository = await this.gitHubService.getRepositoryFromUrl(repository.url)
+        const commitCount = githubRepository.success ? githubRepository.commitCount : 0
+        const branchCount = githubRepository.success ? githubRepository.branches.length : 0
+
+        return { ...repository, commitCount, branchCount }
+      }),
+    )
+
+    return {
+      ...GetProjectDto.toDto(project),
+      repositories: projectRepositories,
+      commitCount: projectRepositories.reduce(
+        (total, repository) => total + repository.commitCount,
+        0,
+      ),
+      branchCount: projectRepositories.reduce(
+        (total, repository) => total + repository.branchCount,
+        0,
+      ),
+    }
   }
 }

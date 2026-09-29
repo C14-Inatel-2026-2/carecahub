@@ -43,7 +43,7 @@ class QueryResult<T> implements PromiseLike<T> {
   }
 }
 
-function createService(results: unknown[]) {
+function createService(results: unknown[], githubResults: unknown[] = []) {
   const next = () => new QueryResult(results.shift())
   const database = {
     db: {
@@ -55,8 +55,11 @@ function createService(results: unknown[]) {
   const loggerFactory = {
     create: () => ({ log() {}, info() {}, error() {} }),
   }
+  const gitHubService = {
+    getRepositoryFromUrl: async () => githubResults.shift(),
+  }
 
-  return new ProjectService(database as never, loggerFactory as never)
+  return new ProjectService(database as never, gitHubService as never, loggerFactory as never)
 }
 
 const projectId = '48d513dc-5a9e-4f13-9c13-ee27589bb7eb'
@@ -65,6 +68,7 @@ const requester = { id: '2ed79018-20fe-4fc2-982c-aecb12d32fb0', role: 'admin' }
 const projectRecord = {
   id: projectId,
   projectName: 'CarecaHub',
+  repositoryType: 'multirepo' as const,
   createdAt: new Date('2026-01-01T00:00:00Z'),
   updatedAt: new Date('2026-01-02T00:00:00Z'),
   deletedAt: null,
@@ -121,6 +125,69 @@ describe('ProjectService.findOne', () => {
     const result = await service.findOne(projectId)
 
     assert.deepEqual(result, { ok: false, errKey: ErrKeys.notFound })
+  })
+
+  it('sums commits and branches from every active repository', async () => {
+    const repositories = [
+      { id: 'repo-1', url: 'https://github.com/acme/web' },
+      { id: 'repo-2', url: 'https://github.com/acme/api' },
+    ]
+    const service = createService(
+      [[projectRecord], repositories],
+      [
+        { success: true, commitCount: 12, branches: [{ name: 'main' }, { name: 'dev' }] },
+        { success: true, commitCount: 8, branches: [{ name: 'main' }] },
+      ],
+    )
+
+    const result = await service.findOne(projectId)
+
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(result.commitCount, 20)
+      assert.equal(result.branchCount, 3)
+      assert.deepEqual(result.repositories, [
+        { id: 'repo-1', url: 'https://github.com/acme/web', commitCount: 12, branchCount: 2 },
+        { id: 'repo-2', url: 'https://github.com/acme/api', commitCount: 8, branchCount: 1 },
+      ])
+    }
+  })
+
+  it('keeps a repository link and uses zero metrics when GitHub fails', async () => {
+    const repositories = [{ id: 'repo-1', url: 'https://github.com/acme/private' }]
+    const service = createService(
+      [[projectRecord], repositories],
+      [{ success: false, errKey: 'error', message: 'error', friendlyMessage: 'error' }],
+    )
+
+    const result = await service.findOne(projectId)
+
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(result.commitCount, 0)
+      assert.equal(result.branchCount, 0)
+      assert.deepEqual(result.repositories, [
+        { id: 'repo-1', url: 'https://github.com/acme/private', commitCount: 0, branchCount: 0 },
+      ])
+    }
+  })
+})
+
+describe('ProjectService.findAll', () => {
+  it('includes aggregated repository metrics in the project list', async () => {
+    const repositories = [{ id: 'repo-1', url: 'https://github.com/acme/app' }]
+    const service = createService(
+      [[projectRecord], [{ count: 1 }], repositories],
+      [{ success: true, commitCount: 15, branches: [{ name: 'main' }, { name: 'release' }] }],
+    )
+
+    const result = await service.findAll({ skip: 0, take: 10 })
+
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(result.data[0]?.commitCount, 15)
+      assert.equal(result.data[0]?.branchCount, 2)
+    }
   })
 })
 
