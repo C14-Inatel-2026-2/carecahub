@@ -41,7 +41,6 @@ export function MyProjectPage() {
         </div>
       </div>
 
-      {/* <p className="w-full border border-gray-600 mt-4" /> */}
       <h1 className="mt-7 text-lg font-medium">Dados do Projeto</h1>
       <div className="flex-1">
         <div className="flex w-full h-full flex-col gap-4 items-center justify-center">
