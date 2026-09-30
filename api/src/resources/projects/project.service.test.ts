@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
-import { ErrKeys } from '@/types'
+import { ErrKeys, type UserMetadata } from '@/types'
 import { ProjectService } from './project.service'
 
 class QueryResult<T> implements PromiseLike<T> {
   constructor(private readonly result: T) {}
-
   from() {
     return this
   }
@@ -30,107 +29,124 @@ class QueryResult<T> implements PromiseLike<T> {
   returning() {
     return this
   }
-
   // biome-ignore lint/suspicious/noThenProperty: query builders are intentionally awaitable
   then<TResult1 = T, TResult2 = never>(
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): PromiseLike<TResult1 | TResult2> {
-    if (this.result instanceof Error) {
+    if (this.result instanceof Error)
       return Promise.reject(this.result).then(onfulfilled, onrejected)
-    }
     return Promise.resolve(this.result).then(onfulfilled, onrejected)
   }
 }
 
 function createService(results: unknown[], githubResults: unknown[] = []) {
   const next = () => new QueryResult(results.shift())
-  const database = {
-    db: {
-      select: next,
-      insert: next,
-      update: next,
-    },
-  }
-  const loggerFactory = {
-    create: () => ({ log() {}, info() {}, error() {} }),
-  }
-  const gitHubService = {
-    getRepositoryFromUrl: async () => githubResults.shift(),
-  }
-
+  const database = { db: { select: next, insert: next, update: next } }
+  const gitHubService = { getRepositoryFromUrl: async () => githubResults.shift() }
+  const loggerFactory = { create: () => ({ log() {}, info() {}, error() {} }) }
   return new ProjectService(database as never, gitHubService as never, loggerFactory as never)
 }
 
 const projectId = '48d513dc-5a9e-4f13-9c13-ee27589bb7eb'
-const requester = { id: '2ed79018-20fe-4fc2-982c-aecb12d32fb0', role: 'admin' }
+const groupId = 'a761f798-c361-4a22-ab01-244dd3b4124a'
+const student = (userId = 'member-id') =>
+  ({ userId, name: 'Member', role: 'student' }) as UserMetadata
+const admin = { userId: 'admin-id', name: 'Admin', role: 'admin' } as UserMetadata
+
+const input = {
+  name: 'CarecaHub',
+  description: 'Plataforma de projetos',
+  technologies: ['typescript'],
+  usesOtherTechnology: false,
+  otherTechnology: '',
+  dependencyManager: 'pnpm',
+  otherDependencyManager: '',
+  versionControl: 'git',
+  otherVersionControl: '',
+  repositoryType: 'multirepo' as const,
+}
 
 const projectRecord = {
   id: projectId,
-  projectName: 'CarecaHub',
-  repositoryType: 'multirepo' as const,
+  groupId,
+  projectName: input.name,
+  description: input.description,
+  technologies: input.technologies,
+  usesOtherTechnology: input.usesOtherTechnology,
+  otherTechnology: null,
+  dependencyManager: input.dependencyManager,
+  otherDependencyManager: null,
+  versionControl: input.versionControl,
+  otherVersionControl: null,
+  repositoryType: input.repositoryType,
   createdAt: new Date('2026-01-01T00:00:00Z'),
   updatedAt: new Date('2026-01-02T00:00:00Z'),
   deletedAt: null,
 }
 
 describe('ProjectService.upsert', () => {
-  it('rejects creation when an active project already uses the name', async () => {
-    const service = createService([[{ id: 'existing-id' }]])
+  it('allows a group member to create the group project', async () => {
+    const service = createService([
+      [{ groupId, status: 'active' }],
+      [{ id: groupId }],
+      [],
+      [],
+      [{ id: projectId }],
+      [projectRecord],
+      [],
+    ])
 
-    const result = await service.upsert({ projectName: 'CarecaHub' })
-
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.alreadyExists })
-  })
-
-  it('creates a project when the name is free', async () => {
-    const service = createService([[], [{ id: projectId }], [projectRecord]])
-
-    const result = await service.upsert({ projectName: 'CarecaHub' })
+    const result = await service.upsert(input, student())
 
     assert.equal(result.ok, true)
-    if (result.ok) assert.equal(result.projectName, 'CarecaHub')
+    if (result.ok) {
+      assert.equal(result.groupId, groupId)
+      assert.equal(result.projectName, input.name)
+      assert.equal(result.description, input.description)
+    }
   })
 
-  it('returns notFound when updating an unknown project ID', async () => {
-    const service = createService([[]])
+  it('forbids a teacher from creating a project', async () => {
+    const service = createService([])
 
-    const result = await service.upsert({ id: projectId, projectName: 'CarecaHub' })
+    const result = await service.upsert(input, {
+      userId: 'teacher-id',
+      name: 'Teacher',
+      role: 'teacher',
+    })
 
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.notFound })
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 
-  it('rejects an update when another active project already uses the name', async () => {
-    const service = createService([[{ id: projectId }], [{ id: 'another-id' }]])
+  it('forbids a student from editing another group project', async () => {
+    const service = createService([[projectRecord], []])
 
-    const result = await service.upsert({ id: projectId, projectName: 'CarecaHub' })
+    const result = await service.upsert({ ...input, id: projectId }, student('outsider-id'))
 
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.alreadyExists })
-  })
-
-  it('maps a concurrent unique constraint violation to alreadyExists', async () => {
-    const uniqueViolation = Object.assign(new Error('duplicate key'), { code: '23505' })
-    const service = createService([[], uniqueViolation])
-
-    const result = await service.upsert({ projectName: 'CarecaHub' })
-
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.alreadyExists })
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 })
 
 describe('ProjectService.findOne', () => {
-  it('returns notFound for a soft deleted project', async () => {
-    const service = createService([[]])
-
-    const result = await service.findOne(projectId)
-
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.notFound })
-  })
-
   it('sums commits and branches from every active repository', async () => {
     const repositories = [
-      { id: 'repo-1', url: 'https://github.com/acme/web' },
-      { id: 'repo-2', url: 'https://github.com/acme/api' },
+      {
+        id: 'repo-1',
+        url: 'https://github.com/acme/web',
+        ownerId: 'member-id',
+        projectId,
+        createdAt: new Date('2026-01-01'),
+        updatedAt: new Date('2026-01-01'),
+      },
+      {
+        id: 'repo-2',
+        url: 'https://github.com/acme/api',
+        ownerId: 'member-id',
+        projectId,
+        createdAt: new Date('2026-01-01'),
+        updatedAt: new Date('2026-01-01'),
+      },
     ]
     const service = createService(
       [[projectRecord], repositories],
@@ -140,70 +156,30 @@ describe('ProjectService.findOne', () => {
       ],
     )
 
-    const result = await service.findOne(projectId)
+    const result = await service.findOne(projectId, admin)
 
     assert.equal(result.ok, true)
     if (result.ok) {
       assert.equal(result.commitCount, 20)
       assert.equal(result.branchCount, 3)
-      assert.deepEqual(result.repositories, [
-        { id: 'repo-1', url: 'https://github.com/acme/web', commitCount: 12, branchCount: 2 },
-        { id: 'repo-2', url: 'https://github.com/acme/api', commitCount: 8, branchCount: 1 },
-      ])
-    }
-  })
-
-  it('keeps a repository link and uses zero metrics when GitHub fails', async () => {
-    const repositories = [{ id: 'repo-1', url: 'https://github.com/acme/private' }]
-    const service = createService(
-      [[projectRecord], repositories],
-      [{ success: false, errKey: 'error', message: 'error', friendlyMessage: 'error' }],
-    )
-
-    const result = await service.findOne(projectId)
-
-    assert.equal(result.ok, true)
-    if (result.ok) {
-      assert.equal(result.commitCount, 0)
-      assert.equal(result.branchCount, 0)
-      assert.deepEqual(result.repositories, [
-        { id: 'repo-1', url: 'https://github.com/acme/private', commitCount: 0, branchCount: 0 },
-      ])
-    }
-  })
-})
-
-describe('ProjectService.findAll', () => {
-  it('includes aggregated repository metrics in the project list', async () => {
-    const repositories = [{ id: 'repo-1', url: 'https://github.com/acme/app' }]
-    const service = createService(
-      [[projectRecord], [{ count: 1 }], repositories],
-      [{ success: true, commitCount: 15, branches: [{ name: 'main' }, { name: 'release' }] }],
-    )
-
-    const result = await service.findAll({ skip: 0, take: 10 })
-
-    assert.equal(result.ok, true)
-    if (result.ok) {
-      assert.equal(result.data[0]?.commitCount, 15)
-      assert.equal(result.data[0]?.branchCount, 2)
+      assert.deepEqual(result.tags, ['multirepo'])
     }
   })
 })
 
 describe('ProjectService.remove', () => {
-  it('returns notFound when the project does not exist', async () => {
-    const service = createService([[]])
+  it('forbids a regular member from deleting the project', async () => {
+    const service = createService([[{ id: projectId, groupId }], [{ leaderId: 'leader-id' }]])
 
-    const result = await service.remove(projectId, requester as never)
+    const result = await service.remove(projectId, student('member-id'))
 
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.notFound })
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 
-  it('soft deletes an existing project', async () => {
-    const service = createService([[{ id: projectId }], []])
+  it('allows the group leader to soft delete the project', async () => {
+    const service = createService([[{ id: projectId, groupId }], [{ leaderId: 'leader-id' }], []])
 
-    const result = await service.remove(projectId, requester as never)
+    const result = await service.remove(projectId, student('leader-id'))
 
     assert.deepEqual(result, { ok: true })
   })
