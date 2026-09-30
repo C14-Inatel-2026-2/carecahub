@@ -1,5 +1,6 @@
 import 'dotenv/config'
-import { projects, repositories, users } from '@db'
+import { groups, projects, repositories, users } from '@db'
+import { eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { z } from 'zod'
@@ -25,6 +26,7 @@ const seedIds = {
   student: '00000000-0000-4000-8000-000000000002',
   project: '00000000-0000-4000-8000-000000000003',
   repository: '00000000-0000-4000-8000-000000000004',
+  group: '00000000-0000-4000-8000-000000000005',
 } as const
 
 export async function seed(environment: Record<string, string | undefined> = process.env) {
@@ -101,10 +103,41 @@ export async function seed(environment: Record<string, string | undefined> = pro
         })
 
       await tx
+        .insert(groups)
+        .values({
+          id: seedIds.group,
+          friendlyId: 'Grupo Seed',
+          leaderId: seedIds.student,
+          deletedAt: null,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: groups.id,
+          set: {
+            friendlyId: 'Grupo Seed',
+            leaderId: seedIds.student,
+            deletedAt: null,
+            updatedAt: new Date(),
+          },
+        })
+
+      await tx
+        .update(users)
+        .set({ groupId: seedIds.group, updatedAt: new Date() })
+        .where(eq(users.id, seedIds.student))
+
+      await tx
         .insert(projects)
         .values({
           id: seedIds.project,
+          groupId: seedIds.group,
           projectName: 'CarecaHub Seed Project',
+          description: 'Projeto inicial para desenvolvimento local.',
+          technologies: ['typescript', 'nestjs', 'react'],
+          usesOtherTechnology: false,
+          dependencyManager: 'pnpm',
+          versionControl: 'git',
+          repositoryType: 'monorepo',
           deletedAt: null,
           updatedAt: new Date(),
         })
@@ -112,6 +145,16 @@ export async function seed(environment: Record<string, string | undefined> = pro
           target: projects.id,
           set: {
             projectName: 'CarecaHub Seed Project',
+            groupId: seedIds.group,
+            description: 'Projeto inicial para desenvolvimento local.',
+            technologies: ['typescript', 'nestjs', 'react'],
+            usesOtherTechnology: false,
+            otherTechnology: null,
+            dependencyManager: 'pnpm',
+            otherDependencyManager: null,
+            versionControl: 'git',
+            otherVersionControl: null,
+            repositoryType: 'monorepo',
             deletedAt: null,
             updatedAt: new Date(),
           },
@@ -122,7 +165,6 @@ export async function seed(environment: Record<string, string | undefined> = pro
         .values({
           id: seedIds.repository,
           url: 'https://github.com/octocat/Hello-World',
-          repositoryType: 'multirepo',
           ownerId: seedIds.student,
           projectId: seedIds.project,
           deletedAt: null,
@@ -132,7 +174,6 @@ export async function seed(environment: Record<string, string | undefined> = pro
           target: repositories.id,
           set: {
             url: 'https://github.com/octocat/Hello-World',
-            repositoryType: 'multirepo',
             ownerId: seedIds.student,
             projectId: seedIds.project,
             deletedAt: null,

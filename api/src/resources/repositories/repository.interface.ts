@@ -10,7 +10,11 @@ export type GetRepositoryOutput = ServiceOutput<GetRepositoryDto>
 export type ListRepositoryOutput = ServiceOutput<List<GetRepositoryDto>>
 
 export abstract class IRepositoryService {
-  abstract upsert(input: UpsertRepositoryDto): Promise<UpsertRepositoryOutput>
+  abstract upsert(
+    input: UpsertRepositoryDto,
+    requester: UserMetadata,
+  ): Promise<UpsertRepositoryOutput>
   abstract findAll(query: QueryDto, requester?: UserMetadata): Promise<ListRepositoryOutput>
   abstract findOne(id: string, requester?: UserMetadata): Promise<GetRepositoryOutput>
+  abstract remove(id: string, requester: UserMetadata): Promise<ServiceOutput<object>>
 }

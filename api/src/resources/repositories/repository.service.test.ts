@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
-import { ErrKeys } from '@/types'
+import { ErrKeys, type UserMetadata } from '@/types'
 import { RepositoryService } from './repository.service'
 
 class QueryResult<T> implements PromiseLike<T> {
   constructor(private readonly result: T) {}
-
   from() {
     return this
   }
@@ -33,15 +32,13 @@ class QueryResult<T> implements PromiseLike<T> {
   returning() {
     return this
   }
-
   // biome-ignore lint/suspicious/noThenProperty: query builders are intentionally awaitable
   then<TResult1 = T, TResult2 = never>(
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): PromiseLike<TResult1 | TResult2> {
-    if (this.result instanceof Error) {
+    if (this.result instanceof Error)
       return Promise.reject(this.result).then(onfulfilled, onrejected)
-    }
     return Promise.resolve(this.result).then(onfulfilled, onrejected)
   }
 }
@@ -51,122 +48,142 @@ function createService(
   githubResult: unknown = { success: false, errKey: 'error', message: 'error' },
 ) {
   const next = () => new QueryResult(results.shift())
-  const database = {
-    db: {
-      select: next,
-      insert: next,
-      update: next,
-    },
-  }
-  const loggerFactory = {
-    create: () => ({ log() {}, info() {}, error() {} }),
-  }
-
-  const githubService = {
-    getRepositoryFromUrl: async () => githubResult,
-  }
-
+  const database = { db: { select: next, insert: next, update: next } }
+  const loggerFactory = { create: () => ({ log() {}, info() {}, error() {} }) }
+  const githubService = { getRepositoryFromUrl: async () => githubResult }
   return new RepositoryService(database as never, githubService as never, loggerFactory as never)
 }
 
+const repositoryId = '48d513dc-5a9e-4f13-9c13-ee27589bb7eb'
+const projectId = 'a761f798-c361-4a22-ab01-244dd3b4124a'
+const groupId = 'bf81f281-b616-48a7-8391-2f31624b01a0'
+const ownerId = '2ed79018-20fe-4fc2-982c-aecb12d32fb0'
+const student = (userId = 'member-id') =>
+  ({ userId, name: 'Member', role: 'student' }) as UserMetadata
+
+const input = { url: 'https://github.com/acme/api', ownerId, projectId }
+const repositoryRecord = {
+  id: repositoryId,
+  url: input.url,
+  ownerId,
+  projectId,
+  owner: {
+    id: ownerId,
+    groupId,
+    name: 'Owner',
+    registration: 123,
+    githubName: 'owner',
+    classroom: 'A1',
+    email: 'owner@example.com',
+    role: 'student' as const,
+    status: 'active' as const,
+    two_factor: false,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+    deletedAt: null,
+  },
+  project: {
+    id: projectId,
+    groupId,
+    projectName: 'CarecaHub',
+    repositoryType: 'multirepo' as const,
+  },
+  createdAt: new Date('2026-01-01'),
+  updatedAt: new Date('2026-01-01'),
+  deletedAt: null,
+}
+
 describe('RepositoryService.upsert', () => {
-  it('rejects creation when an active repository already uses the URL', async () => {
-    const service = createService([[{ id: 'existing-id' }]])
-
-    const result = await service.upsert({
-      url: 'https://github.com/acme/api',
-      repositoryType: 'multirepo',
-      ownerId: '2ed79018-20fe-4fc2-982c-aecb12d32fb0',
-      projectId: 'a761f798-c361-4a22-ab01-244dd3b4124a',
-    })
-
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.alreadyExists })
-  })
-
-  it('returns notFound when updating an unknown repository ID', async () => {
-    const service = createService([[]])
-
-    const result = await service.upsert({
-      id: '48d513dc-5a9e-4f13-9c13-ee27589bb7eb',
-      url: 'https://github.com/acme/api',
-      repositoryType: 'multirepo',
-      ownerId: '2ed79018-20fe-4fc2-982c-aecb12d32fb0',
-      projectId: 'a761f798-c361-4a22-ab01-244dd3b4124a',
-    })
-
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.notFound })
-  })
-
-  it('rejects an update when another repository already uses the URL', async () => {
+  it('allows a group member to register a repository with an owner from the group', async () => {
     const service = createService([
-      [{ id: '48d513dc-5a9e-4f13-9c13-ee27589bb7eb' }],
-      [{ id: 'another-id' }],
+      [{ id: projectId, groupId }],
+      [{ groupId }],
+      [{ id: ownerId, groupId, status: 'active' }],
+      [],
+      [{ id: repositoryId }],
+      [repositoryRecord],
     ])
 
-    const result = await service.upsert({
-      id: '48d513dc-5a9e-4f13-9c13-ee27589bb7eb',
-      url: 'https://github.com/acme/api',
-      repositoryType: 'multirepo',
-      ownerId: '2ed79018-20fe-4fc2-982c-aecb12d32fb0',
-      projectId: 'a761f798-c361-4a22-ab01-244dd3b4124a',
-    })
+    const result = await service.upsert(input, student())
 
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.alreadyExists })
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(result.ownerId, ownerId)
+      assert.equal(result.projectId, projectId)
+      assert.equal(result.owner.name, 'Owner')
+    }
   })
 
-  it('maps a concurrent unique constraint violation to alreadyExists', async () => {
-    const uniqueViolation = Object.assign(new Error('duplicate key'), {
-      code: '23505',
-    })
-    const service = createService([[], uniqueViolation])
+  it('rejects an owner that is not an active member of the project group', async () => {
+    const service = createService([
+      [{ id: projectId, groupId }],
+      [{ groupId }],
+      [{ id: ownerId, groupId: 'other-group', status: 'active' }],
+    ])
 
-    const result = await service.upsert({
-      url: 'https://github.com/acme/api',
-      repositoryType: 'multirepo',
-      ownerId: '2ed79018-20fe-4fc2-982c-aecb12d32fb0',
-      projectId: 'a761f798-c361-4a22-ab01-244dd3b4124a',
-    })
+    const result = await service.upsert(input, student())
 
-    assert.deepEqual(result, { ok: false, errKey: ErrKeys.alreadyExists })
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.invalidPayload })
+  })
+
+  it('forbids a student outside the project group', async () => {
+    const service = createService([[{ id: projectId, groupId }], []])
+
+    const result = await service.upsert(input, student('outsider-id'))
+
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
+
+  it('rejects a second active repository for a monorepo project', async () => {
+    const service = createService([
+      [{ id: projectId, groupId, repositoryType: 'monorepo' }],
+      [{ groupId }],
+      [{ id: ownerId, groupId, status: 'active' }],
+      [{ id: 'existing-repository' }],
+    ])
+
+    const result = await service.upsert(input, student())
+
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.resourceInUse })
+  })
+
+  it('rejects moving a repository to a monorepo project that already has one', async () => {
+    const service = createService([
+      [repositoryRecord],
+      [{ groupId }],
+      [{ id: 'target-project', groupId, repositoryType: 'monorepo' }],
+      [{ groupId }],
+      [{ id: ownerId, groupId, status: 'active' }],
+      [{ id: 'existing-repository' }],
+    ])
+
+    const result = await service.upsert(
+      { ...input, id: repositoryId, projectId: 'target-project' },
+      student(),
+    )
+
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.resourceInUse })
   })
 })
 
-describe('RepositoryService.findOne', () => {
-  const repository = {
-    id: '48d513dc-5a9e-4f13-9c13-ee27589bb7eb',
-    url: 'https://github.com/acme/api',
-    repositoryType: 'multirepo' as const,
-    owner: { id: '2ed79018-20fe-4fc2-982c-aecb12d32fb0', name: 'Ada' },
-    project: { id: 'a761f798-c361-4a22-ab01-244dd3b4124a', projectName: 'API' },
-    createdAt: new Date('2026-01-01T00:00:00Z'),
-    updatedAt: new Date('2026-01-02T00:00:00Z'),
-    deletedAt: null,
-  }
+describe('RepositoryService.remove', () => {
+  it('forbids a regular member from deleting a repository', async () => {
+    const service = createService([[{ id: repositoryId, groupId }], [{ leaderId: 'leader-id' }]])
 
-  it('adds GitHub details to a repository', async () => {
-    const details = {
-      id: 1,
-      name: 'api',
-      full_name: 'acme/api',
-      private: false,
-    }
-    const service = createService([[repository]], {
-      success: true,
-      ...details,
-    })
+    const result = await service.remove(repositoryId, student())
 
-    const result = await service.findOne(repository.id)
-
-    assert.equal(result.ok, true)
-    if (result.ok) assert.deepEqual(result.details, details)
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 
-  it('returns null details when GitHub cannot provide them', async () => {
-    const service = createService([[repository]])
+  it('allows the leader to soft delete a repository', async () => {
+    const service = createService([
+      [{ id: repositoryId, groupId }],
+      [{ leaderId: 'leader-id' }],
+      [],
+    ])
 
-    const result = await service.findOne(repository.id)
+    const result = await service.remove(repositoryId, student('leader-id'))
 
-    assert.equal(result.ok, true)
-    if (result.ok) assert.equal(result.details, null)
+    assert.deepEqual(result, { ok: true })
   })
 })

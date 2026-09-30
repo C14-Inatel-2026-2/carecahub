@@ -117,7 +117,7 @@ export function UsersPage() {
       sortable: false,
       className: 'w-20 text-right',
       cell: (listedUser) =>
-        user && (
+        user?.role === 'admin' && (
           <UserActions user={listedUser} requesterRole={user.role} onUpdated={refreshUsers} />
         ),
     },
@@ -144,7 +144,9 @@ export function UsersPage() {
               placeholder='Buscar usuários…'
             />
           </label>
-          {user && <CreateUserDialog requesterRole={user.role} onCreated={refreshUsers} />}
+          {user?.role === 'admin' && (
+            <CreateUserDialog requesterRole={user.role} onCreated={refreshUsers} />
+          )}
         </div>
       </div>
 

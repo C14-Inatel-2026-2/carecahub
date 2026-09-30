@@ -90,7 +90,7 @@ describe('UsersService', () => {
       assert.equal(result.ok, true)
       if (result.ok) {
         assert.equal(result.id, user.id)
-        assert.deepEqual(result.gitHubDetails, role === 'admin' ? null : gitHubDetails)
+        assert.deepEqual(result.gitHubDetails, gitHubDetails)
       }
     },
   )
@@ -151,6 +151,7 @@ describe('UsersService', () => {
     assert.deepEqual(result, {
       ok: true,
       id: '2ed79018-20fe-4fc2-982c-aecb12d32fb0',
+      groupId: null,
       name: 'Ada',
       registration: 12345,
       githubName: 'ada',
@@ -166,7 +167,7 @@ describe('UsersService', () => {
     })
   })
 
-  it('does not request GitHub details for an admin', async () => {
+  it('requests GitHub details for an admin that declared an account', async () => {
     let calls = 0
     const createdAt = new Date('2026-01-01T00:00:00Z')
     const service = createService(
@@ -198,10 +199,10 @@ describe('UsersService', () => {
 
     assert.equal(result.ok, true)
     if (result.ok) assert.equal(result.gitHubDetails, null)
-    assert.equal(calls, 0)
+    assert.equal(calls, 1)
   })
 
-  it('enriches eligible users in a list and skips admins', async () => {
+  it('enriches every user in a list that declared a GitHub account', async () => {
     const createdAt = new Date('2026-01-01T00:00:00Z')
     const row = (role: 'student' | 'mentor' | 'teacher' | 'admin', githubName: string) => ({
       id: `${role}-id`,
@@ -248,10 +249,10 @@ describe('UsersService', () => {
       assert.equal(result.totalCount, 4)
       assert.deepEqual(
         result.data.map((user) => user.gitHubDetails?.login ?? null),
-        ['student-gh', 'mentor-gh', 'teacher-gh', null],
+        ['student-gh', 'mentor-gh', 'teacher-gh', 'admin-gh'],
       )
     }
-    assert.deepEqual(usernames.sort(), ['mentor-gh', 'student-gh', 'teacher-gh'])
+    assert.deepEqual(usernames.sort(), ['admin-gh', 'mentor-gh', 'student-gh', 'teacher-gh'])
   })
 
   it('maps a database unique constraint violation to alreadyExists', async () => {
@@ -291,27 +292,8 @@ describe('UsersService', () => {
     assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 
-  it('allows a teacher to create a mentor', async () => {
-    const createdAt = new Date('2026-01-01T00:00:00Z')
-    const service = createService([
-      [],
-      [
-        {
-          id: 'mentor-user-id',
-          name: 'New Mentor',
-          registration: 12347,
-          githubName: null,
-          classroom: null,
-          email: 'mentor@example.com',
-          role: 'mentor',
-          status: 'active',
-          two_factor: false,
-          createdAt,
-          updatedAt: createdAt,
-          deletedAt: null,
-        },
-      ],
-    ])
+  it('forbids a teacher from creating a mentor', async () => {
+    const service = createService([])
 
     const result = await service.register(
       {
@@ -324,8 +306,7 @@ describe('UsersService', () => {
       teacher,
     )
 
-    assert.equal(result.ok, true)
-    if (result.ok) assert.equal(result.role, 'mentor')
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 
   it('forbids a mentor from reading another mentor', async () => {
@@ -367,5 +348,13 @@ describe('UsersService', () => {
     const result = await service.update('student-id', { role: 'admin' }, teacher)
 
     assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
+
+  it('blocks deletion of a current group leader', async () => {
+    const service = createService([[{ id: 'leader-id', role: 'student' }], [{ id: 'group-id' }]])
+
+    const result = await service.remove('leader-id', admin)
+
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.resourceInUse })
   })
 })

@@ -1,14 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsString, Length, MaxLength } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger'
+import { IsString, MaxLength, MinLength } from 'class-validator'
 
 export class CreateGroupDto {
   @ApiProperty()
   @IsString()
-  @Length(36)
-  leaderId: string;
-
-  @ApiProperty()
-  @IsString()
+  @MinLength(1)
   @MaxLength(30)
-  friendlyId: string;
+  friendlyId: string
 }
