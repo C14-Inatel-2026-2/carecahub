@@ -86,7 +86,7 @@ function HasProjectCard({
           href={project.repositories[0].url}
           target="_blank"
           rel="noreferrer"
-          className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline mt-4"
+          className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline mb-4"
         >
           <GitHubIcon />
           <span className="truncate">{project.repositories[0].url}</span>

@@ -1,17 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
-import { toast } from "sonner";
-import { handleCreateGroup } from "../src/modules/groups/dialogs/create-group-dialog";
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { describe, expect, it } from 'vitest'
+import { CreateGroupDialog } from '../src/modules/groups/dialogs/create-group-dialog'
 
-vi.mock("sonner", () => ({
-  toast: vi.fn(),
-}));
+describe('CreateGroupDialog', () => {
+  it('renders the entry point for the real group creation form', () => {
+    const html = renderToStaticMarkup(createElement(CreateGroupDialog))
 
-describe("CreateGroupDialog", () => {
-  it("should show a toast when creating a group", () => {
-    handleCreateGroup();
-
-    expect(toast).toHaveBeenCalledWith("Criando novo grupo...", {
-      position: "bottom-left",
-    });
-  });
-});
+    expect(html).toContain('Novo grupo')
+  })
+})

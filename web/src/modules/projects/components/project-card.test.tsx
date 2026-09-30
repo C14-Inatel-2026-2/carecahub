@@ -8,6 +8,7 @@ function groupWithProject(overrides: Partial<NonNullable<Group['project']>>): Gr
     id: 'group-1',
     friendlyId: 'Grupo 1',
     leaderId: 'leader-1',
+    members: [],
     createdAt: '2026-09-29T14:05:00.000Z',
     updatedAt: '2026-09-29T14:05:00.000Z',
     project: {
@@ -73,6 +74,7 @@ describe('ProjectCard', () => {
           id: 'group-1',
           friendlyId: 'Grupo 1',
           leaderId: 'leader-1',
+          members: [],
           createdAt: '2026-09-29T14:30:00',
           updatedAt: '2026-09-29T14:30:00',
         }}
