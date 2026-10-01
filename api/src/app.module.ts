@@ -12,6 +12,7 @@ import { DatabaseModule } from './providers/database/database.module'
 import { LoggerModule } from './providers/logger/logger.module'
 import { MailModule } from './providers/mail/mail.module'
 import { AuthModule } from './resources/auth/auth.module'
+import { DashboardModule } from './resources/dashboard/dashboard.module'
 import { GroupModule } from './resources/groups/group.module'
 import { NotificationModule } from './resources/notification/notification.module'
 import { ProjectModule } from './resources/projects/project.module'
@@ -26,6 +27,7 @@ import { UsersModule } from './resources/users/user.module'
     LoggerModule,
     MailModule,
     AuthModule,
+    DashboardModule,
     UsersModule,
     RepositoryModule,
     ProjectModule,

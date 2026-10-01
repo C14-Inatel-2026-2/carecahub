@@ -1,3 +1,14 @@
+export type RepositoryDashboardCommit = {
+  sha: string
+  authoredAt: string
+  authorLogin: string | null
+}
+
+export type RepositoryDashboardStats = {
+  historicalCommitCount: number
+  recentCommits: RepositoryDashboardCommit[]
+}
+
 export type RepositoryBranchDetails = {
   name: string
   protected: boolean
