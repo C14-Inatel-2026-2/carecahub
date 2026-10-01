@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import { buildQueryString, type FetcherParams } from '@/api'
 import type { PaginateParams, PaginateResponse } from '@/types/api'
+import type { Dashboard } from '@/types/dashboard'
 import type { GetGroupResponse } from '@/types/group'
 import type { Notification } from '@/types/notification'
 import type { GetProjectResponse } from '@/types/project'
@@ -29,6 +30,7 @@ type ResponseTypeMap = {
   '/repositories/:id': GetRepositoryResponse
   '/notifications': Notification
   '/notifications/group-invites/candidates': GetUserResponse
+  '/dashboard': Dashboard
 }
 
 /**

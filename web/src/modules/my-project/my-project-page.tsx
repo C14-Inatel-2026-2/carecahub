@@ -14,6 +14,7 @@ import type { Group } from "@/types/group";
 import { UserCard } from "./components/user-card";
 import { InviteUserDialog } from "./dialogs/invite-user-dialog";
 import { RepositoryDialog } from "./dialogs/repository-dialog";
+import { toast } from "sonner";
 
 export function MyProjectPage() {
   const navigate = useNavigate();
@@ -38,6 +39,22 @@ export function MyProjectPage() {
       params: { id: selectedGroup.id },
       body: { leaderId },
       onSuccessMessage: "Novo líder definido",
+    });
+    if (result.ok) void mutate();
+  }
+
+  async function removeMemberFromGroup(
+    selectedGroup: Group,
+    removedMemberId: string,
+  ) {
+    if (user?.id !== selectedGroup.leaderId) {
+      toast.error("Apenas o líder do grupo pode remover membros.");
+      return;
+    }
+
+    const result = await writer("DELETE /groups/:id/users/:userId", {
+      params: { id: selectedGroup.id, userId: removedMemberId },
+      onSuccessMessage: "Membro removido com sucesso.",
     });
     if (result.ok) void mutate();
   }
@@ -70,6 +87,7 @@ export function MyProjectPage() {
                 <UserCard
                   key={member.id}
                   user={member}
+                  groupLeaderId={group.leaderId}
                   isCurrentUser={member.id === user?.id}
                   isGroupLeader={member.id === group.leaderId}
                   onViewProfile={
@@ -87,6 +105,7 @@ export function MyProjectPage() {
                       ? () => void promote(group, member.id)
                       : undefined
                   }
+                  onRemove={() => void removeMemberFromGroup(group, member.id)}
                 />
               ))}
               {group.members.length < 6 && group.leaderId === user?.id && (

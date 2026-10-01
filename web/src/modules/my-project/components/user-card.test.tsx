@@ -30,7 +30,12 @@ describe('UserCard actions', () => {
   it('offers profile viewing and leader promotion with their icons', () => {
     const html = renderToStaticMarkup(
       <DropdownMenu>
-        <UserCardMenuItems onViewProfile={vi.fn()} onPromote={vi.fn()} />
+        <UserCardMenuItems
+          isLoggedUserLeader={false}
+          showRemoveButton={false}
+          onViewProfile={vi.fn()}
+          onPromote={vi.fn()}
+        />
       </DropdownMenu>
     )
 
@@ -43,7 +48,7 @@ describe('UserCard actions', () => {
   it('hides promotion when the requester cannot promote and disables a missing profile', () => {
     const html = renderToStaticMarkup(
       <DropdownMenu>
-        <UserCardMenuItems />
+        <UserCardMenuItems isLoggedUserLeader={false} showRemoveButton={false} />
       </DropdownMenu>
     )
 
