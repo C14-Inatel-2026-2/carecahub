@@ -165,6 +165,17 @@ describe('ProjectService.findOne', () => {
       assert.deepEqual(result.tags, ['multirepo'])
     }
   })
+
+  it('forbids a student from another group from reading a project', async () => {
+    const service = createService([
+      [projectRecord],
+      [{ groupId: 'another-group-id', status: 'active' }],
+    ])
+
+    const result = await service.findOne(projectId, student('outsider-id'))
+
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
 })
 
 describe('ProjectService.remove', () => {
@@ -182,5 +193,15 @@ describe('ProjectService.remove', () => {
     const result = await service.remove(projectId, student('leader-id'))
 
     assert.deepEqual(result, { ok: true })
+  })
+})
+
+describe('ProjectService.findAll', () => {
+  it('returns an empty list for a student without a group', async () => {
+    const service = createService([[{ groupId: null, status: 'active' }]])
+
+    const result = await service.findAll({ skip: 0, take: 10 } as never, student())
+
+    assert.deepEqual(result, { ok: true, totalCount: 0, data: [] })
   })
 })
