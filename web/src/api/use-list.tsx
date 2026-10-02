@@ -2,12 +2,19 @@ import useSWR from 'swr'
 import { buildQueryString, type FetcherParams } from '@/api'
 import type { PaginateParams, PaginateResponse } from '@/types/api'
 import type { GetGroupResponse } from '@/types/group'
+import type { Notification } from '@/types/notification'
 import type { GetProjectResponse } from '@/types/project'
 import type { GetRepositoryResponse } from '@/types/repository'
 import type { GetUserResponse } from '@/types/user'
 
 type UseListParams = {
-  endpoint: '/users' | '/groups' | '/projects' | '/repositories'
+  endpoint:
+    | '/users'
+    | '/groups'
+    | '/projects'
+    | '/repositories'
+    | '/notifications'
+    | '/notifications/group-invites/candidates'
   params: PaginateParams
 }
 
@@ -20,6 +27,8 @@ type ResponseTypeMap = {
   '/projects/:id': GetProjectResponse
   '/repositories': GetRepositoryResponse
   '/repositories/:id': GetRepositoryResponse
+  '/notifications': Notification
+  '/notifications/group-invites/candidates': GetUserResponse
 }
 
 /**
@@ -52,6 +61,7 @@ export function useList<T extends UseListParams>({
       ? response.data.data
       : []) as ResponseTypeMap[T['endpoint']][],
     totalCount: response?.data?.totalCount ?? 0,
+    unreadCount: response?.data?.unreadCount ?? 0,
     isLoading: response.isLoading,
     error: response.error,
     mutate: response.mutate,

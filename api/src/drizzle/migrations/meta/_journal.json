@@ -71,6 +71,13 @@
       "when": 1790726608326,
       "tag": "0009_slow_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790779857493,
+      "tag": "0010_clumsy_toad",
+      "breakpoints": true
     }
   ]
 }

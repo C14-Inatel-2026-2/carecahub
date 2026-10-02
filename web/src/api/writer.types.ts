@@ -1,6 +1,12 @@
 /** biome-ignore-all lint/suspicious/noConfusingVoidType: body can be void */
 import type { LoggedUser, LoginRequest, TwoFactorAuthRequest } from '@/types/auth'
 import type { CreateGroupRequest, Group, PromoteLeaderRequest } from '@/types/group'
+import type {
+  CreateGroupInviteRequest,
+  Notification,
+  RespondGroupInviteRequest,
+  RespondGroupInviteResponse,
+} from '@/types/notification'
 import type { CreateProjectRequest, Project, UpdateProjectRequest } from '@/types/project'
 import type {
   CreateRepositoryRequest,
@@ -101,5 +107,21 @@ export type WriterMap = {
   'DELETE /repositories/:id': {
     body: void
     response: object
+  }
+  'POST /notifications/group-invites': {
+    body: CreateGroupInviteRequest
+    response: Notification
+  }
+  'PATCH /notifications/group-invites/:id/respond': {
+    body: RespondGroupInviteRequest
+    response: RespondGroupInviteResponse
+  }
+  'PATCH /notifications/read-all': {
+    body: void
+    response: { updatedCount: number }
+  }
+  'PATCH /notifications/:id/read': {
+    body: void
+    response: Notification
   }
 }
