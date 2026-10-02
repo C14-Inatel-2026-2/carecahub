@@ -1,6 +1,6 @@
 import { groups, USER_ROLES, type UserRole, users } from '@db'
 import { Injectable } from '@nestjs/common'
-import { and, asc, count, eq, ilike, inArray, isNull, or } from 'drizzle-orm'
+import { and, asc, count, eq, ilike, inArray, isNull, ne, or } from 'drizzle-orm'
 import { userPublicColumns } from '@/drizzle/schema/entities'
 import { DrizzleService } from '@/providers/database/drizzle.service'
 import { GitHubService } from '@/providers/github/github.service'
@@ -18,6 +18,7 @@ import {
   IUsersService,
   ListUserOutput,
   UpsertUserOutput,
+  UserAnalyticsOutput,
 } from './user.interface'
 
 @Injectable()
@@ -191,6 +192,32 @@ export class UsersService implements IUsersService {
 
     this.logger.log(`User with id ${id} soft deleted.`)
     return { ok: true, ...GetUserDto.toDto(user as GetUserDtoRecord) }
+  }
+
+  async getAnalytics(requester: UserMetadata): Promise<UserAnalyticsOutput> {
+    if (!this.canManage(requester)) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
+
+    const rows = await this.database.db
+      .select({ role: users.role, count: count() })
+      .from(users)
+      .where(and(isNull(users.deletedAt), ne(users.status, 'deleted')))
+      .groupBy(users.role)
+
+    const counts: Record<UserRole, number> = {
+      admin: 0,
+      teacher: 0,
+      mentor: 0,
+      student: 0,
+    }
+    for (const row of rows) {
+      counts[row.role] = Number(row.count)
+    }
+
+    const totalUsers = counts.admin + counts.teacher + counts.mentor + counts.student
+
+    return { ok: true, totalUsers, ...counts }
   }
 
   private allowedTargetRoles(requester?: UserMetadata): UserRole[] {
