@@ -95,7 +95,7 @@ function HasProjectCard({
 
       {hasRepositories && project.repositoryType === "multirepo" && (
         <DropdownMenu>
-          <DropdownMenuTrigger className="group flex w-full cursor-pointer items-center justify-between rounded-md border border-border px-3 py-2 text-sm font-medium mt-2">
+          <DropdownMenuTrigger className="group flex w-full cursor-pointer items-center justify-between rounded-md border border-border px-3 py-2 text-sm font-medium mt-2 mb-2">
             <div className="flex flex-row gap-3 items-center justify-start">
               <FolderGit2 className="size-5" />
               <span>Repositórios ({project.repositories.length})</span>
@@ -169,7 +169,14 @@ function GroupCard({ group }: { group: Group }) {
         <span className="text-white text-sm">Membros</span>
         {group.members.map((member) => (
           <div className="flex flex-row gap-2 text-muted-foreground justify-start items-center">
-            <User />
+            {member.gitHubDetails?.avatarUrl ? (
+              <img
+                src={member.gitHubDetails.avatarUrl}
+                className="size-5 rounded-full"
+              />
+            ) : (
+              <User />
+            )}
             <span className="text-xs">{member.name}</span>
             {group.leaderId === member.id && (
               <Badge className="bg-white text-black text-xs ml-1">Líder</Badge>

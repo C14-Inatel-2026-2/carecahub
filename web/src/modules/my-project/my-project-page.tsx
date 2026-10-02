@@ -8,11 +8,11 @@ import { mockStudents } from "@/mocks/users";
 import { CreateGroupDialog } from "@/modules/groups/dialogs/create-group-dialog";
 import { canPromoteGroupLeader } from "@/modules/groups/group-permissions";
 import { ProjectCard } from "@/modules/projects/components/project-card";
-import { appRoutes } from "@/router/routes";
+import { appRoutes, profileRoute } from "@/router/routes";
 import { useUser } from "@/stores/use-user";
 import type { Group } from "@/types/group";
-import { InviteUserCard } from "./components/invite-user-card";
 import { UserCard } from "./components/user-card";
+import { InviteUserDialog } from "./dialogs/invite-user-dialog";
 import { RepositoryDialog } from "./dialogs/repository-dialog";
 
 export function MyProjectPage() {
@@ -72,24 +72,25 @@ export function MyProjectPage() {
                   user={member}
                   isCurrentUser={member.id === user?.id}
                   isGroupLeader={member.id === group.leaderId}
-                  action={
+                  onViewProfile={
+                    member.githubName
+                      ? () =>
+                          navigate(profileRoute(member.githubName as string), {
+                            state: { user: member },
+                          })
+                      : undefined
+                  }
+                  onPromote={
                     user &&
                     member.id !== group.leaderId &&
-                    canPromoteGroupLeader(user, group) ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => promote(group, member.id)}
-                      >
-                        Promover a líder do grupo
-                      </Button>
-                    ) : undefined
+                    canPromoteGroupLeader(user, group)
+                      ? () => void promote(group, member.id)
+                      : undefined
                   }
                 />
               ))}
               {group.members.length < 6 && group.leaderId === user?.id && (
-                <InviteUserCard />
+                <InviteUserDialog />
               )}
             </div>
 
@@ -185,6 +186,11 @@ function MockMyProjectPage() {
             user={mockUser}
             isCurrentUser={index === 0}
             isGroupLeader={index === 0}
+            onViewProfile={
+              mockUser.githubName
+                ? () => navigate(profileRoute(mockUser.githubName as string))
+                : undefined
+            }
           />
         ))}
       </div>

@@ -9,6 +9,7 @@ export type IResponseError = {
 
 export type PaginateResponse<T> = {
   totalCount: number
+  unreadCount?: number
   data: T[]
 }
 
