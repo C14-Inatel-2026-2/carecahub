@@ -46,6 +46,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { pagesByRole } from './auth-layout'
+import { ThemeSelector } from './theme-selector'
 
 export function NotificationNavLabel({ unreadCount }: { unreadCount: number }) {
   return (
@@ -239,6 +240,8 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
                   <span className='block font-normal'>{user.email}</span>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <ThemeSelector />
               <DropdownMenuSeparator />
               <DropdownMenuItem className='font-normal' onClick={() => setPasswordOpen(true)}>
                 <KeyRound />
