@@ -132,3 +132,11 @@ export type User = {
 }
 
 export type GetUserResponse = User
+
+export type UserAnalyticsResponse = {
+  totalUsers: number
+  admin: number
+  teacher: number
+  mentor: number
+  student: number
+}

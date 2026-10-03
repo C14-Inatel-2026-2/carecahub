@@ -19,13 +19,16 @@ import { mockUsers } from '@/mocks/users'
 import { profileRoute } from '@/router/routes'
 import { useUser } from '@/stores/use-user'
 import { type User, userRoleLabels } from '@/types/user'
+import { UserAnalyticsCards } from './components/user-analytics-cards'
 import { CreateUserDialog } from './dialogs/create-user-dialog'
 import { DeleteUserDialog } from './dialogs/delete-user-dialog'
 import { EditUserDialog } from './dialogs/edit-user-dialog'
+import { useUserAnalytics } from './use-user-analytics'
 
 export function UsersPage() {
   const navigate = useNavigate()
   const user = useUser((state) => state.user)
+  const isAdmin = user?.role === 'admin'
 
   const getVisibleRoles = (role: User['role'] | undefined) => {
     switch (role) {
@@ -50,12 +53,20 @@ export function UsersPage() {
     disabled: isMockAPIEnabled || !user || user.role === 'student',
   })
 
+  const {
+    data: userAnalytics,
+    error: userAnalyticsError,
+    isLoading: isLoadingUserAnalytics,
+    mutate: mutateUserAnalytics,
+  } = useUserAnalytics(isAdmin)
+
   const users = isMockAPIEnabled
     ? mockUsers.filter((mockUser) => getVisibleRoles(user?.role).includes(mockUser.role))
     : apiUsers
   const isLoadingUsers = isMockAPIEnabled ? false : isLoadingApiUsers
   const refreshUsers = () => {
     if (!isMockAPIEnabled) void mutate()
+    if (isAdmin) void mutateUserAnalytics()
   }
 
   const [search, setSearch] = useState('')
@@ -149,6 +160,15 @@ export function UsersPage() {
           )}
         </div>
       </div>
+
+      {isAdmin && (
+        <UserAnalyticsCards
+          data={userAnalytics}
+          error={userAnalyticsError}
+          isLoading={isLoadingUserAnalytics}
+          onRetry={() => void mutateUserAnalytics()}
+        />
+      )}
 
       <div className='mt-5' aria-busy={isLoadingUsers}>
         <DataTable
