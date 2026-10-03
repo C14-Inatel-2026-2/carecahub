@@ -1,4 +1,10 @@
-import { BookOpen, ExternalLink, GraduationCap, Mail } from "lucide-react";
+import {
+  BookOpen,
+  ExternalLink,
+  FolderGit2,
+  GraduationCap,
+  Mail,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { GitHubIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +108,7 @@ export function ProfileDetails({ user }: { user: User }) {
                   <Detail
                     label="Repositórios públicos"
                     value={github.publicRepos.toLocaleString("pt-BR")}
-                    icon={<BookOpen />}
+                    icon={<FolderGit2 />}
                   />
                 </dl>
               )}
@@ -139,7 +145,7 @@ function Detail({
       <span className="text-muted-foreground [&>svg]:size-5">{icon}</span>
       <div className="min-w-0">
         <dt className="text-xs text-muted-foreground">{label}</dt>
-        <dd className="break-words text-sm font-medium">{value}</dd>
+        <dd className="wrap-break-word text-sm font-medium">{value}</dd>
       </div>
     </div>
   );

@@ -1,18 +1,195 @@
-// import { useUser } from "@/stores/use-user";
+import { useList } from '@/api'
+import { isMockAPIEnabled } from '@/mocks/config'
+import type { Group } from '@/types/group'
+import { ProjectCard } from './components/project-card'
+
+const mockGroups = [
+  {
+    id: 'grupo-1',
+    friendlyId: 'Grupo 1',
+    tags: ['full'],
+    leaderId: 'id-lider-1',
+    project: {
+      id: 'projeto-1',
+      projectName: 'Projeto Legal',
+      repositoryType: 'monorepo',
+      tags: ['monorepo'],
+      commitCount: 12,
+      branchCount: 2,
+      repositories: [
+        {
+          id: 'id-repo-1',
+          url: 'https://github.com/octocat/Spoon-Knife',
+          commitCount: 20,
+          branchCount: 3,
+          ownerId: 'id-lider-1',
+          projectId: 'projeto-1',
+          createdAt: '2026-09-29T14:05:00.000Z',
+          updatedAt: '2026-09-29T14:05:00.000Z',
+        },
+      ],
+      createdAt: '2026-09-29T14:05:00.000Z',
+      updatedAt: '2026-09-29T14:05:00.000Z',
+    },
+    members: [
+      {
+        id: 'id-lider-1',
+        name: 'Fulano da Silva',
+        registration: 576,
+        githubName: 'FulaninDev',
+        classroom: 'A',
+        email: 'fulano@email.com',
+        role: 'student',
+        twoFactor: false,
+        createdAt: '2026-09-29T14:05:00.000Z',
+        updatedAt: '2026-09-29T14:05:00.000Z',
+      },
+      {
+        id: 'id-member-1',
+        name: 'Ciclano dos Santos',
+        registration: 576,
+        githubName: 'CiclaninDev',
+        classroom: 'A',
+        email: 'ciclano@email.com',
+        role: 'student',
+        twoFactor: false,
+        createdAt: '2026-09-29T14:05:00.000Z',
+        updatedAt: '2026-09-29T14:05:00.000Z',
+      },
+    ],
+    createdAt: '2026-09-29T14:05:00.000Z',
+    updatedAt: '2026-09-21T14:05:00.000Z',
+  },
+  {
+    id: 'grupo-2',
+    friendlyId: 'Grupo 2',
+    leaderId: 'id-lider-2',
+    tags: ['space_available'],
+    project: {
+      id: 'projeto-2',
+      projectName: 'Projeto Mais Legal Ainda',
+      repositoryType: 'multirepo',
+      tags: ['multirepo'],
+      commitCount: 40,
+      branchCount: 6,
+      createdAt: '2026-09-29T14:05:00.000Z',
+      updatedAt: '2026-09-29T14:05:00.000Z',
+      repositories: [
+        {
+          id: 'id-repo-2',
+          url: 'https://github.com/Felipe-SSS/iotv-api',
+          commitCount: 20,
+          branchCount: 3,
+          ownerId: 'id-lider-2',
+          projectId: 'projeto-2',
+          createdAt: '2026-09-29T14:05:00.000Z',
+          updatedAt: '2026-09-29T14:05:00.000Z',
+        },
+        {
+          id: 'id-repo-3',
+          url: 'https://github.com/Felipe-SSS/iotv-web',
+          commitCount: 20,
+          branchCount: 3,
+          ownerId: 'id-lider-2',
+          projectId: 'projeto-2',
+          createdAt: '2026-09-29T14:05:00.000Z',
+          updatedAt: '2026-09-29T14:05:00.000Z',
+        },
+      ],
+    },
+    members: [
+      {
+        id: 'id-lider-2',
+        name: 'Beltrano Gonçalvez',
+        registration: 576,
+        githubName: 'BeltraninDev',
+        classroom: 'A',
+        email: 'beltrano@email.com',
+        role: 'student',
+        twoFactor: false,
+        createdAt: '2026-09-29T14:05:00.000Z',
+        updatedAt: '2026-09-29T14:05:00.000Z',
+      },
+    ],
+    createdAt: '2026-09-29T14:05:00.000Z',
+    updatedAt: '2026-09-29T14:05:00.000Z',
+  },
+  {
+    id: 'grupo-3',
+    friendlyId: 'Grupo 3',
+    leaderId: 'id-lider-3',
+    tags: ['space_available', 'no_project'],
+    members: [
+      {
+        id: 'id-lider-3',
+        name: 'Maria de Lourdes',
+        registration: 576,
+        githubName: 'MariaDev',
+        classroom: 'A',
+        email: 'maria@email.com',
+        role: 'student',
+        twoFactor: false,
+        createdAt: '2026-09-29T14:05:00.000Z',
+        updatedAt: '2026-09-29T14:05:00.000Z',
+      },
+      {
+        id: 'id-membro-2',
+        name: 'Elzio Ribeiro',
+        registration: 576,
+        githubName: 'ElzinDev',
+        classroom: 'A',
+        email: 'elzio@email.com',
+        role: 'student',
+        twoFactor: false,
+        createdAt: '2026-09-29T14:05:00.000Z',
+        updatedAt: '2026-09-29T14:05:00.000Z',
+      },
+      {
+        id: 'id-membro-3',
+        name: 'José Irineu',
+        registration: 576,
+        githubName: 'IrineuDev',
+        classroom: 'A',
+        email: 'irineu@email.com',
+        role: 'student',
+        twoFactor: false,
+        createdAt: '2026-09-29T14:05:00.000Z',
+        updatedAt: '2026-09-29T14:05:00.000Z',
+      },
+    ],
+    createdAt: '2026-09-29T14:05:00.000Z',
+    updatedAt: '2026-09-29T14:05:00.000Z',
+  },
+] as Group[]
 
 export function ProjectsPage() {
-  //   const user = useUser((state) => state.user);
+  const { data: apiGroups, isLoading } = useList({
+    endpoint: '/groups',
+    params: { take: 100 },
+    disabled: isMockAPIEnabled,
+  })
+  const groups = isMockAPIEnabled ? mockGroups : apiGroups
 
   return (
-    <section className="w-full px-4 py-5 md:px-6 lg:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-medium">Projetos</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Gerencie os projetos no CarecaHub.
-          </p>
+    <section className='flex flex-1 flex-col w-full px-4 py-5 md:px-6 lg:px-8'>
+      <h1 className='text-lg font-medium'>Projetos</h1>
+      <p className='mt-0.5 text-xs text-muted-foreground'>Gerencie os projetos no CarecaHub.</p>
+
+      <p className='w-full border border-gray-600 mt-7' />
+
+      <div className='mt-7'>
+        <div className='grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start'>
+          {groups.map((group) => (
+            <ProjectCard key={group.id} group={group} />
+          ))}
         </div>
+        {!isMockAPIEnabled && isLoading && (
+          <p className='text-sm text-muted-foreground'>Carregando projetos…</p>
+        )}
+        {!isLoading && groups.length === 0 && (
+          <p className='text-sm text-muted-foreground'>Nenhum grupo encontrado.</p>
+        )}
       </div>
     </section>
-  );
+  )
 }

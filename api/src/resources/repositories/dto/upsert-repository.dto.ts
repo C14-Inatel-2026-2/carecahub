@@ -1,6 +1,5 @@
-import { REPOSITORY_TYPES, type RepositoryType } from '@db'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsIn, IsOptional, IsString, IsUUID, MinLength } from 'class-validator'
+import { IsOptional, IsString, IsUUID, MinLength } from 'class-validator'
 
 export class UpsertRepositoryDto {
   @ApiPropertyOptional()
@@ -12,10 +11,6 @@ export class UpsertRepositoryDto {
   @IsString()
   @MinLength(11)
   url: string
-
-  @ApiProperty({ enum: REPOSITORY_TYPES })
-  @IsIn(REPOSITORY_TYPES)
-  repositoryType: RepositoryType
 
   @ApiProperty()
   @IsUUID()

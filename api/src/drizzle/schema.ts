@@ -1,13 +1,23 @@
 import {
   bucketFiles,
+  groupInviteRelations,
+  groupInvites,
+  groups,
+  notificationRelations,
+  notifications,
   projects,
   repositories,
   repositoryRelations,
   systemParams,
   users,
-  groups,
 } from './schema/entities'
-import { repositoryTypeEnum, userRoleEnum, userStatusEnum } from './schema/enums'
+import {
+  groupInviteStatusEnum,
+  notificationTypeEnum,
+  repositoryTypeEnum,
+  userRoleEnum,
+  userStatusEnum,
+} from './schema/enums'
 
 export const schema = {
   users,
@@ -20,11 +30,24 @@ export const schema = {
   userStatusEnum,
   repositoryRelations,
   groups,
+  groupInvites,
+  notifications,
+  groupInviteRelations,
+  notificationRelations,
+  groupInviteStatusEnum,
+  notificationTypeEnum,
 }
 
 export default schema
 export {
   bucketFiles,
+  groupInviteRelations,
+  groupInviteStatusEnum,
+  groupInvites,
+  groups,
+  notificationRelations,
+  notifications,
+  notificationTypeEnum,
   projects,
   repositories,
   repositoryRelations,
@@ -33,5 +56,4 @@ export {
   userRoleEnum,
   userStatusEnum,
   users,
-  groups,
 }

@@ -44,8 +44,8 @@ describe('createUserSchema', () => {
   it('defines the manageable roles for every requester role', () => {
     expect(manageableRolesByRole).toEqual({
       admin: ['admin', 'teacher', 'mentor', 'student'],
-      teacher: ['mentor', 'student'],
-      mentor: ['student'],
+      teacher: [],
+      mentor: [],
       student: [],
     })
   })

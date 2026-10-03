@@ -64,6 +64,20 @@
       "when": 1789736032022,
       "tag": "0008_changed_group_creatorid_to_leaderid",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790726608326,
+      "tag": "0009_slow_freak",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790779857493,
+      "tag": "0010_clumsy_toad",
+      "breakpoints": true
     }
   ]
 }

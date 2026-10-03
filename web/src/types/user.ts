@@ -3,10 +3,13 @@ import { z } from 'zod'
 export const USER_ROLES = ['admin', 'teacher', 'mentor', 'student'] as const
 export type UserRole = (typeof USER_ROLES)[number]
 
+export const USER_STATUS = ['active', 'inactive', 'deleted'] as const
+export type UserStatus = (typeof USER_STATUS)[number]
+
 export const manageableRolesByRole: Record<UserRole, UserRole[]> = {
   admin: ['admin', 'teacher', 'mentor', 'student'],
-  teacher: ['mentor', 'student'],
-  mentor: ['student'],
+  teacher: [],
+  mentor: [],
   student: [],
 }
 
@@ -106,13 +109,14 @@ export type UpdateUserRequest = z.infer<typeof updateUserSchema>
 
 export type User = {
   id: string
+  groupId?: string | null
   name: string
   registration: number | null
   githubName: string | null
   classroom: string | null
   email: string
   role: UserRole
-  status: 'active' | 'inactive' | 'deleted'
+  status: UserStatus
   twoFactor: boolean
   createdAt: string
   updatedAt: string
@@ -128,3 +132,11 @@ export type User = {
 }
 
 export type GetUserResponse = User
+
+export type UserAnalyticsResponse = {
+  totalUsers: number
+  admin: number
+  teacher: number
+  mentor: number
+  student: number
+}

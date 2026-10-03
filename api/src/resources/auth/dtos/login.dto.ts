@@ -19,6 +19,9 @@ export class LoggedUser {
   @ApiProperty({ example: '1234567890' })
   id: string
 
+  @ApiProperty({ required: false, nullable: true })
+  groupId: string | null
+
   @ApiProperty({ example: 'Dr. John Doe' })
   name: string
 
