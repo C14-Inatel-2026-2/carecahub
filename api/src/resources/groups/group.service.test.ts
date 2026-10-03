@@ -53,8 +53,6 @@ class QueryResult<T> implements PromiseLike<T> {
   }
 }
 
-// Each database call consumes the next entry of `results`. Any call beyond the queued results
-// throws, so tests prove that denied operations stop before querying or writing anything else.
 function createService(results: unknown[]) {
   const queryLog: QueryLogEntry[] = []
   const next = () => {
@@ -82,7 +80,6 @@ function createService(results: unknown[]) {
   return service
 }
 
-// Drizzle conditions reference their table circularly; dropping `table` makes them comparable.
 function serialize(value: unknown): string {
   return JSON.stringify(value, (key, val) => (key === 'table' ? undefined : val))
 }
@@ -313,8 +310,6 @@ describe('GroupService.findAll', () => {
   })
 
   it('does not hide groups from the listing based on the requester role', async () => {
-    // The role restriction (admin, teacher, mentor) lives in GroupController through @Roles and
-    // is covered by roles.guard.test.ts; the service itself has no permission-denied branch.
     const service = createService([[groupRecord], [{ count: 1 }], []])
 
     const result = await service.findAll({ skip: 0, take: 20 }, teacher)
@@ -448,8 +443,6 @@ describe('GroupService.addUserToGroup', () => {
   })
 
   it('currently throws when the update returns no row instead of returning an error', async () => {
-    // Inconsistency documented, not fixed here: the service maps `updated` through
-    // GetUserDto.toDto without checking it, so an empty update result becomes a TypeError.
     const service = createService([
       [{ id: groupId, leaderId }],
       [{ id: memberId, groupId: null, status: 'active' }],
