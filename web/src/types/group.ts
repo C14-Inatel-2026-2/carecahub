@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import type { Project } from './project'
 import type { User } from './user'
 
@@ -23,5 +24,12 @@ export type Group = {
 }
 
 export type GetGroupResponse = Group
-export type CreateGroupRequest = { friendlyId: string }
+export const groupFormSchema = z.object({
+  friendlyId: z
+    .string()
+    .trim()
+    .min(1, 'Informe o nome do grupo.')
+    .max(30, 'O nome deve ter no máximo 30 caracteres.'),
+})
+export type CreateGroupRequest = z.infer<typeof groupFormSchema>
 export type PromoteLeaderRequest = { leaderId: string }
