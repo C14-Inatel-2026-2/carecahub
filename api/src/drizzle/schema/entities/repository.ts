@@ -2,12 +2,10 @@ import { relations } from "drizzle-orm";
 import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { projects } from "./project";
 import { users } from "./user";
-import { repositoryTypeEnum } from "../enums/repositoryEnums";
 
 const repositoryTable = pgTable("Repository", {
   id: uuid("id").defaultRandom().primaryKey(),
   url: varchar("url", { length: 255 }).notNull().unique(),
-  repositoryType: repositoryTypeEnum("repository_type").notNull(),
   ownerId: uuid("owner")
     .notNull()
     .references(() => users.id),

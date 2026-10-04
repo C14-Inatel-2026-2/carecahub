@@ -12,6 +12,7 @@ import { AuthService } from './auth.service'
 describe('AuthService', () => {
   let service: AuthService
   let sign: ReturnType<typeof vi.fn>
+  let verifyAsync: ReturnType<typeof vi.fn>
   let queryResults: unknown[]
 
   class QueryResult<T> implements PromiseLike<T> {
@@ -40,7 +41,7 @@ describe('AuthService', () => {
 
   const makePayload = (overrides: Partial<UserMetadata> = {}): UserMetadata => ({
     userId: 'user-1',
-    role: 'user',
+    role: 'student',
     name: 'Test User',
     ...overrides,
   })
@@ -53,12 +54,13 @@ describe('AuthService', () => {
       calls += 1
       return calls === 1 ? 'access-token' : 'refresh-token'
     })
+    verifyAsync = vi.fn(async () => makePayload())
     service = new AuthService(
       {
         db: { select: nextQuery, update: nextQuery },
       } as unknown as DrizzleService,
       {} as CacheService,
-      { sign } as unknown as JwtService,
+      { sign, verifyAsync } as unknown as JwtService,
       {} as MailService,
       {
         create: vi.fn(() => ({
@@ -78,6 +80,34 @@ describe('AuthService', () => {
       refreshToken: 'refresh-token',
     })
     assert.strictEqual(sign.mock.calls.length, 2)
+  })
+
+  it('refreshes tokens with authentication claims instead of profile data', async () => {
+    const createdAt = new Date('2026-01-01T00:00:00Z')
+    const updatedAt = new Date('2026-01-02T00:00:00Z')
+    queryResults.push([
+      {
+        id: 'user-1',
+        groupId: 'group-1',
+        name: 'Test User',
+        email: 'test@example.com',
+        githubName: 'test-user',
+        role: 'student',
+        status: 'active',
+        two_factor: false,
+        createdAt,
+        updatedAt,
+        deletedAt: null,
+      },
+    ])
+
+    await service.refresh({ oldRefreshToken: 'old-refresh-token' })
+
+    assert.deepEqual(sign.mock.calls[0][0], {
+      userId: 'user-1',
+      name: 'Test User',
+      role: 'student',
+    })
   })
 
   it('sets both authentication cookies', () => {
@@ -104,9 +134,10 @@ describe('AuthService', () => {
     queryResults.push([
       {
         id: 'user-1',
+        groupId: 'group-1',
         name: 'Test User',
         email: 'test@example.com',
-        role: 'user',
+        role: 'student',
         status: 'active',
         two_factor: false,
         createdAt: createdAt,
@@ -120,9 +151,10 @@ describe('AuthService', () => {
     assert.deepEqual(result, {
       ok: true,
       id: 'user-1',
+      groupId: 'group-1',
       name: 'Test User',
       email: 'test@example.com',
-      role: 'user',
+      role: 'student',
       status: 'active',
       twoFactor: false,
       createdAt,
@@ -138,7 +170,7 @@ describe('AuthService', () => {
         name: 'Test User',
         email: 'test@example.com',
         password: 'hashed-password',
-        role: 'user',
+        role: 'student',
         status: 'inactive',
         two_factor: false,
         createdAt: new Date(),

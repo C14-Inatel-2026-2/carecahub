@@ -1,4 +1,4 @@
-import { Body, Delete, Get, Post, Query } from '@nestjs/common'
+import { Body, Delete, Get, Patch, Post, Query } from '@nestjs/common'
 import { ApiController } from '@/infra/controller.decorator'
 import { Roles } from '@/infra/roles.guard'
 import { User } from '@/infra/user.decorator'
@@ -13,23 +13,31 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post()
-  @Roles(['admin', 'teacher'])
-  upsert(@Body() body: UpsertProjectDto) {
-    return this.projectService.upsert(body)
+  @Roles(['admin', 'student'])
+  create(@User() requester: UserMetadata, @Body() body: UpsertProjectDto) {
+    return this.projectService.upsert(body, requester)
+  }
+
+  @Patch(':id')
+  @Roles(['admin', 'student'])
+  update(@User() requester: UserMetadata, @UUIDParam() id: string, @Body() body: UpsertProjectDto) {
+    return this.projectService.upsert({ ...body, id }, requester)
   }
 
   @Get()
+  @Roles(['admin', 'teacher', 'mentor', 'student'])
   findAll(@User() requester: UserMetadata, @Query() query: QueryDto) {
     return this.projectService.findAll(query, requester)
   }
 
   @Get(':id')
+  @Roles(['admin', 'teacher', 'mentor', 'student'])
   findOne(@User() requester: UserMetadata, @UUIDParam() id: string) {
     return this.projectService.findOne(id, requester)
   }
 
   @Delete(':id')
-  @Roles(['admin'])
+  @Roles(['admin', 'student'])
   remove(@User() requester: UserMetadata, @UUIDParam() id: string) {
     return this.projectService.remove(id, requester)
   }

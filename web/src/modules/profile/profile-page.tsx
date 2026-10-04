@@ -21,7 +21,7 @@ export function ProfilePage() {
       : undefined;
   const { data: apiUsers, isLoading } = useList({
     endpoint: "/users",
-    params: { take: 100, search: decodedUsername },
+    params: { take: 1, search: decodedUsername },
     disabled:
       isMockAPIEnabled || !decodedUsername || Boolean(selectedNavigationUser),
   });

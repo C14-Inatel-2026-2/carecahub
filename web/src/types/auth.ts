@@ -26,6 +26,7 @@ export type ResetPasswordRequest = { token: string; password: string }
 
 export type LoggedUser = {
   id: string
+  groupId?: string | null
   name: string
   email: string
   role: UserRole

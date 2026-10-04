@@ -1,12 +1,22 @@
-import { Plus } from "lucide-react";
+import { Plus } from 'lucide-react'
+import type { ComponentProps } from 'react'
+import { cn } from '@/lib/utils'
 
-export function InviteUserCard() {
+export function InviteUserCard({ className, ...props }: ComponentProps<'button'>) {
   return (
-    <div className="cursor-pointer h-full flex flex-col p-4 gap-2 bg-card rounded-sm items-center justify-center drop-shadow-lg/40 drop-shadow-gray-500 border border-gray-500 transition-all duration-200 hover:border-b-3 hover:border-r-3 active:active:translate-y-0.5">
-      <div className="bg-background shadow-[1px_1px_4px_0_var(--color-gray-500)] rounded-full p-2">
+    <button
+      type='button'
+      aria-label='Convidar integrante'
+      className={cn(
+        'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-gray-500 bg-card p-4 drop-shadow-lg/40 drop-shadow-gray-500 transition-all duration-200 hover:border-r-3 hover:border-b-3 active:translate-y-0.5',
+        className
+      )}
+      {...props}
+    >
+      <span className='rounded-full bg-background p-2 shadow-[1px_1px_4px_0_var(--color-gray-500)]'>
         <Plus />
-      </div>
+      </span>
       <span>Convidar integrante</span>
-    </div>
-  );
+    </button>
+  )
 }

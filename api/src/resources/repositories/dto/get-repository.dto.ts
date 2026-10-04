@@ -1,14 +1,24 @@
-import type { Project, RepositoryType, User } from '@db'
+import type { RepositoryType } from '@db'
 import { ApiProperty } from '@nestjs/swagger'
 import type { RepositoryDetails } from '@/providers/github/github.types'
+import type { GetUserDtoRecord } from '@/resources/users/dto/get-user.dto'
+import { GetUserDto } from '@/resources/users/dto/get-user.dto'
 import { BaseDto } from '@/utils/dtos/base.dto'
+
+export type RepositoryProjectSummary = {
+  id: string
+  groupId: string
+  projectName: string
+  repositoryType: RepositoryType
+}
 
 export type GetRepositoryDtoRecord = {
   id: string
   url: string
-  repositoryType: RepositoryType
-  owner: User
-  project: Project
+  ownerId: string
+  projectId: string
+  owner: GetUserDtoRecord
+  project: RepositoryProjectSummary
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -19,13 +29,16 @@ export class GetRepositoryDto extends BaseDto<GetRepositoryDto> {
   url: string
 
   @ApiProperty()
-  repositoryType: RepositoryType
+  ownerId: string
 
   @ApiProperty()
-  owner: User
+  projectId: string
 
   @ApiProperty()
-  project: Project
+  owner: GetUserDto
+
+  @ApiProperty()
+  project: RepositoryProjectSummary
 
   @ApiProperty({ nullable: true })
   details: RepositoryDetails | null
@@ -37,8 +50,9 @@ export class GetRepositoryDto extends BaseDto<GetRepositoryDto> {
     return {
       id: repository.id,
       url: repository.url,
-      repositoryType: repository.repositoryType,
-      owner: repository.owner,
+      ownerId: repository.ownerId,
+      projectId: repository.projectId,
+      owner: GetUserDto.toDto(repository.owner),
       project: repository.project,
       details,
       createdAt: repository.createdAt,

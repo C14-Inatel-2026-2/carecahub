@@ -1,14 +1,19 @@
-import type { CSSProperties } from "react";
-import { useEffect } from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { toast } from "sonner";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { type AppRoute, appRoutes } from "@/router/routes";
-import { useUser } from "@/stores/use-user";
-import type { UserRole } from "@/types/user";
+import type { CSSProperties } from 'react'
+import { useEffect } from 'react'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { toast } from 'sonner'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { type AppRoute, appRoutes } from '@/router/routes'
+import { useUser } from '@/stores/use-user'
+import type { UserRole } from '@/types/user'
 
-const commonPages = [appRoutes.home, appRoutes.profile, appRoutes.settings] satisfies AppRoute[]
+const commonPages = [
+  appRoutes.home,
+  appRoutes.profile,
+  appRoutes.settings,
+  appRoutes.notifications,
+] satisfies AppRoute[]
 
 export function isAllowedPath(pathname: string, allowedPages: readonly string[]) {
   return allowedPages.some(

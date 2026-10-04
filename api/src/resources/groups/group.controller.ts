@@ -1,12 +1,13 @@
-import { ApiController } from "@/infra/controller.decorator";
-import { GroupService } from "./group.service";
 import { Body, Delete, Get, Patch, Post, Query } from "@nestjs/common";
+import { ApiController } from "@/infra/controller.decorator";
 import { Roles } from "@/infra/roles.guard";
 import { User } from "@/infra/user.decorator";
-import { UserMetadata } from "@/types";
-import { CreateGroupDto } from "./dto/create-group.dto";
-import { QueryDto } from "@/utils/dtos/query.dto";
 import { UUIDParam } from "@/infra/uuid-param.decorator";
+import { UserMetadata } from "@/types";
+import { QueryDto } from "@/utils/dtos/query.dto";
+import { CreateGroupDto } from "./dto/create-group.dto";
+import { GroupMemberDto, PromoteLeaderDto } from "./dto/group-member.dto";
+import { GroupService } from "./group.service";
 
 @ApiController("groups", "Groups")
 export class GroupController {
@@ -26,6 +27,12 @@ export class GroupController {
 
   @Get(":id")
   @Roles(["admin", "teacher", "mentor", "student"])
+  findOne(@User() requester: UserMetadata, @UUIDParam() groupId: string) {
+    return this.groupService.findOne(groupId, requester);
+  }
+
+  @Get(":id/users")
+  @Roles(["admin", "teacher", "mentor", "student"])
   findUsersInGroup(
     @User() requester: UserMetadata,
     @UUIDParam() groupId: string,
@@ -33,18 +40,28 @@ export class GroupController {
     return this.groupService.findUsersInGroup(groupId, requester);
   }
 
-  @Patch(":id")
-  @Roles(["student"])
+  @Post(":id/users")
+  @Roles(["admin", "student"])
   addUserToGroup(
     @User() requester: UserMetadata,
     @UUIDParam() groupId: string,
-    @Body() userId: string,
+    @Body() body: GroupMemberDto,
   ) {
-    return this.groupService.addUserToGroup(userId, groupId, requester);
+    return this.groupService.addUserToGroup(body.userId, groupId, requester);
+  }
+
+  @Patch(":id/leader")
+  @Roles(["admin", "student"])
+  promoteLeader(
+    @User() requester: UserMetadata,
+    @UUIDParam() groupId: string,
+    @Body() body: PromoteLeaderDto,
+  ) {
+    return this.groupService.promoteLeader(body.leaderId, groupId, requester);
   }
 
   @Delete(":id/users/:userId")
-  @Roles(["student"])
+  @Roles(["admin", "student"])
   removeUserFromGroup(
     @User() requester: UserMetadata,
     @UUIDParam() groupId: string,
@@ -54,7 +71,7 @@ export class GroupController {
   }
 
   @Delete(":id")
-  @Roles(["student"])
+  @Roles(["admin", "student"])
   delete(@User() requester: UserMetadata, @UUIDParam() groupId: string) {
     return this.groupService.delete(groupId, requester);
   }

@@ -1,18 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  useFormState,
-  useWatch,
-} from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { InputFF, TextAreaFF } from "@/components/form-fields/input-ff";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
+import { Controller, FormProvider, useForm, useFormState, useWatch } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+import { writer } from '@/api/writer'
+import { InputFF, TextAreaFF } from '@/components/form-fields/input-ff'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -20,16 +14,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+} from '@/components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { appRoutes } from "@/router/routes";
+} from '@/components/ui/select'
+import { appRoutes } from '@/router/routes'
 import {
   dependencyManagerOptions,
   type ProjectFormInput,
@@ -38,129 +32,114 @@ import {
   repositoryTypeOptions,
   technologyOptions,
   versionControlOptions,
-} from "@/types/project";
+} from '@/types/project'
 
 export function CreateProjectPage() {
-  const navigate = useNavigate();
-  const [discardOpen, setDiscardOpen] = useState(false);
+  const navigate = useNavigate()
+  const [discardOpen, setDiscardOpen] = useState(false)
   const form = useForm<ProjectFormInput, unknown, ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: '',
+      description: '',
       technologies: [],
       usesOtherTechnology: false,
-      otherTechnology: "",
+      otherTechnology: '',
       dependencyManager: undefined,
-      otherDependencyManager: "",
+      otherDependencyManager: '',
       versionControl: undefined,
-      otherVersionControl: "",
+      otherVersionControl: '',
       repositoryType: undefined,
     },
-  });
+  })
   const usesOtherTechnology = useWatch({
     control: form.control,
-    name: "usesOtherTechnology",
-  });
+    name: 'usesOtherTechnology',
+  })
   const dependencyManager = useWatch({
     control: form.control,
-    name: "dependencyManager",
-  });
+    name: 'dependencyManager',
+  })
   const versionControl = useWatch({
     control: form.control,
-    name: "versionControl",
-  });
-  const { isDirty } = useFormState({ control: form.control });
+    name: 'versionControl',
+  })
+  const { isDirty } = useFormState({ control: form.control })
 
   function requestBack() {
     if (isDirty) {
-      setDiscardOpen(true);
-      return;
+      setDiscardOpen(true)
+      return
     }
-    navigate(appRoutes.myProject);
+    navigate(appRoutes.myProject)
   }
 
-  function submit(_values: ProjectFormValues) {
-    toast.success("Projeto criado");
-    navigate(appRoutes.myProject);
+  async function submit(values: ProjectFormValues) {
+    const result = await writer('POST /projects', {
+      body: values,
+      onSuccessMessage: 'Projeto criado',
+    })
+    if (result.ok) navigate(appRoutes.myProject)
   }
 
   return (
     <>
-      <section className="flex w-full flex-1 flex-col px-4 py-5 md:px-6 lg:px-8">
-        <Button
-          type="button"
-          variant="ghost"
-          className="w-fit fixed"
-          onClick={requestBack}
-        >
+      <section className='flex w-full flex-1 flex-col px-4 py-5 md:px-6 lg:px-8'>
+        <Button type='button' variant='ghost' className='w-fit fixed' onClick={requestBack}>
           <ArrowLeft />
           Voltar
         </Button>
 
-        <div className="mx-auto mt-4 w-full max-w-4xl">
-          <h1 className="text-xl font-medium">Criar projeto</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className='mx-auto mt-4 w-full max-w-4xl'>
+          <h1 className='text-xl font-medium'>Criar projeto</h1>
+          <p className='mt-1 text-sm text-muted-foreground'>
             Preencha os dados iniciais do projeto do seu grupo.
           </p>
 
           <FormProvider {...form}>
-            <form
-              className="mt-7 grid gap-7 pb-10"
-              noValidate
-              onSubmit={form.handleSubmit(submit)}
-            >
-              <div className="grid gap-5">
-                <InputFF name="name" label="Nome do projeto" />
-                <TextAreaFF
-                  name="description"
-                  label="Descrição"
-                  rows={5}
-                  maxLength={1000}
-                />
+            <form className='mt-7 grid gap-7 pb-10' noValidate onSubmit={form.handleSubmit(submit)}>
+              <div className='grid gap-5'>
+                <InputFF name='name' label='Nome do projeto' />
+                <TextAreaFF name='description' label='Descrição' rows={5} maxLength={1000} />
               </div>
 
               <Controller
                 control={form.control}
-                name="technologies"
+                name='technologies'
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>Tecnologias utilizadas</FieldLabel>
-                    <div className="grid grid-cols-2 gap-3 rounded-lg border p-4 sm:grid-cols-3 lg:grid-cols-4">
+                    <div className='grid grid-cols-2 gap-3 rounded-lg border p-4 sm:grid-cols-3 lg:grid-cols-4'>
                       {technologyOptions
                         .toSorted((a, b) =>
-                          a.label.localeCompare(b.label, "pt-BR", {
-                            sensitivity: "base",
-                          }),
+                          a.label.localeCompare(b.label, 'pt-BR', {
+                            sensitivity: 'base',
+                          })
                         )
                         .map((option) => {
-                          const id = `technology-${option.value}`;
-                          const selected = (field.value ?? []).includes(
-                            option.value,
-                          );
+                          const id = `technology-${option.value}`
+                          const selected = (field.value ?? []).includes(option.value)
                           return (
                             <label
                               key={option.value}
                               htmlFor={id}
-                              className="flex cursor-pointer items-center gap-2 text-sm"
+                              className='flex cursor-pointer items-center gap-2 text-sm'
                             >
                               <Checkbox
                                 id={id}
                                 checked={selected}
                                 onCheckedChange={(checked) => {
-                                  const current = field.value ?? [];
+                                  const current = field.value ?? []
                                   field.onChange(
                                     checked
                                       ? [...current, option.value]
-                                      : current.filter(
-                                          (value) => value !== option.value,
-                                        ),
-                                  );
+                                      : current.filter((value) => value !== option.value)
+                                  )
                                 }}
                               />
                               {option.label}
                             </label>
-                          );
+                          )
                         })}
                     </div>
                     <FieldError errors={[fieldState.error]} />
@@ -170,14 +149,14 @@ export function CreateProjectPage() {
 
               <Controller
                 control={form.control}
-                name="usesOtherTechnology"
+                name='usesOtherTechnology'
                 render={({ field }) => (
                   <label
-                    htmlFor="uses-other-technology"
-                    className="flex w-fit cursor-pointer items-center gap-2 text-sm"
+                    htmlFor='uses-other-technology'
+                    className='flex w-fit cursor-pointer items-center gap-2 text-sm'
                   >
                     <Checkbox
-                      id="uses-other-technology"
+                      id='uses-other-technology'
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
@@ -187,36 +166,28 @@ export function CreateProjectPage() {
               />
 
               {usesOtherTechnology && (
-                <InputFF
-                  name="otherTechnology"
-                  label="Outra tecnologia"
-                  placeholder="Outra"
-                />
+                <InputFF name='otherTechnology' label='Outra tecnologia' placeholder='Outra' />
               )}
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className='grid gap-5 md:grid-cols-2'>
                 <Controller
                   control={form.control}
-                  name="dependencyManager"
+                  name='dependencyManager'
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="dependency-manager">
+                      <FieldLabel htmlFor='dependency-manager'>
                         Gerenciador de dependências
                       </FieldLabel>
-                      <Select
-                        value={field.value ?? null}
-                        onValueChange={field.onChange}
-                      >
+                      <Select value={field.value ?? null} onValueChange={field.onChange}>
                         <SelectTrigger
-                          id="dependency-manager"
-                          className="w-full"
+                          id='dependency-manager'
+                          className='w-full'
                           aria-invalid={fieldState.invalid}
                         >
-                          <SelectValue placeholder="Selecione um gerenciador">
+                          <SelectValue placeholder='Selecione um gerenciador'>
                             {(value) =>
-                              dependencyManagerOptions.find(
-                                (option) => option.value === value,
-                              )?.label
+                              dependencyManagerOptions.find((option) => option.value === value)
+                                ?.label
                             }
                           </SelectValue>
                         </SelectTrigger>
@@ -233,36 +204,31 @@ export function CreateProjectPage() {
                   )}
                 />
 
-                {dependencyManager === "other" && (
+                {dependencyManager === 'other' && (
                   <InputFF
-                    name="otherDependencyManager"
-                    label="Outro gerenciador de dependências"
-                    placeholder="Outro"
+                    name='otherDependencyManager'
+                    label='Outro gerenciador de dependências'
+                    placeholder='Outro'
                   />
                 )}
 
                 <Controller
                   control={form.control}
-                  name="versionControl"
+                  name='versionControl'
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="version-control">
+                      <FieldLabel htmlFor='version-control'>
                         Sistema de controle de versão
                       </FieldLabel>
-                      <Select
-                        value={field.value ?? null}
-                        onValueChange={field.onChange}
-                      >
+                      <Select value={field.value ?? null} onValueChange={field.onChange}>
                         <SelectTrigger
-                          id="version-control"
-                          className="w-full"
+                          id='version-control'
+                          className='w-full'
                           aria-invalid={fieldState.invalid}
                         >
-                          <SelectValue placeholder="Selecione um sistema">
+                          <SelectValue placeholder='Selecione um sistema'>
                             {(value) =>
-                              versionControlOptions.find(
-                                (option) => option.value === value,
-                              )?.label
+                              versionControlOptions.find((option) => option.value === value)?.label
                             }
                           </SelectValue>
                         </SelectTrigger>
@@ -279,36 +245,29 @@ export function CreateProjectPage() {
                   )}
                 />
 
-                {versionControl === "other" && (
+                {versionControl === 'other' && (
                   <InputFF
-                    name="otherVersionControl"
-                    label="Outro sistema de controle de versão"
-                    placeholder="Outro"
+                    name='otherVersionControl'
+                    label='Outro sistema de controle de versão'
+                    placeholder='Outro'
                   />
                 )}
 
                 <Controller
                   control={form.control}
-                  name="repositoryType"
+                  name='repositoryType'
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="repository-type">
-                        Tipo de repositório
-                      </FieldLabel>
-                      <Select
-                        value={field.value ?? null}
-                        onValueChange={field.onChange}
-                      >
+                      <FieldLabel htmlFor='repository-type'>Tipo de repositório</FieldLabel>
+                      <Select value={field.value ?? null} onValueChange={field.onChange}>
                         <SelectTrigger
-                          id="repository-type"
-                          className="w-full"
+                          id='repository-type'
+                          className='w-full'
                           aria-invalid={fieldState.invalid}
                         >
-                          <SelectValue placeholder="Selecione um tipo">
+                          <SelectValue placeholder='Selecione um tipo'>
                             {(value) =>
-                              repositoryTypeOptions.find(
-                                (option) => option.value === value,
-                              )?.label
+                              repositoryTypeOptions.find((option) => option.value === value)?.label
                             }
                           </SelectValue>
                         </SelectTrigger>
@@ -326,8 +285,8 @@ export function CreateProjectPage() {
                 />
               </div>
 
-              <div className="flex justify-end border-t pt-5">
-                <Button type="submit">Criar projeto</Button>
+              <div className='flex justify-end border-t pt-5'>
+                <Button type='submit'>Criar projeto</Button>
               </div>
             </form>
           </FormProvider>
@@ -335,28 +294,23 @@ export function CreateProjectPage() {
       </section>
 
       <Dialog open={discardOpen} onOpenChange={setDiscardOpen}>
-        <DialogContent className="max-w-105! w-105!">
+        <DialogContent className='max-w-105! w-105!'>
           <DialogHeader>
             <DialogTitle>Voltar?</DialogTitle>
             <DialogDescription>
-              Os dados preenchidos serão perdidos. Deseja descartar as
-              alterações?
+              Os dados preenchidos serão perdidos. Deseja descartar as alterações?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDiscardOpen(false)}
-            >
+            <Button type='button' variant='outline' onClick={() => setDiscardOpen(false)}>
               Continuar editando
             </Button>
-            <Button type="button" onClick={() => navigate(appRoutes.myProject)}>
+            <Button type='button' onClick={() => navigate(appRoutes.myProject)}>
               Descartar e voltar
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }
