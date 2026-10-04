@@ -1,5 +1,6 @@
 import { toast } from 'sonner'
 import type { SWRConfiguration } from 'swr'
+import { getApiErrorMessage } from './errors'
 import { fetcher } from './fetchers'
 
 /**
@@ -20,13 +21,15 @@ export const swrConfig: SWRConfiguration = {
   focusThrottleInterval: 5000,
 
   // Global error handler - shows toast for all errors
-  onError: (error: Error & { statusCode?: number; friendlyMessage?: string }, key) => {
-    // Don't show toast for 403 (already redirecting)
-    if (error.statusCode === 403) return
-
+  onError: (
+    error: Error & { statusCode?: number; errKey?: string; friendlyMessage?: string },
+    key
+  ) => {
     // Show toast with error message
     toast.error('Erro ao carregar dados', {
-      description: error.friendlyMessage || 'Verifique sua conexão com a internet',
+      description: getApiErrorMessage(
+        error instanceof TypeError ? { errKey: 'NETWORK_ERROR' } : error
+      ),
     })
 
     console.error('[SWR Error]', { key, error })

@@ -1,4 +1,4 @@
-import { appRoutes } from '@/router/routes'
+import { getApiErrorMessage } from './errors'
 
 /**
  * Base API URL from environment
@@ -36,32 +36,24 @@ export function buildQueryString(
 }
 
 async function validateResponse<T>(response: Response): Promise<T> {
-  // Handle 403 - redirect to login
-  if (response.status === 403) {
-    if (typeof window !== 'undefined') {
-      window.location.href = appRoutes.login
-    }
-    throw new Error('Não autorizado')
-  }
-
-  const data = await response.json()
-
-  // Check for errKey in response (API error format)
-  if (data.errKey) {
-    const error: APIError = new Error(
-      data.friendlyMessage || data.message || 'Erro ao carregar dados'
-    )
-    error.errKey = data.errKey
+  let data: Record<string, unknown>
+  try {
+    data = await response.json()
+  } catch (cause) {
+    const error: APIError = new Error(getApiErrorMessage({ statusCode: response.status }), {
+      cause,
+    })
     error.statusCode = response.status
-    error.friendlyMessage = data.friendlyMessage
-
+    error.friendlyMessage = error.message
     throw error
   }
-
-  // Check for non-2xx status codes
-  if (!response.ok) {
-    const error: APIError = new Error('Erro ao carregar dados')
+  if (!response.ok || data.errKey) {
+    const errKey = typeof data.errKey === 'string' ? data.errKey : undefined
+    const message = getApiErrorMessage({ errKey, statusCode: response.status })
+    const error: APIError = new Error(message)
+    error.errKey = errKey
     error.statusCode = response.status
+    error.friendlyMessage = message
     throw error
   }
 
