@@ -1,8 +1,8 @@
-import { CircleUserRound, KeyRound, LogOut } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { writer } from "@/api/writer";
-import { Button } from "@/components/ui/button";
+import { CircleUserRound, KeyRound, LogOut } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { writer } from '@/api/writer'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,82 +11,69 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { logoutMockUser } from "@/mocks/auth";
-import { isMockAPIEnabled } from "@/mocks/config";
-import { ChangePasswordDialog } from "@/modules/auth/dialogs/change-password-dialog";
-import { appRoutes } from "@/router/routes";
-import { useUser } from "@/stores/use-user";
-import type { LoggedUser } from "@/types/auth";
-import { userRoleLabels } from "@/types/user";
+} from '@/components/ui/dropdown-menu'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { logoutMockUser } from '@/mocks/auth'
+import { isMockAPIEnabled } from '@/mocks/config'
+import { ChangePasswordDialog } from '@/modules/auth/dialogs/change-password-dialog'
+import { appRoutes } from '@/router/routes'
+import { useUser } from '@/stores/use-user'
+import type { LoggedUser } from '@/types/auth'
+import { userRoleLabels } from '@/types/user'
 
 type AppHeaderProps = {
-  user: LoggedUser;
-};
+  user: LoggedUser
+}
 
 export function AppHeader({ user }: AppHeaderProps) {
-  const navigate = useNavigate();
-  const clearUser = useUser((state) => state.clearUser);
-  const [passwordOpen, setPasswordOpen] = useState(false);
+  const navigate = useNavigate()
+  const clearUser = useUser((state) => state.clearUser)
+  const [passwordOpen, setPasswordOpen] = useState(false)
 
   async function logout() {
     if (isMockAPIEnabled) {
-      logoutMockUser(localStorage);
+      logoutMockUser(localStorage)
     } else {
-      await writer("POST /auth/logout", { body: undefined, silent: true });
+      await writer('POST /auth/logout', { body: undefined, silent: true })
     }
-    clearUser();
-    navigate(appRoutes.login, { replace: true });
+    clearUser()
+    navigate(appRoutes.login, { replace: true })
   }
 
   return (
-    <header className="flex min-h-16 items-center justify-between gap-3 border-b bg-card/70 px-3 py-2 md:px-5">
-      <SidebarTrigger className="md:hidden" />
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 py-2 text-sm">
+    <header className='flex min-h-16 items-center justify-between gap-3 border-b bg-card/70 px-3 py-2 md:px-5'>
+      <SidebarTrigger className='md:hidden' />
+      <div className='ml-auto flex flex-wrap items-center justify-end gap-2 py-2 text-sm'>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={
-              <Button size="xl" variant="ghost" className="font-normal" />
-            }
+            render={<Button size='xl' variant='ghost' className='font-normal' />}
           >
-            <CircleUserRound className="size-9" />
-            <div className="hidden sm:flex flex-col items-start gap-1 leading-tight">
-              <span className="text-base font-semibold">{user.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {userRoleLabels[user.role]}
-              </span>
+            <CircleUserRound className='size-9' />
+            <div className='hidden sm:flex flex-col items-start gap-1 leading-tight'>
+              <span className='text-base font-semibold'>{user.name}</span>
+              <span className='text-xs text-muted-foreground'>{userRoleLabels[user.role]}</span>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-56">
+          <DropdownMenuContent align='end' className='min-w-56'>
             <DropdownMenuGroup>
               <DropdownMenuLabel>
-                <span className="block text-foreground">{user.name}</span>
-                <span className="block font-normal">{user.email}</span>
+                <span className='block text-foreground'>{user.name}</span>
+                <span className='block font-normal'>{user.email}</span>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="font-normal"
-              onClick={() => setPasswordOpen(true)}
-            >
+            <DropdownMenuItem className='font-normal' onClick={() => setPasswordOpen(true)}>
               <KeyRound />
               Alterar senha
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="font-normal"
-              onClick={() => void logout()}
-            >
+            <DropdownMenuItem className='font-normal' onClick={() => void logout()}>
               <LogOut />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <ChangePasswordDialog
-          open={passwordOpen}
-          onOpenChange={setPasswordOpen}
-        />
+        <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
       </div>
     </header>
-  );
+  )
 }

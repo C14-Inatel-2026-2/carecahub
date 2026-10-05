@@ -4,10 +4,11 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldDescription, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { doubleToCents, formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
+import { FormFieldLabel, useRequiredField } from './form-schema'
 
 interface CurrencyFFProps {
   name: string
@@ -120,6 +121,7 @@ function CurrencyFieldContent({
   className,
 }: CurrencyFieldContentProps) {
   const [displayValue, setDisplayValue] = useState('')
+  const required = useRequiredField(name)
 
   useEffect(() => {
     if (field.value !== undefined && field.value !== null) {
@@ -145,7 +147,9 @@ function CurrencyFieldContent({
 
   return (
     <Field data-invalid={fieldState.invalid} className={className}>
-      <FieldLabel htmlFor={name}>{label}</FieldLabel>
+      <FormFieldLabel name={name} htmlFor={name}>
+        {label}
+      </FormFieldLabel>
       <Input
         id={name}
         placeholder={placeholder}
@@ -155,6 +159,12 @@ function CurrencyFieldContent({
         disabled={disabled}
         readOnly={readOnly}
         aria-invalid={fieldState.invalid}
+        required={required}
+        aria-describedby={
+          [description && `${name}-description`, fieldState.invalid && `${name}-error`]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
         className={cn(
           'text-left',
           field.value && 'font-medium',
@@ -162,8 +172,8 @@ function CurrencyFieldContent({
         )}
         autoComplete='off'
       />
-      {description && <FieldDescription>{description}</FieldDescription>}
-      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+      {description && <FieldDescription id={`${name}-description`}>{description}</FieldDescription>}
+      {fieldState.invalid && <FieldError id={`${name}-error`} errors={[fieldState.error]} />}
     </Field>
   )
 }
