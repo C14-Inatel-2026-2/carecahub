@@ -292,6 +292,8 @@ export function DataTable<T extends object>({
                     'cursor-pointer hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset'
                 )}
                 onClick={(event) => {
+                  // Portal events bubble through React even when the menu is outside the row.
+                  if (!event.currentTarget.contains(event.target as Node)) return
                   if (
                     event.target instanceof Element &&
                     event.target.closest('a,button,input,select,textarea')
@@ -301,6 +303,7 @@ export function DataTable<T extends object>({
                   onRowClick?.(item)
                 }}
                 onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return
                   if (onRowClick && (event.key === 'Enter' || event.key === ' ')) {
                     event.preventDefault()
                     onRowClick(item)
