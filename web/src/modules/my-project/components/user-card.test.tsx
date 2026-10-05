@@ -27,10 +27,10 @@ describe('UserCard actions', () => {
     expect(html).toContain('lucide-ellipsis-vertical')
   })
 
-  it('offers profile viewing and leader promotion with their icons', () => {
+  it('offers profile viewing, leader promotion and member removal with their icons', () => {
     const html = renderToStaticMarkup(
       <DropdownMenu>
-        <UserCardMenuItems onViewProfile={vi.fn()} onPromote={vi.fn()} />
+        <UserCardMenuItems onViewProfile={vi.fn()} onPromote={vi.fn()} onRemove={vi.fn()} />
       </DropdownMenu>
     )
 
@@ -38,6 +38,8 @@ describe('UserCard actions', () => {
     expect(html).toContain('lucide-eye')
     expect(html).toContain('Promover a líder')
     expect(html).toContain('lucide-user-star')
+    expect(html).toContain('Remover membro')
+    expect(html).toContain('lucide-trash-2')
   })
 
   it('hides promotion when the requester cannot promote and disables a missing profile', () => {
@@ -50,5 +52,6 @@ describe('UserCard actions', () => {
     expect(html).toContain('Visualizar perfil')
     expect(html).toContain('disabled')
     expect(html).not.toContain('Promover a líder')
+    expect(html).not.toContain('Remover membro')
   })
 })

@@ -1,4 +1,4 @@
-import { Mail, Search, UserPlus } from 'lucide-react'
+import { CircleUserRound, Mail, Search, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useList } from '@/api'
 import { writer } from '@/api/writer'
@@ -127,14 +127,25 @@ export function InviteCandidateRow({
 }) {
   return (
     <div className='flex items-center justify-between gap-3 rounded-lg border p-3'>
-      <div className='min-w-0'>
-        <p className='truncate font-medium'>{candidate.name}</p>
-        <p className='mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground'>
-          <Mail className='size-3.5' /> {candidate.email}
-        </p>
-        <p className='mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground'>
-          <GitHubIcon className='size-3.5' /> {candidate.githubName || 'Sem GitHub'}
-        </p>
+      <div className='flex min-w-0 items-center gap-3'>
+        {candidate.gitHubDetails?.avatarUrl ? (
+          <img
+            src={candidate.gitHubDetails.avatarUrl}
+            alt={candidate.name}
+            className='size-9 shrink-0 rounded-full'
+          />
+        ) : (
+          <CircleUserRound className='size-9 shrink-0 text-highlight-soft-foreground' />
+        )}
+        <div className='min-w-0'>
+          <p className='truncate font-medium'>{candidate.name}</p>
+          <p className='mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground'>
+            <Mail className='size-3.5' /> {candidate.email}
+          </p>
+          <p className='mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground'>
+            <GitHubIcon className='size-3.5' /> {candidate.githubName || 'Sem GitHub'}
+          </p>
+        </div>
       </div>
       <Button type='button' size='sm' disabled={isInviting} onClick={() => onInvite(candidate)}>
         <UserPlus /> {isInviting ? 'Enviando…' : 'Convidar'}
