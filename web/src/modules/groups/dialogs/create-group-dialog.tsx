@@ -17,9 +17,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { FieldError } from '@/components/ui/field'
-import { type CreateGroupRequest, groupFormSchema } from '@/types/group'
+import { type CreateGroupRequest, type Group, groupFormSchema } from '@/types/group'
 
-export function CreateGroupDialog({ onCreated }: { onCreated?: () => void }) {
+export function CreateGroupDialog({ onCreated }: { onCreated?: (group: Group) => void }) {
   const [open, setOpen] = useState(false)
   const form = useForm<CreateGroupRequest>({
     resolver: zodResolver(groupFormSchema),
@@ -36,7 +36,7 @@ export function CreateGroupDialog({ onCreated }: { onCreated?: () => void }) {
     toast.success('Grupo criado')
     setOpen(false)
     form.reset()
-    onCreated?.()
+    onCreated?.(result.data)
   }
 
   return (
