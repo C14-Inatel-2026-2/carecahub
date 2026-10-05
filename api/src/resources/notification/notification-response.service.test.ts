@@ -49,7 +49,7 @@ function createService(results: unknown[]) {
     update: () => next(),
     transaction: async (callback: (tx: unknown) => unknown) => callback(db),
   }
-  return { service: new NotificationService({ db } as never), tracker }
+  return { service: new NotificationService({ db } as never, {} as never), tracker }
 }
 
 const recipientId = '48d513dc-5a9e-4f13-9c13-ee27589bb7eb'
