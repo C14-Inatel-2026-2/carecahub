@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +35,7 @@ function HasProjectCard({ group, project }: { group: Group; project: Project }) 
   const hasRepositories = project.repositories.length > 0
 
   return (
-    <div className='h-full flex flex-col p-5 gap-2 bg-card rounded-sm drop-shadow-lg/40 drop-shadow-foreground/10 border border-border'>
+    <Card className='ring-0 h-full flex flex-col p-5 gap-2 bg-card rounded-sm drop-shadow-lg/40 drop-shadow-foreground/10 border border-border'>
       <img src='/project-fallback.png' className='rounded-lg' />
 
       <div className='flex flex-row justify-start items-center w-fit gap-2 mt-2'>
@@ -114,7 +115,7 @@ function HasProjectCard({ group, project }: { group: Group; project: Project }) 
       <Button className='p-5 mt-auto'>
         Ver detalhes <ArrowRight />
       </Button>
-    </div>
+    </Card>
   )
 }
 
@@ -128,7 +129,7 @@ function GitHubIcon() {
 
 function GroupCard({ group }: { group: Group }) {
   return (
-    <div className='h-full flex flex-col p-5 gap-2 bg-card rounded-sm border pending-project-card'>
+    <Card className='ring-0 h-full flex flex-col p-5 gap-2 bg-card rounded-sm border pending-project-card'>
       <img src='/group-fallback.png' className='rounded-lg' />
 
       <div className='flex flex-row justify-start items-center w-fit gap-2 mt-2'>
@@ -170,6 +171,6 @@ function GroupCard({ group }: { group: Group }) {
       <Button className='p-5 mt-auto'>
         Ver detalhes <ArrowRight />
       </Button>
-    </div>
+    </Card>
   )
 }

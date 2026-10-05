@@ -1,10 +1,12 @@
 import { Plus } from 'lucide-react'
 import type { ComponentProps } from 'react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-export function InviteUserCard({ className, ...props }: ComponentProps<'button'>) {
+export function InviteUserCard({ className, ...props }: ComponentProps<typeof Button>) {
   return (
-    <button
+    <Button
+      variant='outline'
       type='button'
       aria-label='Convidar integrante'
       className={cn(
@@ -17,6 +19,6 @@ export function InviteUserCard({ className, ...props }: ComponentProps<'button'>
         <Plus />
       </span>
       <span>Convidar integrante</span>
-    </button>
+    </Button>
   )
 }
