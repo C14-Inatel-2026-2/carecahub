@@ -1,12 +1,14 @@
-import { groups, projects, repositories, users } from '@db'
+import { groups, projects, repositories, userPublicColumns, users } from '@db'
 import { Injectable } from '@nestjs/common'
-import { and, count, desc, eq, ilike, isNull, ne } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, isNull, ne } from 'drizzle-orm'
 import { DrizzleService } from '@/providers/database/drizzle.service'
 import { GitHubService } from '@/providers/github/github.service'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { ErrKeys, type UserMetadata } from '@/types'
 import { QueryDto } from '@/utils/dtos/query.dto'
+import { GetUserDto } from '../users/dto/get-user.dto'
+import type { GetUserWithGitHubDetails } from '../users/user.interface'
 import type { GetProjectDtoRecord, ProjectRepositoryDto } from './dto/get-project.dto'
 import { GetProjectDto } from './dto/get-project.dto'
 import { UpsertProjectDto } from './dto/upsert-project.dto'
@@ -153,7 +155,7 @@ export class ProjectService implements IProjectService {
     if (requester && !(await this.canReadGroup(project.groupId, requester))) {
       return { ok: false, errKey: ErrKeys.forbidden }
     }
-    return { ok: true, ...(await this.withRepositoryStats(project)) }
+    return { ok: true, ...(await this.withRepositoryStats(project, true)) }
   }
 
   async findByGroupId(groupId: string): Promise<GetProjectDto | null> {
@@ -268,18 +270,24 @@ export class ProjectService implements IProjectService {
     return project
   }
 
-  private async withRepositoryStats(project: GetProjectDtoRecord): Promise<GetProjectDto> {
-    const repositoryRows = await this.database.db
-      .select({
-        id: repositories.id,
-        url: repositories.url,
-        ownerId: repositories.ownerId,
-        projectId: repositories.projectId,
-        createdAt: repositories.createdAt,
-        updatedAt: repositories.updatedAt,
-      })
-      .from(repositories)
-      .where(and(eq(repositories.projectId, project.id), isNull(repositories.deletedAt)))
+  private async withRepositoryStats(
+    project: GetProjectDtoRecord,
+    includeMembers = false,
+  ): Promise<GetProjectDto> {
+    const [repositoryRows, members] = await Promise.all([
+      this.database.db
+        .select({
+          id: repositories.id,
+          url: repositories.url,
+          ownerId: repositories.ownerId,
+          projectId: repositories.projectId,
+          createdAt: repositories.createdAt,
+          updatedAt: repositories.updatedAt,
+        })
+        .from(repositories)
+        .where(and(eq(repositories.projectId, project.id), isNull(repositories.deletedAt))),
+      includeMembers ? this.findMembers(project.groupId) : undefined,
+    ])
 
     const projectRepositories: ProjectRepositoryDto[] = await Promise.all(
       repositoryRows.map(async (repository) => {
@@ -291,6 +299,26 @@ export class ProjectService implements IProjectService {
         }
       }),
     )
-    return GetProjectDto.toDto(project, projectRepositories)
+    return GetProjectDto.toDto(project, projectRepositories, members)
+  }
+
+  private async findMembers(groupId: string): Promise<GetUserWithGitHubDetails[]> {
+    const rows = await this.database.db
+      .select(userPublicColumns)
+      .from(users)
+      .where(and(eq(users.groupId, groupId), eq(users.status, 'active'), isNull(users.deletedAt)))
+      .orderBy(asc(users.name))
+
+    return Promise.all(
+      rows.map(async (row) => {
+        const user = GetUserDto.toDto(row)
+        return {
+          ...user,
+          gitHubDetails: user.githubName
+            ? await this.gitHubService.getUserDetails(user.githubName)
+            : null,
+        }
+      }),
+    )
   }
 }

@@ -8,10 +8,12 @@ import {
   userPublicColumns,
 } from '@/drizzle/schema/entities'
 import { DrizzleService, type DrizzleTransactionClient } from '@/providers/database/drizzle.service'
+import { GitHubService } from '@/providers/github/github.service'
 import { ErrKeys, type UserMetadata } from '@/types'
 import type { QueryDto } from '@/utils/dtos/query.dto'
 import { isUniqueViolation } from '@/utils/query-violations'
 import { GetUserDto, type GetUserDtoRecord } from '../users/dto/get-user.dto'
+import type { GetUserWithGitHubDetails } from '../users/user.interface'
 import { GetNotificationDto, type GetNotificationDtoRecord } from './dto/get-notification.dto'
 import type { CreateGroupInviteDto, RespondGroupInviteDto } from './dto/group-invite.dto'
 import type {
@@ -33,7 +35,10 @@ const notificationSelection = {
 
 @Injectable()
 export class NotificationService implements INotificationService {
-  constructor(private readonly database: DrizzleService) {}
+  constructor(
+    private readonly database: DrizzleService,
+    private readonly gitHubService: GitHubService,
+  ) {}
 
   async findAll(query: QueryDto, requester: UserMetadata): Promise<ListNotificationOutput> {
     const inboxWhere = and(
@@ -159,7 +164,9 @@ export class NotificationService implements INotificationService {
     return {
       ok: true,
       totalCount: Number(totalRows[0]?.count ?? 0),
-      data: rows.map((row) => GetUserDto.toDto(row as GetUserDtoRecord)),
+      data: await Promise.all(
+        rows.map((row) => this.withGitHubDetails(GetUserDto.toDto(row as GetUserDtoRecord))),
+      ),
     }
   }
 
@@ -249,6 +256,15 @@ export class NotificationService implements INotificationService {
         return { ok: false, errKey: ErrKeys.alreadyExists }
       }
       throw error
+    }
+  }
+
+  private async withGitHubDetails(user: GetUserDto): Promise<GetUserWithGitHubDetails> {
+    if (!user.githubName) return { ...user, gitHubDetails: null }
+
+    return {
+      ...user,
+      gitHubDetails: await this.gitHubService.getUserDetails(user.githubName),
     }
   }
 

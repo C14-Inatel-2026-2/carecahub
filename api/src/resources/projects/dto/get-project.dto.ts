@@ -1,6 +1,7 @@
 import type { RepositoryType } from '@db'
 import { ApiProperty } from '@nestjs/swagger'
 import { BaseDto } from '@/utils/dtos/base.dto'
+import type { GetUserWithGitHubDetails } from '../../users/user.interface'
 
 export class ProjectRepositoryDto {
   @ApiProperty()
@@ -92,9 +93,13 @@ export class GetProjectDto extends BaseDto<GetProjectDto> {
   @ApiProperty()
   branchCount: number
 
+  @ApiProperty({ type: [Object], required: false })
+  members?: GetUserWithGitHubDetails[]
+
   static toDto(
     project: GetProjectDtoRecord,
     repositories: ProjectRepositoryDto[] = [],
+    members?: GetUserWithGitHubDetails[],
   ): GetProjectDto {
     return {
       id: project.id,
@@ -116,6 +121,7 @@ export class GetProjectDto extends BaseDto<GetProjectDto> {
       repositories,
       commitCount: repositories.reduce((total, repository) => total + repository.commitCount, 0),
       branchCount: repositories.reduce((total, repository) => total + repository.branchCount, 0),
+      ...(members ? { members } : {}),
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
       deletedAt: project.deletedAt ?? undefined,

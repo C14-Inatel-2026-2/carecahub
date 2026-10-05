@@ -37,7 +37,7 @@ class QueryResult<T> implements PromiseLike<T> {
 
 function createService(results: unknown[]) {
   const next = () => new QueryResult(results.shift())
-  return new NotificationService({ db: { select: next, update: next } } as never)
+  return new NotificationService({ db: { select: next, update: next } } as never, {} as never)
 }
 
 const recipientId = '48d513dc-5a9e-4f13-9c13-ee27589bb7eb'

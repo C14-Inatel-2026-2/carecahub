@@ -43,7 +43,17 @@ class QueryResult<T> implements PromiseLike<T> {
 function createService(results: unknown[], githubResults: unknown[] = []) {
   const next = () => new QueryResult(results.shift())
   const database = { db: { select: next, insert: next, update: next } }
-  const gitHubService = { getRepositoryFromUrl: async () => githubResults.shift() }
+  const gitHubService = {
+    getRepositoryFromUrl: async () => githubResults.shift(),
+    getUserDetails: async () => ({
+      login: 'member',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/1',
+      profileUrl: 'https://github.com/member',
+      bio: null,
+      createdAt: '2020-01-01T00:00:00.000Z',
+      publicRepos: 1,
+    }),
+  }
   const loggerFactory = { create: () => ({ log() {}, info() {}, error() {} }) }
   return new ProjectService(database as never, gitHubService as never, loggerFactory as never)
 }
@@ -129,7 +139,7 @@ describe('ProjectService.upsert', () => {
 })
 
 describe('ProjectService.findOne', () => {
-  it('sums commits and branches from every active repository', async () => {
+  it('returns active group members with their GitHub details', async () => {
     const repositories = [
       {
         id: 'repo-1',
@@ -149,7 +159,27 @@ describe('ProjectService.findOne', () => {
       },
     ]
     const service = createService(
-      [[projectRecord], repositories],
+      [
+        [projectRecord],
+        repositories,
+        [
+          {
+            id: 'member-id',
+            groupId,
+            name: 'Group Member',
+            registration: 1234,
+            githubName: 'member',
+            classroom: 'A1',
+            email: 'member@example.com',
+            role: 'student',
+            status: 'active',
+            two_factor: false,
+            createdAt: new Date('2026-01-01'),
+            updatedAt: new Date('2026-01-01'),
+            deletedAt: null,
+          },
+        ],
+      ],
       [
         { success: true, commitCount: 12, branches: [{ name: 'main' }, { name: 'dev' }] },
         { success: true, commitCount: 8, branches: [{ name: 'main' }] },
@@ -163,6 +193,31 @@ describe('ProjectService.findOne', () => {
       assert.equal(result.commitCount, 20)
       assert.equal(result.branchCount, 3)
       assert.deepEqual(result.tags, ['multirepo'])
+      assert.deepEqual(result.members, [
+        {
+          id: 'member-id',
+          groupId,
+          name: 'Group Member',
+          registration: 1234,
+          githubName: 'member',
+          classroom: 'A1',
+          email: 'member@example.com',
+          role: 'student',
+          status: 'active',
+          twoFactor: false,
+          createdAt: new Date('2026-01-01'),
+          updatedAt: new Date('2026-01-01'),
+          deletedAt: undefined,
+          gitHubDetails: {
+            login: 'member',
+            avatarUrl: 'https://avatars.githubusercontent.com/u/1',
+            profileUrl: 'https://github.com/member',
+            bio: null,
+            createdAt: '2020-01-01T00:00:00.000Z',
+            publicRepos: 1,
+          },
+        },
+      ])
     }
   })
 

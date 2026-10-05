@@ -58,4 +58,37 @@ describe('InviteUserDialog', () => {
     expect(html).toContain('available-student')
     expect(html).toContain('Convidar')
   })
+
+  it('renders the candidate GitHub avatar when available', () => {
+    const html = renderToStaticMarkup(
+      <InviteCandidateRow
+        candidate={{
+          ...candidate,
+          gitHubDetails: {
+            login: 'available-student',
+            avatarUrl: 'https://avatars.githubusercontent.com/u/1234',
+            profileUrl: 'https://github.com/available-student',
+            bio: null,
+            createdAt: '2020-01-01T00:00:00.000Z',
+            publicRepos: 10,
+          },
+        }}
+        isInviting={false}
+        onInvite={vi.fn()}
+      />
+    )
+
+    expect(html).toContain('src="https://avatars.githubusercontent.com/u/1234"')
+    expect(html).toContain('alt="Available Student"')
+    expect(html).not.toContain('lucide-circle-user-round')
+  })
+
+  it('renders the highlighted user icon when the candidate has no GitHub avatar', () => {
+    const html = renderToStaticMarkup(
+      <InviteCandidateRow candidate={candidate} isInviting={false} onInvite={vi.fn()} />
+    )
+
+    expect(html).toContain('lucide-circle-user-round')
+    expect(html).toContain('text-highlight-soft-foreground')
+  })
 })

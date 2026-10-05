@@ -43,6 +43,15 @@ export function MyProjectPage() {
     if (result.ok) void mutate()
   }
 
+  async function removeMember(selectedGroup: Group, userId: string) {
+    const result = await writer('DELETE /groups/:id/users/:userId', {
+      params: { id: selectedGroup.id, userId },
+      onSuccessMessage: 'Membro removido',
+    })
+    if (result.ok) void mutate()
+    return result.ok
+  }
+
   return (
     <section className='flex w-full flex-1 flex-col px-4 py-5 md:px-6 lg:px-8'>
       <h1 className='text-lg font-medium'>Meu Projeto</h1>
@@ -80,6 +89,11 @@ export function MyProjectPage() {
                       ? () => void promote(group, member.id)
                       : undefined
                   }
+                  onRemove={
+                    user?.id === group.leaderId && member.id !== user.id
+                      ? () => removeMember(group, member.id)
+                      : undefined
+                  }
                 />
               ))}
               {group.members.length < 6 && group.leaderId === user?.id && <InviteUserDialog />}
@@ -90,7 +104,7 @@ export function MyProjectPage() {
               {group.project ? (
                 <div className='grid gap-5'>
                   <div className='max-w-xl'>
-                    <ProjectCard group={group} />
+                    <ProjectCard group={group} project={group.project} />
                   </div>
                   <div className='rounded-lg border bg-card p-5'>
                     <div className='flex flex-wrap items-center justify-between gap-3'>

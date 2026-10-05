@@ -39,7 +39,7 @@ describe('NotificationService.markAllAsRead', () => {
         update: () => new UpdateResult([{ id: 'one' }, { id: 'two' }], writes),
       },
     }
-    const service = new NotificationService(database as never)
+    const service = new NotificationService(database as never, {} as never)
     const requester = {
       userId: '48d513dc-5a9e-4f13-9c13-ee27589bb7eb',
       name: 'Student',

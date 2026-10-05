@@ -51,7 +51,19 @@ function createService(results: unknown[]) {
     insert: next,
     transaction: async (callback: (tx: unknown) => unknown) => callback(db),
   }
-  return new NotificationService({ db } as never)
+  return new NotificationService(
+    { db } as never,
+    {
+      getUserDetails: async () => ({
+        login: 'available-student',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/1234',
+        profileUrl: 'https://github.com/available-student',
+        bio: null,
+        createdAt: '2020-01-01T00:00:00.000Z',
+        publicRepos: 10,
+      }),
+    } as never,
+  )
 }
 
 const leaderId = '2ed79018-20fe-4fc2-982c-aecb12d32fb0'
@@ -125,6 +137,14 @@ describe('NotificationService.findGroupInviteCandidates', () => {
         createdAt,
         updatedAt: createdAt,
         deletedAt: undefined,
+        gitHubDetails: {
+          login: 'available-student',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/1234',
+          profileUrl: 'https://github.com/available-student',
+          bio: null,
+          createdAt: '2020-01-01T00:00:00.000Z',
+          publicRepos: 10,
+        },
       })
     }
   })
