@@ -82,7 +82,11 @@ export function UserFormDialog({
   async function submit(values: UserFormValues) {
     form.clearErrors('root')
     const error = await onSubmit(values)
-    if (error) form.setError('root', { message: error })
+    if (error) {
+      form.setError('root', { message: error })
+      return
+    }
+    if (!user) form.reset()
   }
 
   return (

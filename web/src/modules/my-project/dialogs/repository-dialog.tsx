@@ -66,6 +66,7 @@ export function RepositoryDialog({
       return
     }
     toast.success(repository ? 'Repositório atualizado' : 'Repositório cadastrado')
+    if (!repository) form.reset()
     setOpen(false)
     onSaved()
   }
