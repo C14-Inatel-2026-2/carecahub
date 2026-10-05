@@ -36,7 +36,14 @@ function HasProjectCard({ group, project }: { group: Group; project: Project }) 
 
   return (
     <Card className='ring-0 h-full flex flex-col p-5 gap-2 bg-card rounded-sm drop-shadow-lg/40 drop-shadow-foreground/10 border border-border'>
-      <img src='/project-fallback.png' className='rounded-lg' />
+      <div
+        aria-hidden='true'
+        className='flex aspect-[16/9] w-full items-center justify-center rounded-lg bg-highlight-soft'
+      >
+        <span className='flex size-20 items-center justify-center rounded-full bg-highlight-soft-foreground/10 text-highlight-soft-foreground'>
+          <Box className='size-10' strokeWidth={1.5} />
+        </span>
+      </div>
 
       <div className='flex flex-row justify-start items-center w-fit gap-2 mt-2'>
         {group.tags && group.tags.map((tag) => <GroupBadge key={tag} tag={tag} />)}
@@ -130,7 +137,14 @@ function GitHubIcon() {
 function GroupCard({ group }: { group: Group }) {
   return (
     <Card className='ring-0 h-full flex flex-col p-5 gap-2 bg-card rounded-sm border pending-project-card'>
-      <img src='/group-fallback.png' className='rounded-lg' />
+      <div
+        aria-hidden='true'
+        className='flex aspect-[16/9] w-full items-center justify-center rounded-lg bg-highlight-soft'
+      >
+        <span className='flex size-20 items-center justify-center rounded-full bg-highlight-soft-foreground/10 text-highlight-soft-foreground'>
+          <Users className='size-10' strokeWidth={1.5} />
+        </span>
+      </div>
 
       <div className='flex flex-row justify-start items-center w-fit gap-2 mt-2'>
         {group.tags && group.tags.map((tag) => <GroupBadge key={tag} tag={tag} />)}
