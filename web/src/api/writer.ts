@@ -1,5 +1,6 @@
 import { toast } from 'sonner'
 import { buildQueryString, mutateFetcher } from '@/api'
+import { getApiErrorMessage } from './errors'
 import type { WriterMap } from './writer.types'
 
 // ── Type helpers ──────────────────────────────────────────────────────────────
@@ -136,10 +137,20 @@ export async function writer<K extends keyof WriterMap>(
     return { ok: true, data: result }
   } catch (err: unknown) {
     const raw = err as Record<string, unknown> | null
+    const errKey =
+      typeof raw?.errKey === 'string'
+        ? raw.errKey
+        : err instanceof TypeError
+          ? 'NETWORK_ERROR'
+          : 'UNKNOWN_ERROR'
+    const message = getApiErrorMessage({
+      errKey,
+      statusCode: raw?.statusCode as number | undefined,
+    })
     const apiError: WriterError = {
-      errKey: (raw?.errKey as string) ?? 'UNKNOWN_ERROR',
-      message: (raw?.message as string) ?? 'Erro desconhecido',
-      friendlyMessage: raw?.friendlyMessage as string | undefined,
+      errKey,
+      message,
+      friendlyMessage: message,
     }
 
     const errorMessage =

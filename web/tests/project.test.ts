@@ -113,7 +113,7 @@ describe('projectFormSchema', () => {
   it('offers a broad fixed technology list without duplicate values', () => {
     expect(technologyOptions.length).toBeGreaterThanOrEqual(30)
     expect(new Set(technologyOptions.map((option) => option.value)).size).toBe(
-      technologyOptions.length,
+      technologyOptions.length
     )
   })
 })

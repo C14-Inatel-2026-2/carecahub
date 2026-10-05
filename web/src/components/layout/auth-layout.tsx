@@ -42,20 +42,26 @@ export function AuthLayout() {
     void loadUser()
   }, [loadUser])
 
+  const isAllowedPage = user ? isAllowedPath(pathname, pagesByRole[user.role]) : false
+
+  useEffect(() => {
+    if (!isLoading && user && !isAllowedPage) {
+      toast.error('Você não tem permissão para acessar esta página', {
+        id: 'page-access-denied',
+      })
+    }
+  }, [isLoading, user, isAllowedPage])
+
   if (isLoading) {
     return <main className='grid min-h-svh place-items-center'>Carregando…</main>
   }
 
   if (!user) {
-    toast.error('Você precisa estar logado para acessar esta página')
-    return <Navigate to={appRoutes.login} />
+    return <Navigate to={appRoutes.login} replace />
   }
 
-  const allowedPages = pagesByRole[user.role]
-  const isAllowedPage = isAllowedPath(pathname, allowedPages)
   if (!isAllowedPage) {
-    toast.error('Você não tem permissão para acessar esta página')
-    return <Navigate to={appRoutes.home} />
+    return <Navigate to={appRoutes.home} replace />
   }
 
   return (

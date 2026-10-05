@@ -3,6 +3,7 @@ import { useList } from '@/api'
 import { writer } from '@/api/writer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { isMockAPIEnabled } from '@/mocks/config'
 import { useUser } from '@/stores/use-user'
 import type { Group } from '@/types/group'
@@ -36,9 +37,9 @@ export function GroupsPage() {
 
       <div className='mt-6 grid gap-4 lg:grid-cols-2'>
         {groups.map((group) => (
-          <article key={group.id} className='rounded-lg border bg-card p-5'>
+          <Card key={group.id} className='gap-0 rounded-lg border bg-card p-5 ring-0'>
             <div className='flex items-center justify-between gap-3'>
-              <h2 className='font-medium'>{group.friendlyId}</h2>
+              <h2 className='font-medium text-highlight-soft-foreground'>{group.friendlyId}</h2>
               <Badge variant='outline'>{group.members.length}/6 membros</Badge>
             </div>
             <div className='mt-4 grid gap-2'>
@@ -52,7 +53,7 @@ export function GroupsPage() {
                     <p className='truncate text-xs text-muted-foreground'>{member.email}</p>
                   </div>
                   {group.leaderId === member.id ? (
-                    <Badge>
+                    <Badge className='bg-highlight-soft text-highlight-soft-foreground'>
                       <Crown /> Líder
                     </Badge>
                   ) : user && canPromoteGroupLeader(user, group) ? (
@@ -68,7 +69,7 @@ export function GroupsPage() {
                 </div>
               ))}
             </div>
-          </article>
+          </Card>
         ))}
       </div>
 

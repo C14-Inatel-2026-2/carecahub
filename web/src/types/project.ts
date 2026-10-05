@@ -93,6 +93,19 @@ const repositoryTypeValues = repositoryTypeOptions.map((option) => option.value)
   ...(typeof repositoryTypeOptions)[number]['value'][],
 ]
 
+export function getProjectRequiredFields(project: {
+  usesOtherTechnology?: boolean
+  dependencyManager?: string
+  versionControl?: string
+}) {
+  return {
+    technologies: !project.usesOtherTechnology,
+    otherTechnology: !!project.usesOtherTechnology,
+    otherDependencyManager: project.dependencyManager === 'other',
+    otherVersionControl: project.versionControl === 'other',
+  }
+}
+
 export const projectFormSchema = z
   .object({
     name: z.string().trim().min(1, 'Informe o nome do projeto.'),
@@ -113,28 +126,29 @@ export const projectFormSchema = z
     }),
   })
   .superRefine((project, context) => {
-    if (project.technologies.length === 0 && !project.usesOtherTechnology) {
+    const required = getProjectRequiredFields(project)
+    if (project.technologies.length === 0 && required.technologies) {
       context.addIssue({
         code: 'custom',
         path: ['technologies'],
         message: 'Selecione pelo menos uma tecnologia.',
       })
     }
-    if (project.usesOtherTechnology && project.otherTechnology.length === 0) {
+    if (required.otherTechnology && project.otherTechnology.length === 0) {
       context.addIssue({
         code: 'custom',
         path: ['otherTechnology'],
         message: 'Informe a outra tecnologia.',
       })
     }
-    if (project.dependencyManager === 'other' && project.otherDependencyManager.length === 0) {
+    if (required.otherDependencyManager && project.otherDependencyManager.length === 0) {
       context.addIssue({
         code: 'custom',
         path: ['otherDependencyManager'],
         message: 'Informe o outro gerenciador de dependências.',
       })
     }
-    if (project.versionControl === 'other' && project.otherVersionControl.length === 0) {
+    if (required.otherVersionControl && project.otherVersionControl.length === 0) {
       context.addIssue({
         code: 'custom',
         path: ['otherVersionControl'],

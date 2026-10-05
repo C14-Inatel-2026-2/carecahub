@@ -72,8 +72,11 @@ type AcademicData = {
   classroom?: string
 }
 
+export const isRegistrationRequired = (role: UserRole | undefined) =>
+  role === 'mentor' || role === 'student'
+
 const validateAcademicFields = (data: AcademicData, context: z.RefinementCtx) => {
-  if (['mentor', 'student'].includes(data.role) && data.registration === undefined) {
+  if (isRegistrationRequired(data.role) && data.registration === undefined) {
     context.addIssue({
       code: 'custom',
       path: ['registration'],
@@ -132,3 +135,11 @@ export type User = {
 }
 
 export type GetUserResponse = User
+
+export type UserAnalyticsResponse = {
+  totalUsers: number
+  admin: number
+  teacher: number
+  mentor: number
+  student: number
+}

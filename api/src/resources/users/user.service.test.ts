@@ -16,6 +16,9 @@ class QueryResult<T> implements PromiseLike<T> {
   where() {
     return this
   }
+  groupBy() {
+    return this
+  }
   orderBy() {
     return this
   }
@@ -356,5 +359,65 @@ describe('UsersService', () => {
     const result = await service.remove('leader-id', admin)
 
     assert.deepEqual(result, { ok: false, errKey: ErrKeys.resourceInUse })
+  })
+
+  it('returns the per-role counts and the total for an admin', async () => {
+    const service = createService([
+      [
+        { role: 'admin', count: 2 },
+        { role: 'teacher', count: 5 },
+        { role: 'mentor', count: 8 },
+        { role: 'student', count: 23 },
+      ],
+    ])
+
+    const result = await service.getAnalytics(admin)
+
+    assert.deepEqual(result, {
+      ok: true,
+      totalUsers: 38,
+      admin: 2,
+      teacher: 5,
+      mentor: 8,
+      student: 23,
+    })
+  })
+
+  it('returns zero for roles with no matching users', async () => {
+    const service = createService([[{ role: 'student', count: 4 }]])
+
+    const result = await service.getAnalytics(admin)
+
+    assert.deepEqual(result, {
+      ok: true,
+      totalUsers: 4,
+      admin: 0,
+      teacher: 0,
+      mentor: 0,
+      student: 4,
+    })
+  })
+
+  it('returns all indicators zeroed for an empty base', async () => {
+    const service = createService([[]])
+
+    const result = await service.getAnalytics(admin)
+
+    assert.deepEqual(result, {
+      ok: true,
+      totalUsers: 0,
+      admin: 0,
+      teacher: 0,
+      mentor: 0,
+      student: 0,
+    })
+  })
+
+  it('forbids a non-admin from reading the analytics', async () => {
+    const service = createService([])
+
+    const result = await service.getAnalytics(teacher)
+
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 })

@@ -1,6 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import { FormProvider, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { writer } from '@/api/writer'
+import { FormSchemaProvider } from '@/components/form-fields/form-schema'
+import { InputFF } from '@/components/form-fields/input-ff'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,32 +16,32 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { FieldError } from '@/components/ui/field'
+import { type CreateGroupRequest, type Group, groupFormSchema } from '@/types/group'
 
-export function CreateGroupDialog({ onCreated }: { onCreated?: () => void }) {
+export function CreateGroupDialog({ onCreated }: { onCreated?: (group: Group) => void }) {
   const [open, setOpen] = useState(false)
-  const [friendlyId, setFriendlyId] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const form = useForm<CreateGroupRequest>({
+    resolver: zodResolver(groupFormSchema),
+    defaultValues: { friendlyId: '' },
+  })
 
-  async function submit() {
-    const value = friendlyId.trim()
-    if (!value) return
-    setIsSubmitting(true)
-    const result = await writer('POST /groups', {
-      body: { friendlyId: value },
-      onSuccessMessage: 'Grupo criado',
-    })
-    setIsSubmitting(false)
-    if (!result.ok) return
+  async function submit(values: CreateGroupRequest) {
+    form.clearErrors('root')
+    const result = await writer('POST /groups', { body: values, silent: true })
+    if (!result.ok) {
+      form.setError('root', { message: result.error.message })
+      return
+    }
+    toast.success('Grupo criado')
     setOpen(false)
-    setFriendlyId('')
-    onCreated?.()
+    form.reset()
+    onCreated?.(result.data)
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type='button' />}>
+      <DialogTrigger render={<Button variant='highlight' type='button' />}>
         <Plus /> Novo grupo
       </DialogTrigger>
       <DialogContent>
@@ -44,23 +49,27 @@ export function CreateGroupDialog({ onCreated }: { onCreated?: () => void }) {
           <DialogTitle>Criar grupo</DialogTitle>
           <DialogDescription>Você será definido como líder inicial do grupo.</DialogDescription>
         </DialogHeader>
-        <div className='grid gap-2'>
-          <Label htmlFor='group-friendly-id'>Nome do grupo</Label>
-          <Input
-            id='group-friendly-id'
-            value={friendlyId}
-            maxLength={30}
-            onChange={(event) => setFriendlyId(event.target.value)}
-          />
-        </div>
-        <DialogFooter>
-          <Button type='button' variant='outline' onClick={() => setOpen(false)}>
-            Cancelar
-          </Button>
-          <Button type='button' disabled={!friendlyId.trim() || isSubmitting} onClick={submit}>
-            Criar grupo
-          </Button>
-        </DialogFooter>
+        <FormSchemaProvider schema={groupFormSchema}>
+          <FormProvider {...form}>
+            <form noValidate onSubmit={form.handleSubmit(submit)} className='grid gap-4'>
+              <InputFF
+                name='friendlyId'
+                label='Nome do grupo'
+                id='group-friendly-id'
+                maxLength={30}
+              />
+              <FieldError errors={[form.formState.errors.root]} />
+              <DialogFooter>
+                <Button type='button' variant='outline' onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button variant='highlight' type='submit' disabled={form.formState.isSubmitting}>
+                  Criar grupo
+                </Button>
+              </DialogFooter>
+            </form>
+          </FormProvider>
+        </FormSchemaProvider>
       </DialogContent>
     </Dialog>
   )

@@ -3,6 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
 import { writer } from '@/api/writer'
+import { FormSchemaProvider } from '@/components/form-fields/form-schema'
 import { InputFF } from '@/components/form-fields/input-ff'
 import { Button } from '@/components/ui/button'
 import {
@@ -48,20 +49,22 @@ export function ChangePasswordDialog({
         <DialogHeader>
           <DialogTitle>Alterar senha</DialogTitle>
         </DialogHeader>
-        <FormProvider {...form}>
-          <form className='grid gap-4' noValidate onSubmit={form.handleSubmit(submit)}>
-            <FieldGroup>
-              <InputFF name='oldPassword' label='Senha atual' type='password' />
-              <InputFF name='newPassword' label='Nova senha' type='password' />
-              <FieldError errors={[form.formState.errors.root]} />
-            </FieldGroup>
-            <DialogFooter>
-              <Button type='submit' disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Salvando…' : 'Alterar senha'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </FormProvider>
+        <FormSchemaProvider schema={passwordChangeSchema}>
+          <FormProvider {...form}>
+            <form className='grid gap-4' noValidate onSubmit={form.handleSubmit(submit)}>
+              <FieldGroup>
+                <InputFF name='oldPassword' label='Senha atual' type='password' className='h-10' />
+                <InputFF name='newPassword' label='Nova senha' type='password' className='h-10' />
+                <FieldError errors={[form.formState.errors.root]} />
+              </FieldGroup>
+              <DialogFooter>
+                <Button variant='highlight' type='submit' disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? 'Salvando…' : 'Alterar senha'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </FormProvider>
+        </FormSchemaProvider>
       </DialogContent>
     </Dialog>
   )

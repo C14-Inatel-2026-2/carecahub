@@ -1,9 +1,11 @@
 import * as React from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldDescription, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { FormFieldLabel, useRequiredField } from './form-schema'
+import { LabeledInput } from './labeled-input'
 
 type InputFFProps = {
   name: string
@@ -17,11 +19,14 @@ export function InputFF({ label, name, ...rest }: InputFFProps) {
       name={name}
       control={form.control}
       render={({ field, fieldState }) => (
-        <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={name}>{label}</FieldLabel>
-          <Input {...field} {...rest} id={name} aria-invalid={fieldState.invalid} />
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-        </Field>
+        <LabeledInput
+          {...field}
+          {...rest}
+          name={name}
+          label={label}
+          value={field.value ?? ''}
+          error={fieldState.error?.message}
+        />
       )}
     />
   )
@@ -35,18 +40,26 @@ type TextAreaFFProps = {
 
 export function TextAreaFF({ label, name, maxLength, ...rest }: TextAreaFFProps) {
   const form = useFormContext()
+  const isRequired = useRequiredField(name, rest.required)
   return (
     <Controller
       name={name}
       control={form.control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={name}>{label}</FieldLabel>
+          <FormFieldLabel name={name} htmlFor={rest.id ?? name} required={isRequired}>
+            {label}
+          </FormFieldLabel>
           <Textarea
             {...field}
             {...rest}
-            id={name}
+            id={rest.id ?? name}
+            required={isRequired}
+            aria-describedby={
+              fieldState.invalid ? `${rest.id ?? name}-error` : rest['aria-describedby']
+            }
             aria-invalid={fieldState.invalid}
+            value={field.value ?? ''}
             rows={rest.rows || 3}
             maxLength={maxLength}
           />
@@ -55,7 +68,9 @@ export function TextAreaFF({ label, name, maxLength, ...rest }: TextAreaFFProps)
               {field.value?.length || 0}/{maxLength} caracteres
             </FieldDescription>
           )}
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          {fieldState.invalid && (
+            <FieldError id={`${rest.id ?? name}-error`} errors={[fieldState.error]} />
+          )}
         </Field>
       )}
     />
@@ -69,6 +84,7 @@ type NumberFFProps = {
 
 export function NumberFF({ label, name, ...rest }: NumberFFProps) {
   const form = useFormContext()
+  const isRequired = useRequiredField(name, rest.required)
   const [inputValue, setInputValue] = React.useState<string | null>(null)
 
   return (
@@ -77,11 +93,17 @@ export function NumberFF({ label, name, ...rest }: NumberFFProps) {
       control={form.control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={name}>{label}</FieldLabel>
+          <FormFieldLabel name={name} htmlFor={rest.id ?? name} required={isRequired}>
+            {label}
+          </FormFieldLabel>
           <Input
             {...field}
             {...rest}
-            id={name}
+            id={rest.id ?? name}
+            required={isRequired}
+            aria-describedby={
+              fieldState.invalid ? `${rest.id ?? name}-error` : rest['aria-describedby']
+            }
             type='number'
             aria-invalid={fieldState.invalid}
             inputMode='numeric'
@@ -90,7 +112,10 @@ export function NumberFF({ label, name, ...rest }: NumberFFProps) {
               const raw = event.target.value
               setInputValue(raw)
 
-              if (raw === '') return
+              if (raw === '') {
+                field.onChange(undefined)
+                return
+              }
 
               const parsed = Number(raw)
               if (!Number.isNaN(parsed)) {
@@ -107,7 +132,9 @@ export function NumberFF({ label, name, ...rest }: NumberFFProps) {
               field.onBlur()
             }}
           />
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          {fieldState.invalid && (
+            <FieldError id={`${rest.id ?? name}-error`} errors={[fieldState.error]} />
+          )}
         </Field>
       )}
     />

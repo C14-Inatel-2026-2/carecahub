@@ -1,14 +1,14 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { Toaster } from "sonner";
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { Toaster } from 'sonner'
 
-import "./index.css";
-import { RouterProvider } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider.tsx";
-import { SWRProvider } from "./api/index.ts";
-import { router } from "./router/index.tsx";
+import './index.css'
+import { RouterProvider } from 'react-router-dom'
+import { ThemeProvider } from '@/components/theme-provider.tsx'
+import { SWRProvider } from './api/index.ts'
+import { router } from './router/index.tsx'
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
       <SWRProvider>
@@ -16,5 +16,5 @@ createRoot(document.getElementById("root")!).render(
         <Toaster richColors />
       </SWRProvider>
     </ThemeProvider>
-  </StrictMode>,
-);
+  </StrictMode>
+)

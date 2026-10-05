@@ -1,6 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { Controller, FormProvider, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { writer } from '@/api/writer'
+import { FormFieldLabel, FormSchemaProvider } from '@/components/form-fields/form-schema'
+import { InputFF } from '@/components/form-fields/input-ff'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,8 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field, FieldError } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -21,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { Group } from '@/types/group'
-import type { Repository } from '@/types/repository'
+import type { Repository, RepositoryFormValues } from '@/types/repository'
 import { repositoryFormSchema } from '@/types/repository'
 
 export function RepositoryDialog({
@@ -35,44 +39,42 @@ export function RepositoryDialog({
 }) {
   const project = group.project
   const [open, setOpen] = useState(false)
-  const [url, setUrl] = useState(repository?.url ?? '')
-  const [ownerId, setOwnerId] = useState(repository?.ownerId ?? '')
-  const [error, setError] = useState<string>()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const form = useForm<RepositoryFormValues>({
+    resolver: zodResolver(repositoryFormSchema),
+    defaultValues: { url: repository?.url ?? '', ownerId: repository?.ownerId ?? '' },
+  })
 
   if (!project) return null
 
-  async function submit() {
+  async function submit(values: RepositoryFormValues) {
+    form.clearErrors('root')
     const projectId = group.project?.id
     if (!projectId) return
-    const parsed = repositoryFormSchema.safeParse({ url: url.trim(), ownerId })
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message)
-      return
-    }
-    setIsSubmitting(true)
-    const body = { ...parsed.data, projectId }
+    const body = { ...values, url: values.url.trim(), projectId }
     const result = repository
       ? await writer('PATCH /repositories/:id', {
+          silent: true,
           params: { id: repository.id },
           body,
-          onSuccessMessage: 'Repositório atualizado',
         })
       : await writer('POST /repositories', {
+          silent: true,
           body,
-          onSuccessMessage: 'Repositório cadastrado',
         })
-    setIsSubmitting(false)
-    if (!result.ok) return
+    if (!result.ok) {
+      form.setError('root', { message: result.error.message })
+      return
+    }
+    toast.success(repository ? 'Repositório atualizado' : 'Repositório cadastrado')
+    if (!repository) form.reset()
     setOpen(false)
-    setError(undefined)
     onSaved()
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<Button type='button' size='sm' variant={repository ? 'outline' : 'default'} />}
+        render={<Button type='button' size='sm' variant={repository ? 'outline' : 'highlight'} />}
       >
         {repository ? <Pencil /> : <Plus />}
         {repository ? 'Editar' : 'Cadastrar repositório'}
@@ -82,43 +84,64 @@ export function RepositoryDialog({
           <DialogTitle>{repository ? 'Editar repositório' : 'Cadastrar repositório'}</DialogTitle>
           <DialogDescription>Informe o link do GitHub e o membro responsável.</DialogDescription>
         </DialogHeader>
-        <div className='grid gap-4'>
-          <div className='grid gap-2'>
-            <Label htmlFor='repository-url'>URL do GitHub</Label>
-            <Input
-              id='repository-url'
-              value={url}
-              placeholder='https://github.com/organizacao/repositorio'
-              onChange={(event) => setUrl(event.target.value)}
-            />
-          </div>
-          <div className='grid gap-2'>
-            <Label htmlFor='repository-owner'>Responsável</Label>
-            <Select value={ownerId || null} onValueChange={(value) => setOwnerId(value ?? '')}>
-              <SelectTrigger id='repository-owner' className='w-full'>
-                <SelectValue placeholder='Selecione um membro'>
-                  {(value) => group.members.find((member) => member.id === value)?.name}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {group.members.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {error && <p className='text-sm text-destructive'>{error}</p>}
-        </div>
-        <DialogFooter>
-          <Button type='button' variant='outline' onClick={() => setOpen(false)}>
-            Cancelar
-          </Button>
-          <Button type='button' disabled={isSubmitting} onClick={submit}>
-            Salvar
-          </Button>
-        </DialogFooter>
+        <FormSchemaProvider schema={repositoryFormSchema}>
+          <FormProvider {...form}>
+            <form noValidate onSubmit={form.handleSubmit(submit)} className='grid gap-4'>
+              <InputFF
+                name='url'
+                label='URL do GitHub'
+                id='repository-url'
+                placeholder='https://github.com/organizacao/repositorio'
+              />
+              <Controller
+                control={form.control}
+                name='ownerId'
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FormFieldLabel name='ownerId' htmlFor='repository-owner'>
+                      Responsável
+                    </FormFieldLabel>
+                    <Select
+                      value={field.value || null}
+                      onValueChange={(value) => field.onChange(value ?? '')}
+                    >
+                      <SelectTrigger
+                        id='repository-owner'
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        className='w-full'
+                        aria-required='true'
+                        aria-invalid={fieldState.invalid}
+                        aria-describedby={fieldState.invalid ? 'repository-owner-error' : undefined}
+                      >
+                        <SelectValue placeholder='Selecione um membro'>
+                          {(value) => group.members.find((member) => member.id === value)?.name}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {group.members.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            {member.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError id='repository-owner-error' errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
+              <FieldError errors={[form.formState.errors.root]} />
+              <DialogFooter>
+                <Button type='button' variant='outline' onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button variant='highlight' type='submit' disabled={form.formState.isSubmitting}>
+                  Salvar
+                </Button>
+              </DialogFooter>
+            </form>
+          </FormProvider>
+        </FormSchemaProvider>
       </DialogContent>
     </Dialog>
   )

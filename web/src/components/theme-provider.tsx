@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
+import { type Theme, ThemePreference } from '@/lib/theme-preference'
 
-type Theme = 'dark' | 'light' | 'system'
 type ResolvedTheme = 'dark' | 'light'
 
 type ThemeProviderProps = {
@@ -17,17 +17,8 @@ type ThemeProviderState = {
 }
 
 const COLOR_SCHEME_QUERY = '(prefers-color-scheme: dark)'
-const THEME_VALUES: Theme[] = ['dark', 'light', 'system']
 
 const ThemeProviderContext = React.createContext<ThemeProviderState | undefined>(undefined)
-
-function isTheme(value: string | null): value is Theme {
-  if (value === null) {
-    return false
-  }
-
-  return THEME_VALUES.includes(value as Theme)
-}
 
 function getSystemTheme(): ResolvedTheme {
   if (window.matchMedia(COLOR_SCHEME_QUERY).matches) {
@@ -81,17 +72,16 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setThemeState] = React.useState<Theme>(() => {
-    const storedTheme = localStorage.getItem(storageKey)
-    if (isTheme(storedTheme)) {
-      return storedTheme
+    try {
+      return ThemePreference.parse(localStorage.getItem(storageKey), defaultTheme)
+    } catch {
+      return defaultTheme
     }
-
-    return defaultTheme
   })
 
   const setTheme = React.useCallback(
     (nextTheme: Theme) => {
-      localStorage.setItem(storageKey, nextTheme)
+      ThemePreference.save(localStorage, storageKey, nextTheme)
       setThemeState(nextTheme)
     },
     [storageKey]
@@ -160,7 +150,7 @@ export function ThemeProvider({
                 ? 'light'
                 : 'dark'
 
-        localStorage.setItem(storageKey, nextTheme)
+        ThemePreference.save(localStorage, storageKey, nextTheme)
         return nextTheme
       })
     }
@@ -182,12 +172,7 @@ export function ThemeProvider({
         return
       }
 
-      if (isTheme(event.newValue)) {
-        setThemeState(event.newValue)
-        return
-      }
-
-      setThemeState(defaultTheme)
+      setThemeState(ThemePreference.parse(event.newValue, defaultTheme))
     }
 
     window.addEventListener('storage', handleStorageChange)

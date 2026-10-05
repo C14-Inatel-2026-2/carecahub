@@ -46,6 +46,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { pagesByRole } from './auth-layout'
+import { ThemeSelector } from './theme-selector'
 
 export function NotificationNavLabel({ unreadCount }: { unreadCount: number }) {
   return (
@@ -199,16 +200,6 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
               <NotificationNavLabel unreadCount={unreadCount} />
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip='Meu Perfil'
-              className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
-              render={<Link to={appRoutes.profile} />}
-            >
-              <UserRound />
-              <span>Meu Perfil</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarSeparator className='w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-12!' />
@@ -219,6 +210,7 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
               render={
                 <Button
                   size='xl'
+                  aria-label='Abrir menu da conta'
                   variant='ghost'
                   className='font-normal group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:p-0!'
                 />
@@ -232,19 +224,46 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
                 <span className='text-sm font-semibold'>{user.name}</span>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align='end' className='min-w-56'>
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>
-                  <span className='block text-foreground'>{user.name}</span>
-                  <span className='block font-normal'>{user.email}</span>
+            <DropdownMenuContent
+              align='start'
+              side='top'
+              sideOffset={8}
+              className='w-64 min-w-56 max-w-[calc(100vw-2rem)] p-1.5'
+            >
+              <DropdownMenuGroup className='mb-1 rounded-md bg-muted/50'>
+                <DropdownMenuLabel className='px-2.5 py-3'>
+                  <span className='block truncate text-sm font-semibold text-foreground'>
+                    {user.name}
+                  </span>
+                  <span
+                    className='mt-1 block truncate text-xs font-normal text-muted-foreground'
+                    title={user.email}
+                  >
+                    {user.email}
+                  </span>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className='font-normal' onClick={() => setPasswordOpen(true)}>
-                <KeyRound />
+              <DropdownMenuItem
+                className='min-h-9 gap-2.5 px-2.5 font-normal'
+                render={<Link to={appRoutes.profile} />}
+              >
+                <UserRound className='text-muted-foreground' />
+                Meu perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='min-h-9 gap-2.5 px-2.5 font-normal'
+                onClick={() => setPasswordOpen(true)}
+              >
+                <KeyRound className='text-muted-foreground' />
                 Alterar senha
               </DropdownMenuItem>
-              <DropdownMenuItem className='font-normal' onClick={() => void logout()}>
+              <ThemeSelector />
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant='destructive'
+                className='min-h-9 gap-2.5 px-2.5 font-normal'
+                onClick={() => void logout()}
+              >
                 <LogOut />
                 Sair
               </DropdownMenuItem>
