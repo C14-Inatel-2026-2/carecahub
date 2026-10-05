@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { Field, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { FormFieldLabel, useRequiredField } from './form-schema'
+import { PasswordInput } from './password-input'
 
 export function LabeledInput({
   label,
@@ -17,6 +18,7 @@ export function LabeledInput({
   error?: string
   showRequiredIndicator?: boolean
 } & React.ComponentProps<typeof Input>) {
+  const InputComponent = props.type === 'password' ? PasswordInput : Input
   const generatedId = useId()
   const isRequired = useRequiredField(name, required)
   const inputId = id ?? generatedId
@@ -31,7 +33,7 @@ export function LabeledInput({
       >
         {label}
       </FormFieldLabel>
-      <Input
+      <InputComponent
         {...props}
         name={name}
         id={inputId}
