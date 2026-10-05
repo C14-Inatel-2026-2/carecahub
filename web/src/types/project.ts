@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Repository } from './repository'
+import type { User } from './user'
 
 export const technologyOptions = [
   { value: 'html', label: 'HTML' },
@@ -189,6 +190,7 @@ export type Project = {
   repositories: Repository[]
   commitCount: number
   branchCount: number
+  members?: User[]
 }
 
 export type GetProjectResponse = Project

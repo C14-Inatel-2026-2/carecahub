@@ -16,3 +16,6 @@ export type AppRoute = (typeof appRoutes)[keyof typeof appRoutes]
 
 export const profileRoute = (githubUsername: string) =>
   `${appRoutes.profile}/${encodeURIComponent(githubUsername)}`
+
+export const projectDetailsRoute = (projectId: string) =>
+  `${appRoutes.projects}/${encodeURIComponent(projectId)}`
