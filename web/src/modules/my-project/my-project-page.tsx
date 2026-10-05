@@ -18,6 +18,7 @@ import { RepositoryDialog } from './dialogs/repository-dialog'
 export function MyProjectPage() {
   const navigate = useNavigate()
   const user = useUser((state) => state.user)
+  const setUser = useUser((state) => state.setUser)
   const { data: group, isLoading, mutate } = useGet('/groups/:id', user?.groupId)
 
   if (isMockAPIEnabled) return <MockMyProjectPage />
@@ -50,7 +51,11 @@ export function MyProjectPage() {
         {!group ? (
           <div className='flex flex-col items-center gap-4 py-16'>
             <p>Você ainda não participa de um grupo.</p>
-            <CreateGroupDialog onCreated={() => void mutate()} />
+            <CreateGroupDialog
+              onCreated={(createdGroup) => {
+                if (user) setUser({ ...user, groupId: createdGroup.id })
+              }}
+            />
           </div>
         ) : (
           <>

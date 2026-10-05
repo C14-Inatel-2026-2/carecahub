@@ -2,6 +2,7 @@ import { CircleUserRound, EllipsisVertical, Eye, UserStar } from 'lucide-react'
 import { GitHubIcon } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,7 @@ export function UserCard({
   onPromote?: () => void
 }) {
   return (
-    <div className='flex flex-col gap-2 rounded-sm border border-border bg-card p-5 drop-shadow-lg/40 drop-shadow-foreground/10'>
+    <Card className='ring-0 flex flex-col gap-2 rounded-sm border border-border bg-card p-5 drop-shadow-lg/40 drop-shadow-foreground/10'>
       <div className='flex flex-row items-start justify-between gap-4'>
         <div className='flex flex-row items-center gap-4'>
           <CircleUserRound className='size-8 text-highlight-soft-foreground' />
@@ -70,7 +71,7 @@ export function UserCard({
           </Badge>
         )}
       </div>
-    </div>
+    </Card>
   )
 }
 
