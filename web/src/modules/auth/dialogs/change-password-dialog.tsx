@@ -53,8 +53,8 @@ export function ChangePasswordDialog({
           <FormProvider {...form}>
             <form className='grid gap-4' noValidate onSubmit={form.handleSubmit(submit)}>
               <FieldGroup>
-                <InputFF name='oldPassword' label='Senha atual' type='password' />
-                <InputFF name='newPassword' label='Nova senha' type='password' />
+                <InputFF name='oldPassword' label='Senha atual' type='password' className='h-10' />
+                <InputFF name='newPassword' label='Nova senha' type='password' className='h-10' />
                 <FieldError errors={[form.formState.errors.root]} />
               </FieldGroup>
               <DialogFooter>
