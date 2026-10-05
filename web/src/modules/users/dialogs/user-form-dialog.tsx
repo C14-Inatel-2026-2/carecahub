@@ -155,7 +155,7 @@ export function UserFormDialog({
               <FieldError errors={[form.formState.errors.root]} />
             </FieldGroup>
             <DialogFooter>
-              <Button type='submit' disabled={form.formState.isSubmitting}>
+              <Button variant='highlight' type='submit' disabled={form.formState.isSubmitting}>
                 {!form.formState.isSubmitting
                   ? user
                     ? submitLabel

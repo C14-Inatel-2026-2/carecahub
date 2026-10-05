@@ -38,7 +38,7 @@ export function GroupsPage() {
         {groups.map((group) => (
           <article key={group.id} className='rounded-lg border bg-card p-5'>
             <div className='flex items-center justify-between gap-3'>
-              <h2 className='font-medium'>{group.friendlyId}</h2>
+              <h2 className='font-medium text-highlight-soft-foreground'>{group.friendlyId}</h2>
               <Badge variant='outline'>{group.members.length}/6 membros</Badge>
             </div>
             <div className='mt-4 grid gap-2'>
@@ -52,7 +52,7 @@ export function GroupsPage() {
                     <p className='truncate text-xs text-muted-foreground'>{member.email}</p>
                   </div>
                   {group.leaderId === member.id ? (
-                    <Badge>
+                    <Badge className='bg-highlight-soft text-highlight-soft-foreground'>
                       <Crown /> Líder
                     </Badge>
                   ) : user && canPromoteGroupLeader(user, group) ? (

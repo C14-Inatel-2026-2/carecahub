@@ -18,7 +18,7 @@ export function CreateUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type='button' />}>
+      <DialogTrigger render={<Button variant='highlight' type='button' />}>
         <Plus />
         Novo usuário
       </DialogTrigger>
