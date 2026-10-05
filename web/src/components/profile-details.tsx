@@ -53,7 +53,7 @@ export function ProfileDetails({ user }: { user: User }) {
             {joinedAt && (
               <Badge
                 variant='default'
-                className='bg-foreground/10 px-3 py-4! rounded-r-none -mr-(--card-spacing) text-sm text-white'
+                className='bg-foreground/10 px-3 py-4! rounded-r-none -mr-(--card-spacing) text-sm text-foreground'
               >
                 No GitHub desde {joinedAt}
               </Badge>

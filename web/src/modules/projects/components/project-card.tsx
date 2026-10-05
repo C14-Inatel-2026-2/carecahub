@@ -34,7 +34,7 @@ function HasProjectCard({ group, project }: { group: Group; project: Project }) 
   const hasRepositories = project.repositories.length > 0
 
   return (
-    <div className='h-full flex flex-col p-5 gap-2 bg-card rounded-sm drop-shadow-lg/40 drop-shadow-gray-500 border border-gray-500'>
+    <div className='h-full flex flex-col p-5 gap-2 bg-card rounded-sm drop-shadow-lg/40 drop-shadow-foreground/10 border border-border'>
       <img src='/project-fallback.png' className='rounded-lg' />
 
       <div className='flex flex-row justify-start items-center w-fit gap-2 mt-2'>
@@ -44,7 +44,7 @@ function HasProjectCard({ group, project }: { group: Group; project: Project }) 
       </div>
       <div className='flex flex-row items-center justify-between gap-4 mt-2'>
         <div className='flex flex-row items-center gap-4'>
-          <Box className='size-8' />
+          <Box className='size-8 text-highlight-soft-foreground' />
           <span>{project.projectName}</span>
         </div>
         <div className='flex flex-row max-w-40 gap-2 justify-start items-center text-muted-foreground'>
@@ -128,7 +128,7 @@ function GitHubIcon() {
 
 function GroupCard({ group }: { group: Group }) {
   return (
-    <div className='h-full flex flex-col p-5 gap-2 bg-card rounded-sm drop-shadow-lg/40 drop-shadow-amber-200 border border-amber-200'>
+    <div className='h-full flex flex-col p-5 gap-2 bg-card rounded-sm border pending-project-card'>
       <img src='/group-fallback.png' className='rounded-lg' />
 
       <div className='flex flex-row justify-start items-center w-fit gap-2 mt-2'>
@@ -137,7 +137,7 @@ function GroupCard({ group }: { group: Group }) {
 
       <div className='flex flex-row items-center justify-between gap-4 mt-2'>
         <div className='flex flex-row items-center gap-4'>
-          <Users className='size-8' />
+          <Users className='size-8 text-highlight-soft-foreground' />
           <span>{group.friendlyId}</span>
         </div>
         <div className='flex flex-row gap-2 justify-start items-center text-muted-foreground'>
@@ -149,7 +149,7 @@ function GroupCard({ group }: { group: Group }) {
       </div>
 
       <div className='flex flex-col gap-2.5 justify-start py-3'>
-        <span className='text-white text-sm'>Membros</span>
+        <span className='text-foreground text-sm'>Membros</span>
         {group.members.map((member) => (
           <div className='flex flex-row gap-2 text-muted-foreground justify-start items-center'>
             {member.gitHubDetails?.avatarUrl ? (
@@ -159,7 +159,9 @@ function GroupCard({ group }: { group: Group }) {
             )}
             <span className='text-xs'>{member.name}</span>
             {group.leaderId === member.id && (
-              <Badge className='bg-white text-black text-xs ml-1'>Líder</Badge>
+              <Badge className='bg-highlight-soft text-highlight-soft-foreground text-xs ml-1'>
+                Líder
+              </Badge>
             )}
           </div>
         ))}

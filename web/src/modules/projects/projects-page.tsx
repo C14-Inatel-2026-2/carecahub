@@ -175,7 +175,7 @@ export function ProjectsPage() {
       <h1 className='text-lg font-medium'>Projetos</h1>
       <p className='mt-0.5 text-xs text-muted-foreground'>Gerencie os projetos no CarecaHub.</p>
 
-      <p className='w-full border border-gray-600 mt-7' />
+      <p className='w-full border border-border mt-7' />
 
       <div className='mt-7'>
         <div className='grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start'>

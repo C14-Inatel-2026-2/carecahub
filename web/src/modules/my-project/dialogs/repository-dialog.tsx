@@ -74,7 +74,7 @@ export function RepositoryDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<Button type='button' size='sm' variant={repository ? 'outline' : 'default'} />}
+        render={<Button type='button' size='sm' variant={repository ? 'outline' : 'highlight'} />}
       >
         {repository ? <Pencil /> : <Plus />}
         {repository ? 'Editar' : 'Cadastrar repositório'}
@@ -135,7 +135,7 @@ export function RepositoryDialog({
                 <Button type='button' variant='outline' onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type='submit' disabled={form.formState.isSubmitting}>
+                <Button variant='highlight' type='submit' disabled={form.formState.isSubmitting}>
                   Salvar
                 </Button>
               </DialogFooter>

@@ -139,7 +139,11 @@ export function MyProjectPage() {
               ) : (
                 <div className='flex flex-col items-center gap-4 py-16'>
                   <p>O grupo ainda não possui projeto cadastrado.</p>
-                  <Button type='button' onClick={() => navigate(appRoutes.createMyProject)}>
+                  <Button
+                    variant='highlight'
+                    type='button'
+                    onClick={() => navigate(appRoutes.createMyProject)}
+                  >
                     <Plus /> Criar projeto
                   </Button>
                 </div>

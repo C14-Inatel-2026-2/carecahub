@@ -24,10 +24,10 @@ export function UserCard({
   onPromote?: () => void
 }) {
   return (
-    <div className='flex flex-col gap-2 rounded-sm border border-gray-500 bg-card p-5 drop-shadow-lg/40 drop-shadow-gray-500'>
+    <div className='flex flex-col gap-2 rounded-sm border border-border bg-card p-5 drop-shadow-lg/40 drop-shadow-foreground/10'>
       <div className='flex flex-row items-start justify-between gap-4'>
         <div className='flex flex-row items-center gap-4'>
-          <CircleUserRound className='size-8' />
+          <CircleUserRound className='size-8 text-highlight-soft-foreground' />
           <span className='flex flex-row gap-2'>
             {user.name}
             {isCurrentUser && (
@@ -62,7 +62,10 @@ export function UserCard({
           <span>{user.githubName}</span>
         </div>
         {isGroupLeader && (
-          <Badge className='w-fit bg-gray-400 text-black' variant='default'>
+          <Badge
+            className='w-fit bg-highlight-soft text-highlight-soft-foreground'
+            variant='default'
+          >
             Líder
           </Badge>
         )}

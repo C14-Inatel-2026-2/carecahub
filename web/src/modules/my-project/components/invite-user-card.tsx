@@ -8,7 +8,7 @@ export function InviteUserCard({ className, ...props }: ComponentProps<'button'>
       type='button'
       aria-label='Convidar integrante'
       className={cn(
-        'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-gray-500 bg-card p-4 drop-shadow-lg/40 drop-shadow-gray-500 transition-all duration-200 hover:border-r-3 hover:border-b-3 active:translate-y-0.5',
+        'flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-border bg-card p-4 drop-shadow-lg/40 drop-shadow-foreground/10 transition-all duration-200 hover:border-r-3 hover:border-b-3 active:translate-y-0.5',
         className
       )}
       {...props}

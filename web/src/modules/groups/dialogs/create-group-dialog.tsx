@@ -41,7 +41,7 @@ export function CreateGroupDialog({ onCreated }: { onCreated?: () => void }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type='button' />}>
+      <DialogTrigger render={<Button variant='highlight' type='button' />}>
         <Plus /> Novo grupo
       </DialogTrigger>
       <DialogContent>
@@ -63,7 +63,7 @@ export function CreateGroupDialog({ onCreated }: { onCreated?: () => void }) {
                 <Button type='button' variant='outline' onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type='submit' disabled={form.formState.isSubmitting}>
+                <Button variant='highlight' type='submit' disabled={form.formState.isSubmitting}>
                   Criar grupo
                 </Button>
               </DialogFooter>

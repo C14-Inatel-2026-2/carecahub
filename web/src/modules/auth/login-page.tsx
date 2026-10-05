@@ -97,7 +97,12 @@ export function LoginPage() {
             <FieldError errors={[form.formState.errors.root]} />
           </FieldGroup>
         </FormSchemaProvider>
-        <Button className='w-full' type='submit' disabled={form.formState.isSubmitting}>
+        <Button
+          variant='highlight'
+          className='w-full'
+          type='submit'
+          disabled={form.formState.isSubmitting}
+        >
           {form.formState.isSubmitting ? 'Entrando…' : 'Entrar'}
         </Button>
       </form>
