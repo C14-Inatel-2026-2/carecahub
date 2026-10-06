@@ -7,6 +7,7 @@ import { AllExceptionsFilter } from './infra/exceptions.filter'
 import { LoggingInterceptor } from './infra/logging.interceptor'
 import { ResponseValidatorInterceptor } from './infra/response-validator.interceptor'
 import { CacheModule } from './providers/cache/cache.module'
+import { BucketModule } from './providers/bucket/bucket.module'
 import { CorrelationIdInterceptor, CorrelationIdModule } from './providers/correlation-id'
 import { DatabaseModule } from './providers/database/database.module'
 import { LoggerModule } from './providers/logger/logger.module'
@@ -22,6 +23,7 @@ import { UsersModule } from './resources/users/user.module'
   imports: [
     DatabaseModule,
     CacheModule,
+    BucketModule,
     CorrelationIdModule,
     LoggerModule,
     MailModule,

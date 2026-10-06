@@ -28,6 +28,7 @@ export abstract class IGroupService {
     groupId: string,
     requester: UserMetadata,
   ): Promise<ServiceOutput<object>>
+  abstract leave(groupId: string, requester: UserMetadata): Promise<ServiceOutput<object>>
   abstract promoteLeader(
     leaderId: string,
     groupId: string,

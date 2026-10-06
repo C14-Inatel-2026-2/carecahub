@@ -17,6 +17,7 @@ const envSchema = z.object({
   DOMAIN_URL: z.string().optional(),
   WEB_URL: z.string().default("http://localhost:5173"),
   API_URL: z.string().default("http://localhost:3030"),
+  LOCAL_UPLOAD_DIR: z.string().default("uploads"),
 
   // Storage
   DATABASE_URL: z.string(),
@@ -55,6 +56,7 @@ const mockEnv: z.infer<typeof envSchema> = {
   DOMAIN_URL: "http://localhost:3030",
   WEB_URL: "http://localhost:5173",
   API_URL: "http://localhost:3030",
+  LOCAL_UPLOAD_DIR: "uploads",
 
   // Storage
   DATABASE_URL: "postgres://user:password@localhost:5432/db",

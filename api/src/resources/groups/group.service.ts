@@ -1,6 +1,6 @@
-import { groups, projects, users } from "@db";
+import { groups, projects, repositories, users } from "@db";
 import { Injectable } from "@nestjs/common";
-import { and, asc, count, eq, ilike, isNull } from "drizzle-orm";
+import { and, asc, count, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { userPublicColumns } from "@/drizzle/schema/entities";
 import { DrizzleService } from "@/providers/database/drizzle.service";
 import { GitHubService } from "@/providers/github/github.service";
@@ -90,12 +90,9 @@ export class GroupService implements IGroupService {
 
   async findAll(
     query: QueryDto,
-    requester?: UserMetadata,
+    _requester?: UserMetadata,
   ): Promise<ListGroupOutput> {
-    const where = and(
-      isNull(groups.deletedAt),
-      query.search ? ilike(groups.friendlyId, `%${query.search}%`) : undefined,
-    );
+    const where = and(isNull(groups.deletedAt), this.searchFilter(query));
     const [groupRows, totalCount] = await Promise.all([
       this.database.db
         .select({
@@ -219,6 +216,63 @@ export class GroupService implements IGroupService {
     return { ok: true, ...GetUserDto.toDto(updated) };
   }
 
+  async leave(
+    groupId: string,
+    requester: UserMetadata,
+  ): Promise<ServiceOutput<object>> {
+    if (requester.role !== "student") {
+      return { ok: false, errKey: ErrKeys.forbidden };
+    }
+
+    const group = await this.findGroup(groupId);
+    if (!group) return { ok: false, errKey: ErrKeys.notFound };
+
+    return this.database.db.transaction(async (tx) => {
+      const members = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(
+          and(
+            eq(users.groupId, groupId),
+            eq(users.status, "active"),
+            isNull(users.deletedAt),
+          ),
+        )
+        .orderBy(asc(users.id));
+      if (!members.some((member) => member.id === requester.userId)) {
+        return { ok: false, errKey: ErrKeys.forbidden };
+      }
+
+      const remainingMembers = members.filter(
+        (member) => member.id !== requester.userId,
+      );
+      const now = new Date();
+
+      if (remainingMembers.length === 0) {
+        await tx
+          .update(projects)
+          .set({ deletedAt: now, updatedAt: now })
+          .where(and(eq(projects.groupId, groupId), isNull(projects.deletedAt)));
+        await tx
+          .update(groups)
+          .set({ deletedAt: now, updatedAt: now })
+          .where(eq(groups.id, groupId));
+      } else if (group.leaderId === requester.userId) {
+        await tx
+          .update(groups)
+          .set({ leaderId: remainingMembers[0].id, updatedAt: now })
+          .where(eq(groups.id, groupId));
+      }
+
+      await tx
+        .update(users)
+        .set({ groupId: null, updatedAt: now })
+        .where(and(eq(users.id, requester.userId), eq(users.groupId, groupId)));
+
+      return { ok: true };
+    });
+  }
+
   async promoteLeader(
     leaderId: string,
     groupId: string,
@@ -290,6 +344,40 @@ export class GroupService implements IGroupService {
       this.projectService.findByGroupId(group.id),
     ]);
     return GetGroupDto.toDto(group, members, project);
+  }
+
+  private searchFilter(query: QueryDto) {
+    if (!query.search) return undefined;
+
+    const term = `%${query.search}%`;
+    const memberMatches = sql`exists (
+      select 1 from ${users}
+      where ${users.groupId} = ${groups.id}
+        and ${users.status} = 'active'
+        and ${users.deletedAt} is null
+        and ${users.name} ilike ${term}
+    )`;
+
+    if (query.searchScope !== "projects") {
+      return or(ilike(groups.friendlyId, term), memberMatches);
+    }
+
+    const projectMatches = sql`exists (
+      select 1 from ${projects}
+      where ${projects.groupId} = ${groups.id}
+        and ${projects.deletedAt} is null
+        and (
+          ${projects.projectName} ilike ${term}
+          or exists (
+            select 1 from ${repositories}
+            where ${repositories.projectId} = ${projects.id}
+              and ${repositories.deletedAt} is null
+              and ${repositories.url} ilike ${term}
+          )
+        )
+    )`;
+
+    return or(memberMatches, projectMatches);
   }
 
   private async findMembers(

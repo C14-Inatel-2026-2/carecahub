@@ -1,4 +1,6 @@
 import { ValidationPipe } from "@nestjs/common";
+import { mkdir } from "node:fs/promises";
+import { resolve } from "node:path";
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
@@ -62,6 +64,12 @@ async function bootstrap() {
   }
 
   app.use(cookieParser());
+
+  if (env.ENV_SCOPE === "local") {
+    const uploadDirectory = resolve(process.cwd(), env.LOCAL_UPLOAD_DIR);
+    await mkdir(uploadDirectory, { recursive: true });
+    app.useStaticAssets(uploadDirectory, { prefix: "/uploads" });
+  }
 
   app.enableCors({
     origin: (origin, callback) => {

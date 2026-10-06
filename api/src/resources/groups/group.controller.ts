@@ -70,6 +70,12 @@ export class GroupController {
     return this.groupService.removeUserFromGroup(userId, groupId, requester);
   }
 
+  @Delete(":id/leave")
+  @Roles(["student"])
+  leave(@User() requester: UserMetadata, @UUIDParam() groupId: string) {
+    return this.groupService.leave(groupId, requester);
+  }
+
   @Delete(":id")
   @Roles(["admin", "student"])
   delete(@User() requester: UserMetadata, @UUIDParam() groupId: string) {
