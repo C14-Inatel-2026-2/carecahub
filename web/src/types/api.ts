@@ -24,6 +24,7 @@ export type PaginateParams = {
   orderBy?: string
   orderType?: 'asc' | 'desc'
   search?: string
+  searchScope?: 'groups' | 'projects'
   startDate?: Date
   endDate?: Date
 }
