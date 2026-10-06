@@ -2,6 +2,7 @@ import {
   CircleUserRound,
   EllipsisVertical,
   Eye,
+  LogOut,
   Trash2,
   UserStar,
 } from "lucide-react";
@@ -33,6 +34,8 @@ export function UserCard({
   onViewProfile,
   onPromote,
   onRemove,
+  onLeave,
+  leaveDeletesGroup = false,
 }: {
   user: User;
   isGroupLeader?: boolean;
@@ -40,9 +43,13 @@ export function UserCard({
   onViewProfile?: () => void;
   onPromote?: () => void;
   onRemove?: () => Promise<boolean>;
+  onLeave?: () => Promise<boolean>;
+  leaveDeletesGroup?: boolean;
 }) {
   const [removeOpen, setRemoveOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   async function removeMember() {
     if (!onRemove) return;
@@ -50,6 +57,14 @@ export function UserCard({
     const removed = await onRemove();
     setIsRemoving(false);
     if (removed) setRemoveOpen(false);
+  }
+
+  async function leaveGroup() {
+    if (!onLeave) return;
+    setIsLeaving(true);
+    const left = await onLeave();
+    setIsLeaving(false);
+    if (left) setLeaveOpen(false);
   }
 
   return (
@@ -94,6 +109,7 @@ export function UserCard({
                 onViewProfile={onViewProfile}
                 onPromote={onPromote}
                 onRemove={onRemove ? () => setRemoveOpen(true) : undefined}
+                onLeave={onLeave ? () => setLeaveOpen(true) : undefined}
               />
             </DropdownMenuContent>
           </DropdownMenu>
@@ -141,6 +157,30 @@ export function UserCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sair do grupo</DialogTitle>
+            <DialogDescription>
+              {leaveDeletesGroup
+                ? "Você é o único membro. Ao sair, o grupo e o projeto serão arquivados."
+                : "Tem certeza que deseja sair deste grupo?"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter showCloseButton>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isLeaving}
+              onClick={() => void leaveGroup()}
+            >
+              <LogOut />
+              {isLeaving ? "Saindo…" : "Sair do grupo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -149,10 +189,12 @@ export function UserCardMenuItems({
   onViewProfile,
   onPromote,
   onRemove,
+  onLeave,
 }: {
   onViewProfile?: () => void;
   onPromote?: () => void;
   onRemove?: () => void;
+  onLeave?: () => void;
 }) {
   return (
     <>
@@ -178,6 +220,16 @@ export function UserCardMenuItems({
         >
           <Trash2 />
           Remover membro
+        </DropdownMenuItem>
+      )}
+      {onLeave && (
+        <DropdownMenuItem
+          className="gap-3"
+          variant="destructive"
+          onClick={onLeave}
+        >
+          <LogOut />
+          Sair do grupo
         </DropdownMenuItem>
       )}
     </>

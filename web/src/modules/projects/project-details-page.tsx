@@ -8,13 +8,15 @@ import {
   Package,
   Settings,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useGet } from "@/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getFriendlyDate } from "@/lib/utils";
+import { projectCustomizeRoute } from "@/router/routes";
+import { useUser } from "@/stores/use-user";
 import {
   dependencyManagerOptions,
   type Project,
@@ -54,10 +56,16 @@ function DetailItem({
   );
 }
 
-export function ProjectDetailsContent({ project }: { project: Project }) {
-  const members = project.members ?? []
-  const memberColumns = Math.ceil(members.length / 3) || 1
-  const memberRows = Math.ceil(members.length / memberColumns)
+export function ProjectDetailsContent({
+  project,
+  canCustomize = false,
+}: {
+  project: Project;
+  canCustomize?: boolean;
+}) {
+  const members = project.members ?? [];
+  const memberColumns = Math.ceil(members.length / 3) || 1;
+  const memberRows = Math.ceil(members.length / memberColumns);
   const technologies = (project.technologies ?? []).map((technology) =>
     optionLabel(technologyOptions, technology),
   );
@@ -77,9 +85,29 @@ export function ProjectDetailsContent({ project }: { project: Project }) {
   return (
     <section className="flex w-full flex-1 flex-col gap-4 px-4 py-5 md:px-6 lg:px-8">
       <Card className="py-0">
-        <CardHeader className="flex min-h-20 flex-row items-center justify-between gap-4 px-5 py-4 md:px-6">
+        <CardHeader
+          className="flex min-h-20 flex-row items-center justify-between gap-4 px-5 py-4 md:px-6"
+          style={
+            project.mainColor
+              ? {
+                  background: `linear-gradient(to right, var(--card) 0%, var(--card) 70%, ${project.mainColor} 100%)`,
+                }
+              : undefined
+          }
+        >
           <div className="gap-5 flex flex-row items-center">
-            <Box className="size-9" />
+            {project.iconUrl ? (
+              <img
+                src={project.iconUrl}
+                alt=""
+                className="size-9 rounded-lg object-cover"
+              />
+            ) : (
+              <Box
+                className="size-9"
+                style={{ color: project.mainColor ?? undefined }}
+              />
+            )}
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Projeto
@@ -89,32 +117,54 @@ export function ProjectDetailsContent({ project }: { project: Project }) {
               </h1>
             </div>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-lg"
-            aria-label="Editar projeto"
-            title="Edição do projeto disponível em breve"
-            disabled
-          >
-            <Settings className="size-5" />
-          </Button>
+          {canCustomize && (
+            <Button
+              render={<Link to={projectCustomizeRoute(project.id)} />}
+              variant="default"
+              size="icon-lg"
+              className="bg-card text-foreground hover:bg-card/70 hover:text-foreground/80"
+              aria-label="Personalizar projeto"
+              title="Personalizar projeto"
+            >
+              <Settings className="size-5" />
+            </Button>
+          )}
         </CardHeader>
       </Card>
 
       <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.38fr)]">
         <div className="flex min-w-0 flex-col gap-4">
-          <Card className="py-0">
-            <img
-              src="/project-fallback-light.png"
-              alt={`Imagem do projeto ${project.projectName}`}
-              className="rounded-lg dark:hidden"
-            />
-            <img
-              src="/project-fallback-dark.png"
-              alt={`Imagem do projeto ${project.projectName}`}
-              className="hidden rounded-lg dark:block"
-            />
+          <Card
+            className="py-0"
+            style={
+              project.mainColor
+                ? {
+                    borderColor: `${project.mainColor}66`,
+                    boxShadow: `0 0px 16px ${project.mainColor}40`,
+                  }
+                : undefined
+            }
+          >
+            {project.thumbnailUrl ? (
+              <img
+                src={project.thumbnailUrl}
+                alt={`Imagem do projeto ${project.projectName}`}
+                className="aspect-video w-full rounded-lg object-cover"
+              />
+            ) : (
+              <>
+                <img
+                  src="/project-fallback-light.png"
+                  alt={`Imagem do projeto ${project.projectName}`}
+                  className="rounded-lg dark:hidden"
+                />
+                <img
+                  src="/project-fallback-dark.png"
+                  alt={`Imagem do projeto ${project.projectName}`}
+                  className="hidden rounded-lg dark:block"
+                />
+              </>
+            )}
           </Card>
 
           <Card>
@@ -273,6 +323,7 @@ export function ProjectDetailsContent({ project }: { project: Project }) {
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
+  const user = useUser((state) => state.user);
   const {
     data: project,
     error,
@@ -314,5 +365,10 @@ export function ProjectDetailsPage() {
     );
   }
 
-  return <ProjectDetailsContent project={project} />;
+  const canCustomize =
+    user?.role === "student" &&
+    project.members?.some((member) => member.id === user.id) === true;
+  return (
+    <ProjectDetailsContent project={project} canCustomize={canCustomize} />
+  );
 }

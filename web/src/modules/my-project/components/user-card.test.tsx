@@ -42,6 +42,16 @@ describe('UserCard actions', () => {
     expect(html).toContain('lucide-trash-2')
   })
 
+  it('offers group exit when the card belongs to the current user', () => {
+    const html = renderToStaticMarkup(
+      <DropdownMenu>
+        <UserCardMenuItems onLeave={vi.fn()} />
+      </DropdownMenu>
+    )
+
+    expect(html).toContain('Sair do grupo')
+  })
+
   it('hides promotion when the requester cannot promote and disables a missing profile', () => {
     const html = renderToStaticMarkup(
       <DropdownMenu>

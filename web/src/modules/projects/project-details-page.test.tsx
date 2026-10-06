@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import type { Project } from '@/types/project'
 import { ProjectDetailsContent } from './project-details-page'
@@ -55,6 +56,30 @@ describe('ProjectDetailsContent', () => {
 
     expect(html).toContain('aria-label="Editar projeto"')
     expect(html).toContain('disabled=""')
+  })
+
+  it('shows saved appearance and a customization link to a group member', () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <ProjectDetailsContent
+          project={{
+            ...project,
+            iconUrl: 'https://example.com/icon.png',
+            thumbnailUrl: 'https://example.com/thumbnail.png',
+            mainColor: '#123ABC',
+          }}
+          canCustomize
+        />
+      </MemoryRouter>
+    )
+
+    expect(html).toContain('src="https://example.com/icon.png"')
+    expect(html).toContain('src="https://example.com/thumbnail.png"')
+    expect(html).toContain('color:#123ABC')
+    expect(html).toContain(
+      'background:linear-gradient(to right, var(--card) 0%, var(--card) 70%, #123ABC 100%)'
+    )
+    expect(html).toContain('href="/projects/project-1/customize"')
   })
 
   it('renders group members with GitHub avatars and a user fallback', () => {
