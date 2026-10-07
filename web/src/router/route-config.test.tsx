@@ -7,9 +7,10 @@ import { projectCustomizeRoute, projectDetailsRoute } from './routes'
 
 describe('appRouterRoutes', () => {
   it('resolves a project card destination to the project details page', () => {
-    const matches = matchRoutes(appRouterRoutes, projectDetailsRoute('project-1'))
+    const matches = matchRoutes(appRouterRoutes, projectDetailsRoute('Meu Projeto'))
 
     expect(matches?.at(-1)?.route.Component).toBe(ProjectDetailsPage)
+    expect(projectDetailsRoute('Meu Projeto')).toBe('/projects/Meu%20Projeto')
   })
 
   it('resolves the project customization destination', () => {

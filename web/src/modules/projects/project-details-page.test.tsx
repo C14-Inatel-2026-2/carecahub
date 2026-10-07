@@ -85,7 +85,7 @@ describe("ProjectDetailsContent", () => {
     expect(html).toContain(
       "background:linear-gradient(to right, var(--card) 0%, var(--card) 70%, #123ABC 100%)",
     );
-    expect(html).toContain('href="/projects/project-1/customize"');
+    expect(html).toContain('href="/projects/CarecaHub/customize"');
   });
 
   it("renders group members with GitHub avatars and a user fallback", () => {

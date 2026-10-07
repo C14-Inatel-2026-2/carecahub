@@ -8,11 +8,11 @@ const api = vi.hoisted(() => ({ useGet: vi.fn() }))
 
 vi.mock('@/api', () => ({ useGet: api.useGet }))
 
-function project(id: string): Project {
+function project(projectName: string): Project {
   return {
-    id,
+    id: 'project-1',
     groupId: 'group-1',
-    projectName: `Projeto ${id}`,
+    projectName,
     description: 'Descrição do projeto.',
     technologies: [],
     usesOtherTechnology: false,
@@ -27,11 +27,11 @@ function project(id: string): Project {
   }
 }
 
-function renderPage(path = '/projects/project-2') {
+function renderPage(path = '/projects/CarecaHub') {
   return renderToStaticMarkup(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path='/projects/:projectId' element={<ProjectDetailsPage />} />
+        <Route path='/projects/:projectName' element={<ProjectDetailsPage />} />
       </Routes>
     </MemoryRouter>
   )
@@ -40,16 +40,17 @@ function renderPage(path = '/projects/project-2') {
 describe('ProjectDetailsPage', () => {
   afterEach(() => api.useGet.mockReset())
 
-  it('loads the project identified by the route parameter', () => {
-    api.useGet.mockImplementation((_endpoint, projectId) => ({
-      data: project(projectId),
+  it('loads the project identified by the project name in the route', () => {
+    api.useGet.mockImplementation((_endpoint, projectName) => ({
+      data: project(projectName),
       error: undefined,
       isLoading: false,
     }))
 
     const html = renderPage()
 
-    expect(html).toContain('Projeto project-2')
+    expect(html).toContain('CarecaHub')
+    expect(api.useGet).toHaveBeenCalledWith('/projects/by-name/:id', 'CarecaHub')
   })
 
   it('announces that project details are loading', () => {

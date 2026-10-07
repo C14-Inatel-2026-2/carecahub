@@ -233,6 +233,28 @@ describe('ProjectService.findOne', () => {
   })
 })
 
+describe('ProjectService.findOneByName', () => {
+  it('returns an authorized project by its unique name', async () => {
+    const service = createService([[projectRecord], [], []])
+
+    const result = await service.findOneByName('CarecaHub', admin)
+
+    assert.equal(result.ok, true)
+    if (result.ok) assert.equal(result.id, projectId)
+  })
+
+  it('does not expose a project by name to a student from another group', async () => {
+    const service = createService([
+      [projectRecord],
+      [{ groupId: 'another-group-id', status: 'active' }],
+    ])
+
+    const result = await service.findOneByName('CarecaHub', student('outsider-id'))
+
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
+})
+
 describe('ProjectService.updateAppearance', () => {
   it('allows an active group member to save visual settings', async () => {
     const service = createService([
