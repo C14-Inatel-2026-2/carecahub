@@ -119,7 +119,7 @@ export function ProjectDetailsContent({
           </div>
           {canCustomize && (
             <Button
-              render={<Link to={projectCustomizeRoute(project.id)} />}
+              render={<Link to={projectCustomizeRoute(project.projectName)} />}
               variant="default"
               size="icon-lg"
               className="bg-card text-foreground hover:bg-card/70 hover:text-foreground/80"
@@ -322,13 +322,13 @@ export function ProjectDetailsContent({
 }
 
 export function ProjectDetailsPage() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const { projectName } = useParams<{ projectName: string }>();
   const user = useUser((state) => state.user);
   const {
     data: project,
     error,
     isLoading,
-  } = useGet("/projects/:id", projectId);
+  } = useGet("/projects/by-name/:id", projectName);
 
   if (isLoading) {
     return (
@@ -349,7 +349,7 @@ export function ProjectDetailsPage() {
     );
   }
 
-  if (error || !projectId || !project) {
+  if (error || !projectName || !project) {
     return (
       <section
         role="alert"

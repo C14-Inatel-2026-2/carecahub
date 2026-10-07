@@ -36,8 +36,8 @@ export const appRouterRoutes = [
         path: appRoutes.projects,
         children: [
           { index: true, Component: ProjectsPage },
-          { path: ':projectId', Component: ProjectDetailsPage },
-          { path: ':projectId/customize', Component: ProjectCustomizePage },
+          { path: ':projectName', Component: ProjectDetailsPage },
+          { path: ':projectName/customize', Component: ProjectCustomizePage },
         ],
       },
       {

@@ -182,6 +182,18 @@ export class ProjectService implements IProjectService {
     return { ok: true, ...(await this.withRepositoryStats(project, true)) };
   }
 
+  async findOneByName(
+    projectName: string,
+    requester?: UserMetadata,
+  ): Promise<GetProjectOutput> {
+    const project = await this.getRecordByName(projectName);
+    if (!project) return { ok: false, errKey: ErrKeys.notFound };
+    if (requester && !(await this.canReadGroup(project.groupId, requester))) {
+      return { ok: false, errKey: ErrKeys.forbidden };
+    }
+    return { ok: true, ...(await this.withRepositoryStats(project, true)) };
+  }
+
   async updateAppearance(
     id: string,
     input: UpdateProjectAppearanceDto,
@@ -339,6 +351,21 @@ export class ProjectService implements IProjectService {
       .select(this.selection)
       .from(projects)
       .where(and(eq(projects.id, id), isNull(projects.deletedAt)));
+    return project;
+  }
+
+  private async getRecordByName(
+    projectName: string,
+  ): Promise<GetProjectDtoRecord | undefined> {
+    const [project] = await this.database.db
+      .select(this.selection)
+      .from(projects)
+      .where(
+        and(
+          eq(projects.projectName, projectName),
+          isNull(projects.deletedAt),
+        ),
+      );
     return project;
   }
 

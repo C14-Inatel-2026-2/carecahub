@@ -156,7 +156,7 @@ export function ProjectCard({
       )}
       <Button
         className="p-5 mt-auto"
-        render={<Link to={projectDetailsRoute(project.id)} />}
+        render={<Link to={projectDetailsRoute(project.projectName)} />}
       >
         Ver detalhes <ArrowRight />
       </Button>

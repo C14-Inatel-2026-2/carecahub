@@ -25,6 +25,7 @@ type ResponseTypeMap = {
   '/groups/:id': GetGroupResponse
   '/projects': GetProjectResponse
   '/projects/:id': GetProjectResponse
+  '/projects/by-name/:id': GetProjectResponse
   '/repositories': GetRepositoryResponse
   '/repositories/:id': GetRepositoryResponse
   '/notifications': Notification

@@ -111,7 +111,7 @@ export function ProjectCustomizeContent({
   return (
     <section className='mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5 px-4 py-6 md:px-6'>
       <Button
-        render={<Link to={projectDetailsRoute(project.id)} />}
+        render={<Link to={projectDetailsRoute(project.projectName)} />}
         variant='ghost'
         className='w-fit'
       >
@@ -211,7 +211,7 @@ export function ProjectCustomizeContent({
           </p>
         )}
         <div className='flex justify-end gap-2'>
-          <Button render={<Link to={projectDetailsRoute(project.id)} />} variant='outline'>
+          <Button render={<Link to={projectDetailsRoute(project.projectName)} />} variant='outline'>
             Cancelar
           </Button>
           <Button type='submit' disabled={saving || (!colorChanged && !iconFile && !thumbnailFile)}>
@@ -224,10 +224,10 @@ export function ProjectCustomizeContent({
 }
 
 export function ProjectCustomizePage() {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectName } = useParams<{ projectName: string }>()
   const user = useUser((state) => state.user)
   const navigate = useNavigate()
-  const { data: project, isLoading, error, mutate } = useGet('/projects/:id', projectId)
+  const { data: project, isLoading, error, mutate } = useGet('/projects/by-name/:id', projectName)
 
   if (isLoading)
     return (
@@ -255,7 +255,7 @@ export function ProjectCustomizePage() {
       project={project}
       onSaved={(updated) => {
         void mutate(updated, { revalidate: false }).then(() =>
-          navigate(projectDetailsRoute(project.id))
+          navigate(projectDetailsRoute(project.projectName))
         )
       }}
     />
