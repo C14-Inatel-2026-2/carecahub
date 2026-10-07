@@ -191,6 +191,19 @@ export type Project = {
   commitCount: number
   branchCount: number
   members?: User[]
+  iconUrl?: string | null
+  thumbnailUrl?: string | null
+  mainColor?: string | null
+}
+
+export const projectAppearanceSchema = z.object({
+  mainColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Informe uma cor HEX válida.'),
+})
+
+export type UpdateProjectAppearanceRequest = {
+  mainColor?: string
+  iconUrl?: string
+  thumbnailUrl?: string
 }
 
 export type GetProjectResponse = Project

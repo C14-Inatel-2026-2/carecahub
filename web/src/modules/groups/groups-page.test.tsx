@@ -6,6 +6,7 @@ import { GroupsPage } from './groups-page'
 
 const mocks = vi.hoisted(() => ({
   useList: vi.fn(),
+  useDebounce: vi.fn(() => 'busca atrasada'),
   mutate: vi.fn(),
   user: {
     id: 'admin-1',
@@ -17,6 +18,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@/api', () => ({ useList: mocks.useList }))
+vi.mock('@/lib/use-debounce', () => ({ useDebounce: mocks.useDebounce }))
 vi.mock('@/mocks/config', () => ({ isMockAPIEnabled: false }))
 vi.mock('@/stores/use-user', () => ({
   useUser: (selector: (state: { user: LoggedUser }) => unknown) => selector({ user: mocks.user }),
@@ -81,5 +83,18 @@ describe('GroupsPage', () => {
     expect(html).toContain('src="https://avatars.example.com/leader.png"')
     expect(html).toContain('lucide-user')
     expect(html).toContain('aria-label="Opções do grupo Grupo 1"')
+  })
+
+  it('renders a group search field and sends the group search scope', () => {
+    mocks.useList.mockReturnValue({ data: [], isLoading: false, mutate: mocks.mutate })
+
+    const html = renderToStaticMarkup(<GroupsPage />)
+
+    expect(html).toContain('placeholder="Buscar grupos ou membros…"')
+    expect(mocks.useList).toHaveBeenCalledWith(expect.objectContaining({
+      endpoint: '/groups',
+      params: expect.objectContaining({ search: 'busca atrasada', searchScope: 'groups' }),
+    }))
+    expect(mocks.useDebounce).toHaveBeenCalledWith('', 350)
   })
 })

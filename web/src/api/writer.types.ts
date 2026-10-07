@@ -7,7 +7,7 @@ import type {
   RespondGroupInviteRequest,
   RespondGroupInviteResponse,
 } from '@/types/notification'
-import type { CreateProjectRequest, Project, UpdateProjectRequest } from '@/types/project'
+import type { CreateProjectRequest, Project, UpdateProjectAppearanceRequest, UpdateProjectRequest } from '@/types/project'
 import type {
   CreateRepositoryRequest,
   Repository,
@@ -76,6 +76,10 @@ export type WriterMap = {
     body: void
     response: User
   }
+  'DELETE /groups/:id/leave': {
+    body: void
+    response: object
+  }
   'PATCH /groups/:id/leader': {
     body: PromoteLeaderRequest
     response: Group
@@ -91,6 +95,14 @@ export type WriterMap = {
   'PATCH /projects/:id': {
     body: UpdateProjectRequest
     response: Project
+  }
+  'PATCH /projects/:id/appearance': {
+    body: UpdateProjectAppearanceRequest
+    response: Project
+  }
+  'POST /files/public': {
+    body: FormData
+    response: { key: string; url: string }
   }
   'DELETE /projects/:id': {
     body: void

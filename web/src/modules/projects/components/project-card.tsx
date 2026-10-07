@@ -38,15 +38,35 @@ export function ProjectCard({
   const hasRepositories = project.repositories.length > 0;
 
   return (
-    <div className="h-full flex flex-col p-5 gap-2 bg-card rounded-sm shadow-lg/40 shadow-foreground/10 border border-border/70">
-      <img
-        src="/project-fallback-light.png"
-        className="rounded-lg dark:hidden"
-      />
-      <img
-        src="/project-fallback-dark.png"
-        className="hidden rounded-lg dark:block"
-      />
+    <div
+      className="h-full flex flex-col p-5 gap-2 bg-card rounded-sm shadow-lg/40 shadow-foreground/10 border border-border/70"
+      style={
+        project.mainColor
+          ? {
+              borderColor: `${project.mainColor}66`,
+              boxShadow: `0 4px 16px ${project.mainColor}40`,
+            }
+          : undefined
+      }
+    >
+      {project.thumbnailUrl ? (
+        <img
+          src={project.thumbnailUrl}
+          alt={`Imagem do projeto ${project.projectName}`}
+          className="aspect-video w-full rounded-lg object-cover"
+        />
+      ) : (
+        <>
+          <img
+            src="/project-fallback-light.png"
+            className="rounded-lg dark:hidden"
+          />
+          <img
+            src="/project-fallback-dark.png"
+            className="hidden rounded-lg dark:block"
+          />
+        </>
+      )}
       <div className="flex flex-row justify-start items-center w-fit gap-2 mt-2">
         {group.tags &&
           group.tags.map((tag) => <GroupBadge key={tag} tag={tag} />)}
@@ -56,7 +76,15 @@ export function ProjectCard({
       </div>
       <div className="flex flex-row items-center justify-between gap-4 mt-2">
         <div className="flex flex-row items-center gap-4">
-          <Box className="size-8 text-highlight-soft-foreground" />
+          {project.iconUrl ? (
+            <img
+              src={project.iconUrl}
+              alt=""
+              className="size-8 rounded-lg object-cover"
+            />
+          ) : (
+            <Box className="size-8 text-highlight-soft-foreground" />
+          )}
           <span>{project.projectName}</span>
         </div>
         <div className="flex flex-row max-w-40 gap-2 justify-start items-center text-muted-foreground">
@@ -191,28 +219,30 @@ export function GroupCard({
 
       <div className="flex flex-col gap-2.5 justify-start py-3">
         <span className="text-foreground text-sm">Membros</span>
-        {group.members.map((member) => (
-          <div
-            key={member.id}
-            className="flex flex-row gap-2 text-muted-foreground justify-start items-center"
-          >
-            {member.gitHubDetails?.avatarUrl ? (
-              <img
-                src={member.gitHubDetails.avatarUrl}
-                alt={member.name}
-                className="size-5 rounded-full"
-              />
-            ) : (
-              <User />
-            )}
-            <span className="text-xs">{member.name}</span>
-            {group.leaderId === member.id && (
-              <Badge className="bg-highlight-soft text-highlight-soft-foreground text-xs ml-1">
-                Líder
-              </Badge>
-            )}
-          </div>
-        ))}
+        <div className="grid grid-flow-col grid-cols-2 grid-rows-3 gap-x-4 gap-y-2.5">
+          {group.members.map((member) => (
+            <div
+              key={member.id}
+              className="flex min-w-0 flex-row items-center justify-start gap-2 text-muted-foreground"
+            >
+              {member.gitHubDetails?.avatarUrl ? (
+                <img
+                  src={member.gitHubDetails.avatarUrl}
+                  alt={member.name}
+                  className="size-5 shrink-0 rounded-full"
+                />
+              ) : (
+                <User className="size-5 shrink-0" />
+              )}
+              <span className="truncate text-xs">{member.name}</span>
+              {group.leaderId === member.id && (
+                <Badge className="ml-1 text-xs bg-highlight-soft text-highlight-soft-foreground">
+                  Líder
+                </Badge>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

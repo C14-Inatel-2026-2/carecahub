@@ -19,3 +19,6 @@ export const profileRoute = (githubUsername: string) =>
 
 export const projectDetailsRoute = (projectId: string) =>
   `${appRoutes.projects}/${encodeURIComponent(projectId)}`
+
+export const projectCustomizeRoute = (projectId: string) =>
+  `${projectDetailsRoute(projectId)}/customize`

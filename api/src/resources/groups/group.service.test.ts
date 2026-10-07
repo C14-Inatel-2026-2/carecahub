@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { groups } from '@db'
-import { and, asc, ilike, isNull } from 'drizzle-orm'
+import { and, asc, isNull } from 'drizzle-orm'
 import { describe, it } from 'vitest'
 import { ErrKeys, type UserMetadata } from '@/types'
 import { GroupService } from './group.service'
@@ -287,15 +287,48 @@ describe('GroupService.findAll', () => {
     assert.equal(serialize(orderBy[0]?.arg), serialize(asc(groups.friendlyId)))
   })
 
-  it('filters by the search term in the listing and in the total count', async () => {
+  it('includes the group identifier and active member names in the group search filter', async () => {
     const service = createService([[], [{ count: 0 }]])
 
     await service.findAll({ skip: 0, take: 20, search: 'abc' }, admin)
 
-    const expected = serialize(and(isNull(groups.deletedAt), ilike(groups.friendlyId, '%abc%')))
     const wheres = service.queryLog.filter((entry) => entry.op === 'where')
     assert.equal(wheres.length, 2)
-    for (const where of wheres) assert.equal(serialize(where.arg), expected)
+    for (const where of wheres) {
+      const filter = serialize(where.arg)
+      assert.match(filter, /friendly_id/)
+      assert.match(filter, /group_id/)
+      assert.match(filter, /name/)
+    }
+  })
+
+  it('includes active member names when searching groups', async () => {
+    const service = createService([[], [{ count: 0 }]])
+
+    await service.findAll({ skip: 0, take: 20, search: 'Ada' }, admin)
+
+    const wheres = service.queryLog.filter((entry) => entry.op === 'where')
+    for (const where of wheres) {
+      assert.match(serialize(where.arg), /name/)
+    }
+  })
+
+  it('includes projects and repositories in the project search scope', async () => {
+    const service = createService([[], [{ count: 0 }]])
+
+    await service.findAll({
+      skip: 0,
+      take: 20,
+      search: 'carecahub',
+      searchScope: 'projects',
+    } as QueryDto, admin)
+
+    const wheres = service.queryLog.filter((entry) => entry.op === 'where')
+    for (const where of wheres) {
+      const query = serialize(where.arg)
+      assert.match(query, /project_name/)
+      assert.match(query, /Repository/)
+    }
   })
 
   it('only excludes soft deleted groups when there is no search term', async () => {
@@ -472,6 +505,59 @@ describe('GroupService.removeUserFromGroup', () => {
     const result = await service.removeUserFromGroup(memberId, groupId, student(memberId))
 
     assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
+})
+
+describe('GroupService.leave', () => {
+  it('unlinks a regular member without changing the group leadership', async () => {
+    const service = createService([
+      [groupRecord],
+      [{ id: leaderId }, { id: memberId }],
+      [],
+    ])
+
+    const result = await service.leave(groupId, student(memberId))
+
+    assert.deepEqual(result, { ok: true })
+    assert.equal(service.queryLog.filter((entry) => entry.op === 'transaction').length, 1)
+    const updates = service.queryLog.filter((entry) => entry.op === 'set').map((entry) => entry.arg as Record<string, unknown>)
+    assert.equal(updates.length, 1)
+    assert.equal(updates[0]?.groupId, null)
+    assert.equal(updates[0]?.leaderId, undefined)
+  })
+
+  it('transfers leadership before unlinking a departing leader who has teammates', async () => {
+    const service = createService([
+      [groupRecord],
+      [{ id: leaderId }, { id: memberId }],
+      [],
+      [],
+    ])
+
+    const result = await service.leave(groupId, student(leaderId))
+
+    assert.deepEqual(result, { ok: true })
+    const updates = service.queryLog.filter((entry) => entry.op === 'set').map((entry) => entry.arg as Record<string, unknown>)
+    assert.equal(updates[0]?.leaderId, memberId)
+    assert.equal(updates[1]?.groupId, null)
+  })
+
+  it('soft deletes the project and group when the final member leaves', async () => {
+    const service = createService([
+      [groupRecord],
+      [{ id: leaderId }],
+      [],
+      [],
+      [],
+    ])
+
+    const result = await service.leave(groupId, student(leaderId))
+
+    assert.deepEqual(result, { ok: true })
+    const updates = service.queryLog.filter((entry) => entry.op === 'set').map((entry) => entry.arg as Record<string, unknown>)
+    assert.ok(updates[0]?.deletedAt instanceof Date)
+    assert.ok(updates[1]?.deletedAt instanceof Date)
+    assert.equal(updates[2]?.groupId, null)
   })
 })
 

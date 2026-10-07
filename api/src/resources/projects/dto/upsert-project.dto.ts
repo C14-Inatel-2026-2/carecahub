@@ -1,5 +1,5 @@
-import { REPOSITORY_TYPES, type RepositoryType } from '@db'
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { REPOSITORY_TYPES, type RepositoryType } from "@db";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsArray,
   IsBoolean,
@@ -7,99 +7,119 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Length,
   MaxLength,
   MinLength,
   registerDecorator,
   ValidateIf,
   type ValidationArguments,
   type ValidationOptions,
-} from 'class-validator'
+} from "class-validator";
 
 function HasSelectedTechnology(validationOptions?: ValidationOptions) {
   return (target: object, propertyName: string) => {
     registerDecorator({
-      name: 'hasSelectedTechnology',
+      name: "hasSelectedTechnology",
       target: target.constructor,
       propertyName,
       options: validationOptions,
       validator: {
         validate(value: unknown, arguments_: ValidationArguments) {
-          const project = arguments_.object as UpsertProjectDto
-          return (Array.isArray(value) && value.length > 0) || project.usesOtherTechnology === true
+          const project = arguments_.object as UpsertProjectDto;
+          return (
+            (Array.isArray(value) && value.length > 0) ||
+            project.usesOtherTechnology === true
+          );
         },
       },
-    })
-  }
+    });
+  };
 }
 
 export class UpsertProjectDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
-  id?: string
+  id?: string;
 
   @ApiProperty()
   @IsString()
   @MinLength(3)
   @MaxLength(255)
-  name: string
+  name: string;
 
   @ApiProperty()
   @IsString()
   @MinLength(1)
-  description: string
+  description: string;
 
   @ApiProperty({ type: [String] })
   @IsArray()
   @HasSelectedTechnology({
-    message: 'Selecione ao menos uma tecnologia ou informe outra tecnologia.',
+    message: "Selecione ao menos uma tecnologia ou informe outra tecnologia.",
   })
   @IsString({ each: true })
-  technologies: string[]
+  technologies: string[];
 
   @ApiProperty()
   @IsBoolean()
-  usesOtherTechnology: boolean
+  usesOtherTechnology: boolean;
 
   @ApiPropertyOptional()
   @ValidateIf((input: UpsertProjectDto) => input.usesOtherTechnology)
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  otherTechnology?: string
+  otherTechnology?: string;
 
   @ApiProperty()
   @IsString()
   @MinLength(1)
   @MaxLength(50)
-  dependencyManager: string
+  dependencyManager: string;
 
   @ApiPropertyOptional()
-  @ValidateIf((input: UpsertProjectDto) => input.dependencyManager === 'other')
+  @ValidateIf((input: UpsertProjectDto) => input.dependencyManager === "other")
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  otherDependencyManager?: string
+  otherDependencyManager?: string;
 
   @ApiProperty()
   @IsString()
   @MinLength(1)
   @MaxLength(50)
-  versionControl: string
+  versionControl: string;
 
   @ApiPropertyOptional()
-  @ValidateIf((input: UpsertProjectDto) => input.versionControl === 'other')
+  @ValidateIf((input: UpsertProjectDto) => input.versionControl === "other")
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  otherVersionControl?: string
+  otherVersionControl?: string;
 
   @ApiProperty({ enum: REPOSITORY_TYPES })
   @IsIn(REPOSITORY_TYPES)
-  repositoryType: RepositoryType
+  repositoryType: RepositoryType;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  iconUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  thumbnailUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @Length(7)
+  mainColor?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
-  groupId?: string
+  groupId?: string;
 }

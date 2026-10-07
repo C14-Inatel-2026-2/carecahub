@@ -1,100 +1,112 @@
-import type { RepositoryType } from '@db'
-import { ApiProperty } from '@nestjs/swagger'
-import { BaseDto } from '@/utils/dtos/base.dto'
-import type { GetUserWithGitHubDetails } from '../../users/user.interface'
+import type { RepositoryType } from "@db";
+import { ApiProperty } from "@nestjs/swagger";
+import { BaseDto } from "@/utils/dtos/base.dto";
+import type { GetUserWithGitHubDetails } from "../../users/user.interface";
 
 export class ProjectRepositoryDto {
   @ApiProperty()
-  id: string
+  id: string;
 
   @ApiProperty()
-  url: string
+  url: string;
 
   @ApiProperty()
-  ownerId: string
+  ownerId: string;
 
   @ApiProperty()
-  projectId: string
+  projectId: string;
 
   @ApiProperty()
-  commitCount: number
+  commitCount: number;
 
   @ApiProperty()
-  branchCount: number
+  branchCount: number;
 
   @ApiProperty()
-  createdAt: Date
+  createdAt: Date;
 
   @ApiProperty()
-  updatedAt: Date
+  updatedAt: Date;
 }
 
 export type GetProjectDtoRecord = {
-  id: string
-  groupId: string
-  projectName: string
-  description: string
-  technologies: string[]
-  usesOtherTechnology: boolean
-  otherTechnology: string | null
-  dependencyManager: string
-  otherDependencyManager: string | null
-  versionControl: string
-  otherVersionControl: string | null
-  repositoryType: RepositoryType
-  createdAt: Date
-  updatedAt: Date
-  deletedAt: Date | null
-}
+  id: string;
+  groupId: string;
+  projectName: string;
+  description: string;
+  technologies: string[];
+  usesOtherTechnology: boolean;
+  otherTechnology: string | null;
+  dependencyManager: string;
+  otherDependencyManager: string | null;
+  versionControl: string;
+  otherVersionControl: string | null;
+  repositoryType: RepositoryType;
+  iconUrl: string | null;
+  thumbnailUrl: string | null;
+  mainColor: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+};
 
 export class GetProjectDto extends BaseDto<GetProjectDto> {
   @ApiProperty()
-  groupId: string
+  groupId: string;
 
   @ApiProperty()
-  projectName: string
+  projectName: string;
 
   @ApiProperty()
-  description: string
+  description: string;
 
   @ApiProperty({ type: [String] })
-  technologies: string[]
+  technologies: string[];
 
   @ApiProperty()
-  usesOtherTechnology: boolean
+  usesOtherTechnology: boolean;
 
   @ApiProperty({ nullable: true })
-  otherTechnology: string | null
+  otherTechnology: string | null;
 
   @ApiProperty()
-  dependencyManager: string
+  dependencyManager: string;
 
   @ApiProperty({ nullable: true })
-  otherDependencyManager: string | null
+  otherDependencyManager: string | null;
 
   @ApiProperty()
-  versionControl: string
+  versionControl: string;
 
   @ApiProperty({ nullable: true })
-  otherVersionControl: string | null
+  otherVersionControl: string | null;
 
-  @ApiProperty({ enum: ['monorepo', 'multirepo'] })
-  repositoryType: RepositoryType
+  @ApiProperty({ enum: ["monorepo", "multirepo"] })
+  repositoryType: RepositoryType;
+
+  @ApiProperty({ nullable: true })
+  iconUrl: string | null;
+
+  @ApiProperty({ nullable: true })
+  thumbnailUrl: string | null;
+
+  @ApiProperty({ nullable: true })
+  mainColor: string | null;
 
   @ApiProperty({ type: [String] })
-  tags: Array<RepositoryType | 'missing_repo'>
+  tags: Array<RepositoryType | "missing_repo">;
 
   @ApiProperty({ type: [ProjectRepositoryDto] })
-  repositories: ProjectRepositoryDto[]
+  repositories: ProjectRepositoryDto[];
 
   @ApiProperty()
-  commitCount: number
+  commitCount: number;
 
   @ApiProperty()
-  branchCount: number
+  branchCount: number;
 
   @ApiProperty({ type: [Object], required: false })
-  members?: GetUserWithGitHubDetails[]
+  members?: GetUserWithGitHubDetails[];
 
   static toDto(
     project: GetProjectDtoRecord,
@@ -114,17 +126,26 @@ export class GetProjectDto extends BaseDto<GetProjectDto> {
       versionControl: project.versionControl,
       otherVersionControl: project.otherVersionControl,
       repositoryType: project.repositoryType,
+      iconUrl: project.iconUrl,
+      thumbnailUrl: project.thumbnailUrl,
+      mainColor: project.mainColor,
       tags:
         repositories.length === 0
-          ? [project.repositoryType, 'missing_repo']
+          ? [project.repositoryType, "missing_repo"]
           : [project.repositoryType],
       repositories,
-      commitCount: repositories.reduce((total, repository) => total + repository.commitCount, 0),
-      branchCount: repositories.reduce((total, repository) => total + repository.branchCount, 0),
+      commitCount: repositories.reduce(
+        (total, repository) => total + repository.commitCount,
+        0,
+      ),
+      branchCount: repositories.reduce(
+        (total, repository) => total + repository.branchCount,
+        0,
+      ),
       ...(members ? { members } : {}),
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
       deletedAt: project.deletedAt ?? undefined,
-    }
+    };
   }
 }

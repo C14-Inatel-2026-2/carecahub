@@ -10,6 +10,7 @@ import { MyProjectPage } from '@/modules/my-project/my-project-page'
 import { NotificationsPage } from '@/modules/notifications/notifications-page'
 import { ProfilePage } from '@/modules/profile/profile-page'
 import { ProjectDetailsPage } from '@/modules/projects/project-details-page'
+import { ProjectCustomizePage } from '@/modules/projects/project-customize-page'
 import { ProjectsPage } from '@/modules/projects/projects-page'
 import { UsersPage } from '@/modules/users/users-page'
 import { appRoutes } from './routes'
@@ -36,6 +37,7 @@ export const appRouterRoutes = [
         children: [
           { index: true, Component: ProjectsPage },
           { path: ':projectId', Component: ProjectDetailsPage },
+          { path: ':projectId/customize', Component: ProjectCustomizePage },
         ],
       },
       {

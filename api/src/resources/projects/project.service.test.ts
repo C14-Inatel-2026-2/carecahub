@@ -233,6 +233,34 @@ describe('ProjectService.findOne', () => {
   })
 })
 
+describe('ProjectService.updateAppearance', () => {
+  it('allows an active group member to save visual settings', async () => {
+    const service = createService([
+      [projectRecord],
+      [{ groupId, status: 'active' }],
+      [],
+      [projectRecord],
+      [],
+      [],
+    ])
+
+    const result = await service.updateAppearance(projectId, {
+      iconUrl: 'https://example.com/icon.png',
+      thumbnailUrl: 'https://example.com/thumbnail.png',
+      mainColor: '#12AB34',
+    }, student())
+
+    assert.equal(result.ok, true)
+    if (result.ok) assert.deepEqual(result.members, [])
+  })
+
+  it('forbids a user outside the project group', async () => {
+    const service = createService([[projectRecord], [{ groupId: 'another-group', status: 'active' }]])
+    const result = await service.updateAppearance(projectId, { mainColor: '#12AB34' }, student('outsider'))
+    assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
+})
+
 describe('ProjectService.remove', () => {
   it('forbids a regular member from deleting the project', async () => {
     const service = createService([[{ id: projectId, groupId }], [{ leaderId: 'leader-id' }]])

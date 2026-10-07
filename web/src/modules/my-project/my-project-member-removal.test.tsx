@@ -9,7 +9,8 @@ const mocks = vi.hoisted(() => ({
   useGet: vi.fn(),
   writer: vi.fn(),
   mutate: vi.fn(),
-  userCardProps: new Map<string, { onRemove?: () => Promise<boolean> }>(),
+  setUser: vi.fn(),
+  userCardProps: new Map<string, { onRemove?: () => Promise<boolean>; onLeave?: () => Promise<boolean> }>(),
   user: {
     id: 'leader-1',
     name: 'Líder',
@@ -25,7 +26,7 @@ vi.mock('@/mocks/config', () => ({ isMockAPIEnabled: false }))
 vi.mock('@/stores/use-user', () => ({
   useUser: (
     selector: (state: { user: LoggedUser; setUser: ReturnType<typeof vi.fn> }) => unknown
-  ) => selector({ user: mocks.user, setUser: vi.fn() }),
+  ) => selector({ user: mocks.user, setUser: mocks.setUser }),
 }))
 vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }))
 vi.mock('./components/user-card', () => ({
@@ -98,6 +99,21 @@ describe('MyProjectPage member removal', () => {
 
     expect(mocks.mutate).not.toHaveBeenCalled()
     expect(removed).toBe(false)
+  })
+
+  it('lets the current user leave and clears their group after success', async () => {
+    mocks.user = { ...mocks.user, id: 'member-1' }
+    mocks.writer.mockResolvedValue({ ok: true, data: undefined })
+    renderToStaticMarkup(<MyProjectPage />)
+
+    const left = await mocks.userCardProps.get('member-1')?.onLeave?.()
+
+    expect(mocks.writer).toHaveBeenCalledWith('DELETE /groups/:id/leave', {
+      params: { id: 'group-1' },
+      onSuccessMessage: 'Você saiu do grupo',
+    })
+    expect(mocks.setUser).toHaveBeenCalledWith({ ...mocks.user, groupId: undefined })
+    expect(left).toBe(true)
   })
 
   it.each([

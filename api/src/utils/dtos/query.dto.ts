@@ -1,9 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsEnum, IsInt, IsISO8601, IsOptional, IsString, Max } from 'class-validator'
+import { IsEnum, IsIn, IsInt, IsISO8601, IsOptional, IsString, Max } from 'class-validator'
 import { TransformInt } from '@/infra/number.transformer'
 
 export const ORDER_TYPES = ['asc', 'desc'] as const
 export type OrderType = (typeof ORDER_TYPES)[number]
+export const SEARCH_SCOPES = ['groups', 'projects'] as const
+export type SearchScope = (typeof SEARCH_SCOPES)[number]
 
 export class QueryDto {
   @ApiProperty({
@@ -60,6 +62,11 @@ export class QueryDto {
   @IsString()
   @IsOptional()
   search?: string
+
+  @ApiPropertyOptional({ enum: SEARCH_SCOPES, description: 'The resource fields searched by search' })
+  @IsOptional()
+  @IsIn(SEARCH_SCOPES)
+  searchScope?: SearchScope
 
   @ApiPropertyOptional({ example: '2021-01-01', description: 'Data de início' })
   @IsOptional()

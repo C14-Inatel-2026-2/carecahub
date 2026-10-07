@@ -45,6 +45,19 @@ function renderGroupCard(
 describe('ProjectCard', () => {
   afterEach(() => vi.useRealTimers())
 
+  it('shows the saved thumbnail, icon and project color', () => {
+    const html = renderProjectCard(groupWithProject({
+      thumbnailUrl: 'https://example.com/thumbnail.png',
+      iconUrl: 'https://example.com/icon.png',
+      mainColor: '#123ABC',
+    }))
+    expect(html).toContain('src="https://example.com/thumbnail.png"')
+    expect(html).toContain('src="https://example.com/icon.png"')
+    expect(html).toContain('color:#123ABC')
+    expect(html).toContain('border-color:#123ABC')
+    expect(html).toContain('box-shadow:0 4px 16px #123ABC40')
+  })
+
   it('renders totals and a direct GitHub link for a monorepo', () => {
     const html = renderProjectCard(
       groupWithProject({

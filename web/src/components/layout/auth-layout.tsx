@@ -50,7 +50,7 @@ export const pagesByRole: Record<UserRole, AppRoute[]> = {
 
 export function isAllowedPathForRole(pathname: string, role: UserRole) {
   const isStudentProjectDetails =
-    role === "student" && /^\/projects\/[^/]+$/.test(pathname);
+    role === "student" && /^\/projects\/[^/]+(?:\/customize)?$/.test(pathname);
 
   return isAllowedPath(pathname, pagesByRole[role]) || isStudentProjectDetails;
 }

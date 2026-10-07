@@ -6,6 +6,7 @@ import { UUIDParam } from '@/infra/uuid-param.decorator'
 import { UserMetadata } from '@/types'
 import { QueryDto } from '@/utils/dtos/query.dto'
 import { UpsertProjectDto } from './dto/upsert-project.dto'
+import { UpdateProjectAppearanceDto } from './dto/update-project-appearance.dto'
 import { ProjectService } from './project.service'
 
 @ApiController('projects', 'Projects')
@@ -22,6 +23,16 @@ export class ProjectController {
   @Roles(['admin', 'student'])
   update(@User() requester: UserMetadata, @UUIDParam() id: string, @Body() body: UpsertProjectDto) {
     return this.projectService.upsert({ ...body, id }, requester)
+  }
+
+  @Patch(':id/appearance')
+  @Roles(['student'])
+  updateAppearance(
+    @User() requester: UserMetadata,
+    @UUIDParam() id: string,
+    @Body() body: UpdateProjectAppearanceDto,
+  ) {
+    return this.projectService.updateAppearance(id, body, requester)
   }
 
   @Get()
