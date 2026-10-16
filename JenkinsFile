@@ -71,33 +71,25 @@ pipeline {
                     stages {
                         stage('Install') {
                             steps {
-                                dir('api') {
-                                    sh 'pnpm install --frozen-lockfile'
-                                }
+                                // [API] STEP 1: Install
                             }
                         }
 
                         stage('Lint') {
                             steps {
-                                dir('api') {
-                                    sh 'pnpm lint'
-                                }
+                                // [API] STEP 2: Lint
                             }
                         }
 
                         stage('Test') {
                             steps {
-                                dir('api') {
-                                    sh 'pnpm test'
-                                }
+                                // [API] STEP 3: Test
                             }
                         }
 
                         stage('Build') {
                             steps {
-                                dir('api') {
-                                    sh 'pnpm build'
-                                }
+                                // [API] STEP 4: Build
                             }
                         }
                     }
@@ -117,33 +109,25 @@ pipeline {
                     stages {
                         stage('Install') {
                             steps {
-                                dir('web') {
-                                    sh 'pnpm install --frozen-lockfile'
-                                }
+                                // [WEB] STEP 1: Install
                             }
                         }
 
                         stage('Lint') {
                             steps {
-                                dir('web') {
-                                    sh 'pnpm lint'
-                                }
+                                // [WEB] STEP 2: Lint
                             }
                         }
 
                         stage('Test') {
                             steps {
-                                dir('web') {
-                                    sh 'pnpm test'
-                                }
+                                // [WEB] STEP 3: Test
                             }
                         }
 
                         stage('Build') {
                             steps {
-                                dir('web') {
-                                    sh 'pnpm build'
-                                }
+                                // [WEB] STEP 4: Build
                             }
                         }
                     }
