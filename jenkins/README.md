@@ -24,8 +24,8 @@ o stage Checkout já executa `checkout scm`. Setup pnpm verifica a versão
 instalada, sem executar `corepack enable`.
 
 A detecção de mudanças por `CHANGE_TARGET` e os stages dos colegas foram
-preservados. Execute por um job de PR: essa variável normalmente não existe
-em builds de branch. Cada aplicação selecionada executa instalação, lint,
+preservados. Em builds de branch, sem `CHANGE_TARGET`, API e WEB são
+validados integralmente. Cada aplicação selecionada executa instalação, lint,
 testes e build. A imagem fornece Node 24 e pnpm 11.17.0 diretamente.
 A pipeline completa ainda não foi validada no Jenkins.
 

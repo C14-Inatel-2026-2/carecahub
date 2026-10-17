@@ -27,6 +27,13 @@ pipeline {
         stage('Detect Changes') {
             steps {
                 script {
+                    if (!env.CHANGE_TARGET) {
+                        env.API_CHANGED = 'true'
+                        env.WEB_CHANGED = 'true'
+                        echo 'Branch build: validating API and Web.'
+                        return
+                    }
+
                     sh "git fetch origin ${env.CHANGE_TARGET}"
 
                     def changedFiles = sh(
