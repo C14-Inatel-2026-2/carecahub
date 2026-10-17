@@ -1,0 +1,8 @@
+workflow-aggregator
+workflow-multibranch
+git
+credentials-binding
+timestamper
+github-branch-source
+configuration-as-code
+job-dsl

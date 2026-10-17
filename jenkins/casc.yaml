@@ -1,0 +1,67 @@
+jenkins:
+  systemMessage: "CarecaHub Jenkins configured by jenkins/casc.yaml"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_ID}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: github
+              description: "Git credentials for CarecaHub"
+              username: "${GITHUB_USER}"
+              password: "${GITHUB_TOKEN}"
+
+jobs:
+  - script: >
+      multibranchPipelineJob('carecahub') {
+        displayName('carecahub')
+        description('CarecaHub API and Web CI')
+        branchSources {
+          branchSource {
+            source {
+              github {
+                id('carecahub')
+                configuredByUrl(false)
+                repoOwner('${GITHUB_OWNER}')
+                repository('${GITHUB_REPOSITORY}')
+                repositoryUrl('https://github.com/${GITHUB_OWNER}/${GITHUB_REPOSITORY}.git')
+                credentialsId('github')
+                traits {
+                  gitHubBranchDiscovery {
+                    strategyId(3)
+                  }
+                  gitHubPullRequestDiscovery {
+                    strategyId(1)
+                  }
+                }
+              }
+            }
+          }
+        }
+        factory {
+          workflowBranchProjectFactory {
+            scriptPath('JenkinsFile')
+          }
+        }
+        triggers {
+          periodicFolderTrigger {
+            interval('1h')
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {
+            numToKeep(5)
+          }
+        }
+      }
