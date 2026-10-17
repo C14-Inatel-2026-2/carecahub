@@ -87,13 +87,23 @@ pipeline {
 
                         stage('Test') {
                             steps {
-                                // [API] STEP 3: Test
+                                dir('api') {
+                                    dir('reports') { deleteDir() }
+                                    sh 'pnpm test --reporter=default --reporter=junit --outputFile=reports/junit.xml'
+                                }
+                            }
+                            post {
+                                always {
+                                    junit 'api/reports/junit.xml'
+                                }
                             }
                         }
 
                         stage('Build') {
                             steps {
-                                // [API] STEP 4: Build
+                                dir('api') {
+                                    sh 'pnpm build'
+                                }
                             }
                         }
                     }
@@ -130,7 +140,13 @@ pipeline {
                         stage('Test') {
                             steps {
                                 dir('web') {
-                                    sh 'pnpm test'
+                                    dir('reports') { deleteDir() }
+                                    sh 'pnpm test --reporter=default --reporter=junit --outputFile=reports/junit.xml'
+                                }
+                            }
+                            post {
+                                always {
+                                    junit 'web/reports/junit.xml'
                                 }
                             }
                         }
