@@ -117,7 +117,9 @@ pipeline {
 
                         stage('Lint') {
                             steps {
-                                // [WEB] STEP 2: Lint
+                                dir('web') {
+                                    sh 'pnpm lint'
+                                }
                             }
                         }
 
