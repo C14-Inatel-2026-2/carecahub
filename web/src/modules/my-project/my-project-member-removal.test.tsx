@@ -10,7 +10,10 @@ const mocks = vi.hoisted(() => ({
   writer: vi.fn(),
   mutate: vi.fn(),
   setUser: vi.fn(),
-  userCardProps: new Map<string, { onRemove?: () => Promise<boolean>; onLeave?: () => Promise<boolean> }>(),
+  userCardProps: new Map<
+    string,
+    { onRemove?: () => Promise<boolean>; onLeave?: () => Promise<boolean> }
+  >(),
   user: {
     id: 'leader-1',
     name: 'Líder',

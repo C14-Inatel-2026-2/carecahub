@@ -46,11 +46,13 @@ describe('ProjectCard', () => {
   afterEach(() => vi.useRealTimers())
 
   it('shows the saved thumbnail, icon and project color', () => {
-    const html = renderProjectCard(groupWithProject({
-      thumbnailUrl: 'https://example.com/thumbnail.png',
-      iconUrl: 'https://example.com/icon.png',
-      mainColor: '#123ABC',
-    }))
+    const html = renderProjectCard(
+      groupWithProject({
+        thumbnailUrl: 'https://example.com/thumbnail.png',
+        iconUrl: 'https://example.com/icon.png',
+        mainColor: '#123ABC',
+      })
+    )
     expect(html).toContain('src="https://example.com/thumbnail.png"')
     expect(html).toContain('src="https://example.com/icon.png"')
     expect(html).toContain('color:#123ABC')

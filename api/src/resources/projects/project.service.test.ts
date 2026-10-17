@@ -244,19 +244,30 @@ describe('ProjectService.updateAppearance', () => {
       [],
     ])
 
-    const result = await service.updateAppearance(projectId, {
-      iconUrl: 'https://example.com/icon.png',
-      thumbnailUrl: 'https://example.com/thumbnail.png',
-      mainColor: '#12AB34',
-    }, student())
+    const result = await service.updateAppearance(
+      projectId,
+      {
+        iconUrl: 'https://example.com/icon.png',
+        thumbnailUrl: 'https://example.com/thumbnail.png',
+        mainColor: '#12AB34',
+      },
+      student(),
+    )
 
     assert.equal(result.ok, true)
     if (result.ok) assert.deepEqual(result.members, [])
   })
 
   it('forbids a user outside the project group', async () => {
-    const service = createService([[projectRecord], [{ groupId: 'another-group', status: 'active' }]])
-    const result = await service.updateAppearance(projectId, { mainColor: '#12AB34' }, student('outsider'))
+    const service = createService([
+      [projectRecord],
+      [{ groupId: 'another-group', status: 'active' }],
+    ])
+    const result = await service.updateAppearance(
+      projectId,
+      { mainColor: '#12AB34' },
+      student('outsider'),
+    )
     assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
   })
 })

@@ -5,8 +5,8 @@ import { User } from '@/infra/user.decorator'
 import { UUIDParam } from '@/infra/uuid-param.decorator'
 import { UserMetadata } from '@/types'
 import { QueryDto } from '@/utils/dtos/query.dto'
-import { UpsertProjectDto } from './dto/upsert-project.dto'
 import { UpdateProjectAppearanceDto } from './dto/update-project-appearance.dto'
+import { UpsertProjectDto } from './dto/upsert-project.dto'
 import { ProjectService } from './project.service'
 
 @ApiController('projects', 'Projects')

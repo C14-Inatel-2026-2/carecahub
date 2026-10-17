@@ -1,25 +1,21 @@
-import { relations } from "drizzle-orm";
-import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-import { projects } from "./project";
-import { users } from "./user";
+import { relations } from 'drizzle-orm'
+import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import { projects } from './project'
+import { users } from './user'
 
-const repositoryTable = pgTable("Repository", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  url: varchar("url", { length: 255 }).notNull().unique(),
-  ownerId: uuid("owner")
+const repositoryTable = pgTable('Repository', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  url: varchar('url', { length: 255 }).notNull().unique(),
+  ownerId: uuid('owner')
     .notNull()
     .references(() => users.id),
-  projectId: uuid("project")
+  projectId: uuid('project')
     .notNull()
     .references(() => projects.id),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-});
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+})
 
 const repositoryRelations = relations(repositoryTable, ({ one }) => ({
   owner: one(users, {
@@ -31,6 +27,6 @@ const repositoryRelations = relations(repositoryTable, ({ one }) => ({
     fields: [repositoryTable.projectId],
     references: [projects.id],
   }),
-}));
+}))
 
-export { repositoryRelations, repositoryTable as repositories };
+export { repositoryRelations, repositoryTable as repositories }
