@@ -24,15 +24,9 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@db": [
-        "./src/drizzle/index.ts"
-      ],
-      "@db/*": [
-        "./src/drizzle/*"
-      ]
+      "@/*": ["./src/*"],
+      "@db": ["./src/drizzle/index.ts"],
+      "@db/*": ["./src/drizzle/*"]
     }
   }
 }

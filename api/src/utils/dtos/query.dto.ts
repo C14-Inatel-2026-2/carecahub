@@ -63,7 +63,10 @@ export class QueryDto {
   @IsOptional()
   search?: string
 
-  @ApiPropertyOptional({ enum: SEARCH_SCOPES, description: 'The resource fields searched by search' })
+  @ApiPropertyOptional({
+    enum: SEARCH_SCOPES,
+    description: 'The resource fields searched by search',
+  })
   @IsOptional()
   @IsIn(SEARCH_SCOPES)
   searchScope?: SearchScope
