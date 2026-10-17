@@ -7,7 +7,7 @@ import { isMockAPIEnabled } from "@/mocks/config";
 import { mockGroups } from "@/mocks/groups";
 import type { Group } from "@/types/group";
 import type { Project } from "@/types/project";
-import { GroupCard, ProjectCard } from "./components/project-card";
+import { ProjectCard } from "./components/project-card";
 import { ProjectsSkeleton } from "./components/projects-skeleton";
 
 function hasProject(group: Group): group is Group & { project: Project } {
