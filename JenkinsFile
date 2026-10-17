@@ -129,13 +129,17 @@ pipeline {
 
                         stage('Test') {
                             steps {
-                                // [WEB] STEP 3: Test
+                                dir('web') {
+                                    sh 'pnpm test'
+                                }
                             }
                         }
 
                         stage('Build') {
                             steps {
-                                // [WEB] STEP 4: Build
+                                dir('web') {
+                                    sh 'pnpm build'
+                                }
                             }
                         }
                     }
