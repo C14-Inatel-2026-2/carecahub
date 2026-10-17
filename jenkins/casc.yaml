@@ -39,7 +39,7 @@ jobs:
                 credentialsId('github')
                 traits {
                   gitHubBranchDiscovery {
-                    strategyId(0)
+                    strategyId(3)
                   }
                   gitHubPullRequestDiscovery {
                     strategyId(1)
