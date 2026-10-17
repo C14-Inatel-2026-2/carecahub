@@ -113,7 +113,9 @@ pipeline {
                     stages {
                         stage('Install') {
                             steps {
-                                // [WEB] STEP 1: Install
+                                dir('web') {
+                                    sh 'pnpm install --frozen-lockfile'
+                                }
                             }
                         }
 
