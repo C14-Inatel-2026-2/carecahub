@@ -11,8 +11,16 @@ docker compose logs -f jenkins
 
 Acesse http://localhost:8080 com o usuário e a senha definidos no `.env`.
 O job `carecahub` é criado pela configuração `jenkins/casc.yaml`. Use
-**Scan Multibranch Pipeline Now** para descobrir branches e PRs. Abra a branch
-ou PR desejada e execute **Build Now**.
+**Scan Multibranch Pipeline Now** para descobrir PRs. Abra a PR desejada e
+execute **Build Now**.
+
+A descoberta de branches comuns está desativada (`gitHubBranchDiscovery`
+com `strategyId(0)`). O job descobre somente PRs de branches deste repositório,
+mantendo `gitHubPullRequestDiscovery` com `strategyId(1)`.
+Para aplicar uma alteração em `casc.yaml`, execute `docker compose restart jenkins`
+na raiz e faça um novo **Scan Multibranch Pipeline Now**. Abra o job `PR-...`.
+Jobs antigos de branches podem permanecer no histórico conforme a retenção;
+use os jobs de PR para as novas execuções.
 
 O Jenkins lê `JenkinsFile` do Git remoto. Alterações apenas no disco não são
 usadas pelo job; para validar esta versão nele, ela precisa estar na branch
@@ -24,8 +32,8 @@ o stage Checkout já executa `checkout scm`. Setup pnpm verifica a versão
 instalada, sem executar `corepack enable`.
 
 A detecção de mudanças por `CHANGE_TARGET` e os stages dos colegas foram
-preservados. Em builds de branch, sem `CHANGE_TARGET`, API e WEB são
-validados integralmente. Cada aplicação selecionada executa instalação, lint,
+preservados. A pipeline exige um build de PR com `CHANGE_TARGET` definido.
+Cada aplicação selecionada executa instalação, lint,
 testes e build. A imagem fornece Node 24 e pnpm 11.17.0 diretamente.
 A pipeline completa ainda não foi validada no Jenkins.
 
