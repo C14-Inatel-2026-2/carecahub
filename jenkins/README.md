@@ -18,17 +18,16 @@ O Jenkins lê `JenkinsFile` do Git remoto. Alterações apenas no disco não sã
 usadas pelo job; para validar esta versão nele, ela precisa estar na branch
 remota selecionada. A reconstrução da imagem instala o plugin JUnit.
 
-A estrutura original do `JenkinsFile` foi preservada: `agent none`, o label
-`pnpm-node` e a detecção de mudanças por `CHANGE_TARGET` continuam presentes.
-Os ajustes no arquivo se limitam aos testes, aos relatórios e ao build da API.
-Cada aplicação selecionada executa instalação, lint, testes e build.
+A pipeline usa `agent any` e os stages herdam o mesmo agente e workspace,
+sem exigir o label `pnpm-node`. O checkout automático foi desativado porque
+o stage Checkout já executa `checkout scm`. Setup pnpm verifica a versão
+instalada, sem executar `corepack enable`.
 
-Essas condições originais ainda exigem correção ou configuração pelo grupo:
-checkout e setup usam comandos que precisam de agente, `corepack enable`
-precisa de Corepack instalado e permissão de escrita, o label `pnpm-node`
-precisa existir, e `CHANGE_TARGET` normalmente só existe em builds de PR.
-A imagem fornece Node 24 e pnpm 11.17.0 diretamente. A pipeline completa
-ainda não foi validada no Jenkins; gerar XML localmente não valida esses pontos.
+A detecção de mudanças por `CHANGE_TARGET` e os stages dos colegas foram
+preservados. Execute por um job de PR: essa variável normalmente não existe
+em builds de branch. Cada aplicação selecionada executa instalação, lint,
+testes e build. A imagem fornece Node 24 e pnpm 11.17.0 diretamente.
+A pipeline completa ainda não foi validada no Jenkins.
 
 Os testes geram `api/reports/junit.xml` e `web/reports/junit.xml`. O Jenkins
 publica os resultados em **Test Result**, inclusive se algum teste falhar.
