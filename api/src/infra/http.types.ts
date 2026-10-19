@@ -1,8 +1,8 @@
 export interface IResponseError {
-  success: false;
-  errKey: string;
-  message: string;
-  friendlyMessage?: string;
+  success: false
+  errKey: string
+  message: string
+  friendlyMessage?: string
 }
 
-export type EitherResponse<T, E = IResponseError> = (T & { success: true }) | E;
+export type EitherResponse<T, E = IResponseError> = (T & { success: true }) | E

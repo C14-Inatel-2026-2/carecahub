@@ -1,3 +1,4 @@
+import type { UserRole } from '@db'
 import {
   applyDecorators,
   CanActivate,
@@ -8,7 +9,6 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
-import type { UserRole } from '@db'
 
 export const ROLE_METADATA_KEY = 'RequiredRoleMetadata'
 

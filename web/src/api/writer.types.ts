@@ -7,7 +7,12 @@ import type {
   RespondGroupInviteRequest,
   RespondGroupInviteResponse,
 } from '@/types/notification'
-import type { CreateProjectRequest, Project, UpdateProjectAppearanceRequest, UpdateProjectRequest } from '@/types/project'
+import type {
+  CreateProjectRequest,
+  Project,
+  UpdateProjectAppearanceRequest,
+  UpdateProjectRequest,
+} from '@/types/project'
 import type {
   CreateRepositoryRequest,
   Repository,

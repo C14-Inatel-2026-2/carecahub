@@ -1,7 +1,7 @@
 import { matchRoutes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { ProjectDetailsPage } from '@/modules/projects/project-details-page'
 import { ProjectCustomizePage } from '@/modules/projects/project-customize-page'
+import { ProjectDetailsPage } from '@/modules/projects/project-details-page'
 import { appRouterRoutes } from './route-config'
 import { projectCustomizeRoute, projectDetailsRoute } from './routes'
 

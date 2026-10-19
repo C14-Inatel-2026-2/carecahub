@@ -75,9 +75,7 @@
         "BucketFile_key_unique": {
           "name": "BucketFile_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -134,12 +132,8 @@
           "name": "Group_leader_id_User_id_fk",
           "tableFrom": "Group",
           "tableTo": "User",
-          "columnsFrom": [
-            "leader_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["leader_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -273,12 +267,8 @@
           "name": "Project_group_id_Group_id_fk",
           "tableFrom": "Project",
           "tableTo": "Group",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -288,9 +278,7 @@
         "Project_project_name_unique": {
           "name": "Project_project_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "project_name"
-          ]
+          "columns": ["project_name"]
         }
       },
       "policies": {},
@@ -353,12 +341,8 @@
           "name": "Repository_owner_User_id_fk",
           "tableFrom": "Repository",
           "tableTo": "User",
-          "columnsFrom": [
-            "owner"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -366,12 +350,8 @@
           "name": "Repository_project_Project_id_fk",
           "tableFrom": "Repository",
           "tableTo": "Project",
-          "columnsFrom": [
-            "project"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -381,9 +361,7 @@
         "Repository_url_unique": {
           "name": "Repository_url_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "url"
-          ]
+          "columns": ["url"]
         }
       },
       "policies": {},
@@ -435,9 +413,7 @@
         "SystemParam_key_unique": {
           "name": "SystemParam_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -547,12 +523,8 @@
           "name": "User_group_id_Group_id_fk",
           "tableFrom": "User",
           "tableTo": "Group",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["group_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -562,23 +534,17 @@
         "User_registration_unique": {
           "name": "User_registration_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "registration"
-          ]
+          "columns": ["registration"]
         },
         "User_github_name_unique": {
           "name": "User_github_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "github_name"
-          ]
+          "columns": ["github_name"]
         },
         "User_email_unique": {
           "name": "User_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -590,29 +556,17 @@
     "public.repository_type": {
       "name": "repository_type",
       "schema": "public",
-      "values": [
-        "monorepo",
-        "multirepo"
-      ]
+      "values": ["monorepo", "multirepo"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "admin",
-        "teacher",
-        "mentor",
-        "student"
-      ]
+      "values": ["admin", "teacher", "mentor", "student"]
     },
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": [
-        "active",
-        "inactive",
-        "deleted"
-      ]
+      "values": ["active", "inactive", "deleted"]
     }
   },
   "schemas": {},

@@ -1,58 +1,52 @@
-import { Body, Post, UploadedFile, UploadedFiles } from "@nestjs/common";
+import { Body, Post, UploadedFile, UploadedFiles } from '@nestjs/common'
 
-import { ApiController } from "@/infra/controller.decorator";
-import { UploadRoute } from "@/infra/upload-route.decorator";
-import { CustomLogger } from "../logger/custom-logger.service";
-import { LoggerFactory } from "../logger/logger-factory.service";
-import { BucketService } from "./bucket.service";
-import { UploadFileDto } from "./dtos/upload.dto";
+import { ApiController } from '@/infra/controller.decorator'
+import { UploadRoute } from '@/infra/upload-route.decorator'
+import { CustomLogger } from '../logger/custom-logger.service'
+import { LoggerFactory } from '../logger/logger-factory.service'
+import { BucketService } from './bucket.service'
+import { UploadFileDto } from './dtos/upload.dto'
 
-@ApiController("files", "Files")
+@ApiController('files', 'Files')
 export class BucketController {
-  private readonly logger: CustomLogger;
+  private readonly logger: CustomLogger
 
   constructor(
     private readonly bucketService: BucketService,
     loggerFactory: LoggerFactory,
   ) {
-    this.logger = loggerFactory.create(BucketController.name);
+    this.logger = loggerFactory.create(BucketController.name)
   }
 
-  @Post("/public")
+  @Post('/public')
   @UploadRoute()
-  uploadFile(
-    @UploadedFile() file: UploadFileDto,
-    @Body("localPath") localPath?: string,
-  ) {
+  uploadFile(@UploadedFile() file: UploadFileDto, @Body('localPath') localPath?: string) {
     return this.bucketService.upload({
       file,
       isPublic: true,
       localPath,
-    });
+    })
   }
 
-  @Post("/public/batch")
+  @Post('/public/batch')
   @UploadRoute(10)
-  batchUpload(
-    @UploadedFiles() files: UploadFileDto[],
-    @Body("localPaths") localPaths?: string[],
-  ) {
-    return this.bucketService.batchUploadPublic(files, localPaths);
+  batchUpload(@UploadedFiles() files: UploadFileDto[], @Body('localPaths') localPaths?: string[]) {
+    return this.bucketService.batchUploadPublic(files, localPaths)
   }
 
-  @Post("/private")
+  @Post('/private')
   @UploadRoute()
   async uploadPrivateFile(
     @UploadedFile() file: UploadFileDto,
-    @Body("localPath") localPath?: string,
+    @Body('localPath') localPath?: string,
   ) {
-    this.logger.log("Uploading private file");
+    this.logger.log('Uploading private file')
 
     return this.bucketService.upload({
       file,
       isPublic: false,
       localPath,
-    });
+    })
   }
 
   // TODO: validate ownership

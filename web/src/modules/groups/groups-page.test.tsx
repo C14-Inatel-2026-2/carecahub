@@ -91,10 +91,12 @@ describe('GroupsPage', () => {
     const html = renderToStaticMarkup(<GroupsPage />)
 
     expect(html).toContain('placeholder="Buscar grupos ou membros…"')
-    expect(mocks.useList).toHaveBeenCalledWith(expect.objectContaining({
-      endpoint: '/groups',
-      params: expect.objectContaining({ search: 'busca atrasada', searchScope: 'groups' }),
-    }))
+    expect(mocks.useList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endpoint: '/groups',
+        params: expect.objectContaining({ search: 'busca atrasada', searchScope: 'groups' }),
+      })
+    )
     expect(mocks.useDebounce).toHaveBeenCalledWith('', 350)
   })
 })

@@ -3,7 +3,9 @@
 ## Run locally
 
 ```bash
-docker compose -f api/compose.yaml up -d
+cp .env.jenkins.example .env.jenkins
+# Edite .env.jenkins com o administrador e o token do GitHub antes de subir o Jenkins.
+docker compose up -d --build
 
 cp api/.env.example api/.env
 cp web/.env.example web/.env
@@ -26,6 +28,7 @@ pnpm dev
 
 API: `http://localhost:3030`
 Web: `http://localhost:5173`
+Jenkins: `http://localhost:8080`
 
 ## New feature checklist
 

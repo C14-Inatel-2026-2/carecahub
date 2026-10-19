@@ -1,6 +1,11 @@
+name: api
+
 volumes:
   carecahub_pg_vol:
+    name: api_carecahub_pg_vol
   carecahub_redis_vol:
+    name: api_carecahub_redis_vol
+  jenkins_home:
 
 networks:
   carecahub_net:
@@ -21,6 +26,7 @@ services:
       - carecahub_net
     volumes:
       - carecahub_pg_vol:/var/lib/postgresql
+
   carecahub_redis:
     container_name: carecahub_redis
     image: redis:8-alpine
@@ -31,3 +37,18 @@ services:
       - carecahub_net
     volumes:
       - carecahub_redis_vol:/data
+
+  jenkins:
+    build: ./jenkins
+    container_name: carecahub_jenkins
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file: ${JENKINS_ENV_FILE:-./jenkins/.env}
+    environment:
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+      CASC_JENKINS_CONFIG: /var/jenkins_config/casc.yaml
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ./jenkins/casc.yaml:/var/jenkins_config/casc.yaml:ro
+
