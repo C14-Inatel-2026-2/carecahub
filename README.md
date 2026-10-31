@@ -35,9 +35,15 @@ publicar atividades, acompanhar entregas e centralizar notificações.
 - Funcionalidades críticas devem possuir testes automatizados de comportamento
   e autorização.
 
-## Histórias de usuário
+## Método ágil e histórias de usuário
 
-As histórias de usuário da entrega estão em [docs/stories](docs/stories).
+Para gerenciar as fixtures a serem feitas no projeto, um board de cards chamado "CarecaHub - Tickets" foi criado no Trello e separado em 7 colunas.
+
+BACKLOG --> TO DO --> STAND_BY --> WORKING --> PULL_REQUEST --> MERGED --> DONE
+
+Cada card gerado descreve o escopo de atuação, como [ WEB ], [ API ] ou [ INTEGRAÇÃO ], um título descreve a implementação/ajuste, uma descrição detalhada do que precisa ser feito com seus critérios de aceite e tags aplicadas que definem se é ajuste ou implementação. Os cards são distribuídos entre os integrantes com atribuição exibida no Trello.
+
+Algumas histórias de usuário estão em [docs/stories](docs/stories).
 
 ## Run locally
 
