@@ -45,6 +45,16 @@ Cada card gerado descreve o escopo de atuação, como [ WEB ], [ API ] ou [ INTE
 
 Algumas histórias de usuário estão em [docs/stories](docs/stories).
 
+## Refactorings
+
+Cada integrante aplicou pelo menos 2 refactorings. Os testes e a pipeline
+estavam verdes antes e depois de cada mudança.
+
+| Integrante | Code smell | Refactoring aplicado | Por quê | PR |
+|---|---|---|---|---|
+| Isabelle | Código duplicado: imagem com fallback claro/escuro e estilo da `mainColor` copiados no card e nos detalhes do projeto, além de uma cópia local do `GitHubIcon` no card | Extrair componente `ProjectThumbnail` + função `projectAccentStyle` e reutilizar o `GitHubIcon` de `components/icons` | A regra de exibição da imagem do projeto fica em um componente só, usado pelas duas telas | [#00](https://github.com/C14-Inatel-2026-2/carecahub/pull/00) |
+| Isabelle | Componente longo: `ProjectDetailsContent` com ~220 linhas e regra do "Outro" repetida para gerenciador e controle de versão | Extrair função (`optionOrOtherLabel`, `getProjectTechnologies`) + extrair componente (`ProjectMembersList`, `ProjectRepositoriesList`) | Cada parte da tela ganha nome e a regra do "Outro" fica isolada e testável | [#00](https://github.com/C14-Inatel-2026-2/carecahub/pull/00) |
+
 ## Run locally
 
 ```bash
