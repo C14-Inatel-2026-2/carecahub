@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { GitHubIcon } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,6 +28,7 @@ import { projectDetailsRoute } from '@/router/routes'
 import type { Group } from '@/types/group'
 import type { Project } from '@/types/project'
 import { GroupBadge, ProjectBadge } from './project-badge'
+import { ProjectThumbnail, projectAccentStyle } from './project-thumbnail'
 
 export function ProjectCard({ group, project }: { group: Group; project: Project }) {
   const hasRepositories = project.repositories.length > 0
@@ -34,27 +36,9 @@ export function ProjectCard({ group, project }: { group: Group; project: Project
   return (
     <div
       className='h-full flex flex-col p-5 gap-2 bg-card rounded-sm shadow-lg/40 shadow-foreground/10 border border-border/70'
-      style={
-        project.mainColor
-          ? {
-              borderColor: `${project.mainColor}66`,
-              boxShadow: `0 4px 16px ${project.mainColor}40`,
-            }
-          : undefined
-      }
+      style={projectAccentStyle(project.mainColor, '4px')}
     >
-      {project.thumbnailUrl ? (
-        <img
-          src={project.thumbnailUrl}
-          alt={`Imagem do projeto ${project.projectName}`}
-          className='aspect-video w-full rounded-lg object-cover'
-        />
-      ) : (
-        <>
-          <img src='/project-fallback-light.png' className='rounded-lg dark:hidden' />
-          <img src='/project-fallback-dark.png' className='hidden rounded-lg dark:block' />
-        </>
-      )}
+      <ProjectThumbnail project={project} />
       <div className='flex flex-row justify-start items-center w-fit gap-2 mt-2'>
         {group.tags && group.tags.map((tag) => <GroupBadge key={tag} tag={tag} />)}
 
@@ -101,7 +85,7 @@ export function ProjectCard({ group, project }: { group: Group; project: Project
           rel='noreferrer'
           className='flex min-w-0 items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline mb-4'
         >
-          <GitHubIcon />
+          <GitHubIcon className='size-4 shrink-0' />
           <span className='truncate'>{project.repositories[0].url}</span>
         </a>
       )}
@@ -126,7 +110,7 @@ export function ProjectCard({ group, project }: { group: Group; project: Project
                 className='cursor-pointer'
                 render={<a href={repository.url} target='_blank' rel='noreferrer' />}
               >
-                <GitHubIcon />
+                <GitHubIcon className='size-4 shrink-0' />
                 <span className='truncate'>{repository.url}</span>
               </DropdownMenuItem>
             ))}
@@ -137,14 +121,6 @@ export function ProjectCard({ group, project }: { group: Group; project: Project
         Ver detalhes <ArrowRight />
       </Button>
     </div>
-  )
-}
-
-function GitHubIcon() {
-  return (
-    <svg viewBox='0 0 24 24' aria-hidden='true' className='size-4 shrink-0 fill-current'>
-      <path d='M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.02c-3.22.7-3.9-1.37-3.9-1.37-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.57-.3-5.27-1.29-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18A10.95 10.95 0 0 1 12 6.31c.98 0 1.96.13 2.87.39 2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.71 5.39-5.29 5.68.42.36.79 1.07.79 2.16v3.05c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z' />
-    </svg>
   )
 }
 
