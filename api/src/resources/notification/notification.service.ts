@@ -1,4 +1,11 @@
-import { groupInvites, groups, notifications, users } from '@db'
+import {
+  type GroupInvite,
+  groupInvites,
+  groups,
+  type Notification,
+  notifications,
+  users,
+} from '@db'
 import { Injectable } from '@nestjs/common'
 import { and, asc, count, desc, eq, ilike, inArray, isNull, ne, or } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
@@ -31,6 +38,15 @@ const notificationSelection = {
   groupInvite: groupInvitePublicColumns,
   group: { id: groups.id, friendlyId: groups.friendlyId },
   inviter: { id: inviters.id, name: inviters.name },
+}
+
+type PendingInviteContext = {
+  groupInvite: Pick<GroupInvite, 'inviteeId' | 'status'>
+  notification: Pick<Notification, 'id' | 'userId'>
+}
+
+type LockedPendingInviteContext = PendingInviteContext & {
+  groupInvite: Pick<GroupInvite, 'id' | 'inviteeId' | 'status'>
 }
 
 @Injectable()
@@ -298,137 +314,111 @@ export class NotificationService implements INotificationService {
             isNull(notifications.deletedAt),
           ),
         )
-      if (!context) return { ok: false as const, errKey: ErrKeys.notFound }
-      if (
-        context.groupInvite.inviteeId !== requester.userId ||
-        context.notification.userId !== requester.userId
-      ) {
-        return { ok: false as const, errKey: ErrKeys.forbidden }
-      }
-      if (context.groupInvite.status !== 'pending') {
-        return { ok: false as const, errKey: ErrKeys.invalidPayload }
-      }
+      const errKey = this.getPendingInviteErrKey(context, requester)
+      if (errKey) return { ok: false as const, errKey }
 
       const now = new Date()
       if (input.status === 'rejected') {
-        const [lockedContext] = await tx
-          .select({
-            groupInvite: {
-              id: groupInvites.id,
-              inviteeId: groupInvites.inviteeId,
-              status: groupInvites.status,
-            },
-            notification: { id: notifications.id, userId: notifications.userId },
-          })
-          .from(groupInvites)
-          .innerJoin(notifications, eq(notifications.groupInviteId, groupInvites.id))
-          .where(
-            and(
-              eq(groupInvites.id, inviteId),
-              isNull(groupInvites.deletedAt),
-              isNull(notifications.deletedAt),
-            ),
-          )
-          .for('update')
-        if (!lockedContext) return { ok: false as const, errKey: ErrKeys.notFound }
-        if (
-          lockedContext.groupInvite.inviteeId !== requester.userId ||
-          lockedContext.notification.userId !== requester.userId
-        ) {
-          return { ok: false as const, errKey: ErrKeys.forbidden }
-        }
-        if (lockedContext.groupInvite.status !== 'pending') {
-          return { ok: false as const, errKey: ErrKeys.invalidPayload }
-        }
-
-        await tx
-          .update(groupInvites)
-          .set({ status: 'rejected', respondedAt: now, updatedAt: now })
-          .where(eq(groupInvites.id, inviteId))
-        await tx
-          .update(notifications)
-          .set({ readAt: now, updatedAt: now })
-          .where(eq(notifications.id, context.notification.id))
-        return { ok: true as const, id: inviteId, status: 'rejected' as const, groupId: null }
+        return this.rejectInvite(tx, inviteId, requester, now)
       }
 
-      const [invitee] = await tx
-        .select({ id: users.id, groupId: users.groupId, status: users.status })
-        .from(users)
-        .where(and(eq(users.id, requester.userId), isNull(users.deletedAt)))
-        .for('update')
-      if (!invitee) return { ok: false as const, errKey: ErrKeys.notFound }
-      if (invitee.status !== 'active' || invitee.groupId) {
-        return { ok: false as const, errKey: ErrKeys.invalidPayload }
-      }
+      return this.acceptInvite(tx, inviteId, requester, context.groupInvite.groupId, now)
+    })
+  }
 
-      const [group] = await tx
-        .select({ id: groups.id, friendlyId: groups.friendlyId, deletedAt: groups.deletedAt })
-        .from(groups)
-        .where(and(eq(groups.id, context.groupInvite.groupId), isNull(groups.deletedAt)))
-        .for('update')
-      if (!group) return { ok: false as const, errKey: ErrKeys.notFound }
+  private async rejectInvite(
+    tx: DrizzleTransactionClient,
+    inviteId: string,
+    requester: UserMetadata,
+    now: Date,
+  ): RespondGroupInviteOutput {
+    const lockedInvite = await this.lockPendingInvite(tx, inviteId, requester)
+    if ('errKey' in lockedInvite) return { ok: false, errKey: lockedInvite.errKey }
 
-      const [lockedContext] = await tx
-        .select({
-          groupInvite: {
-            id: groupInvites.id,
-            inviteeId: groupInvites.inviteeId,
-            status: groupInvites.status,
-          },
-          notification: { id: notifications.id, userId: notifications.userId },
-        })
-        .from(groupInvites)
-        .innerJoin(notifications, eq(notifications.groupInviteId, groupInvites.id))
-        .where(
-          and(
-            eq(groupInvites.id, inviteId),
-            isNull(groupInvites.deletedAt),
-            isNull(notifications.deletedAt),
-          ),
-        )
-        .for('update')
-      if (!lockedContext) return { ok: false as const, errKey: ErrKeys.notFound }
-      if (
-        lockedContext.groupInvite.inviteeId !== requester.userId ||
-        lockedContext.notification.userId !== requester.userId
-      ) {
-        return { ok: false as const, errKey: ErrKeys.forbidden }
-      }
-      if (lockedContext.groupInvite.status !== 'pending') {
-        return { ok: false as const, errKey: ErrKeys.invalidPayload }
-      }
+    await tx
+      .update(groupInvites)
+      .set({ status: 'rejected', respondedAt: now, updatedAt: now })
+      .where(eq(groupInvites.id, inviteId))
+    await tx
+      .update(notifications)
+      .set({ readAt: now, updatedAt: now })
+      .where(eq(notifications.id, lockedInvite.notification.id))
+    return { ok: true, id: inviteId, status: 'rejected', groupId: null }
+  }
 
-      const [memberCount] = await tx
-        .select({ count: count() })
-        .from(users)
-        .where(
-          and(eq(users.groupId, group.id), eq(users.status, 'active'), isNull(users.deletedAt)),
-        )
-      const currentMemberCount = Number(memberCount?.count ?? 0)
-      if (currentMemberCount >= 6) {
-        return { ok: false as const, errKey: ErrKeys.limitReached }
-      }
+  private async acceptInvite(
+    tx: DrizzleTransactionClient,
+    inviteId: string,
+    requester: UserMetadata,
+    groupId: string,
+    now: Date,
+  ): RespondGroupInviteOutput {
+    const [invitee] = await tx
+      .select({ id: users.id, groupId: users.groupId, status: users.status })
+      .from(users)
+      .where(and(eq(users.id, requester.userId), isNull(users.deletedAt)))
+      .for('update')
+    if (!invitee) return { ok: false, errKey: ErrKeys.notFound }
+    if (invitee.status !== 'active' || invitee.groupId) {
+      return { ok: false, errKey: ErrKeys.invalidPayload }
+    }
 
-      await tx
-        .update(users)
-        .set({ groupId: group.id, updatedAt: now })
-        .where(eq(users.id, requester.userId))
-      await tx
-        .update(groupInvites)
-        .set({ status: 'accepted', respondedAt: now, updatedAt: now })
-        .where(eq(groupInvites.id, inviteId))
-      await tx
-        .update(notifications)
-        .set({ readAt: now, updatedAt: now })
-        .where(eq(notifications.id, context.notification.id))
+    const [group] = await tx
+      .select({ id: groups.id, friendlyId: groups.friendlyId, deletedAt: groups.deletedAt })
+      .from(groups)
+      .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)))
+      .for('update')
+    if (!group) return { ok: false, errKey: ErrKeys.notFound }
 
-      const otherReceivedInvites = await tx
+    const lockedInvite = await this.lockPendingInvite(tx, inviteId, requester)
+    if ('errKey' in lockedInvite) return { ok: false, errKey: lockedInvite.errKey }
+
+    const [memberCount] = await tx
+      .select({ count: count() })
+      .from(users)
+      .where(and(eq(users.groupId, group.id), eq(users.status, 'active'), isNull(users.deletedAt)))
+    const currentMemberCount = Number(memberCount?.count ?? 0)
+    if (currentMemberCount >= 6) {
+      return { ok: false, errKey: ErrKeys.limitReached }
+    }
+
+    await tx
+      .update(users)
+      .set({ groupId: group.id, updatedAt: now })
+      .where(eq(users.id, requester.userId))
+    await tx
+      .update(groupInvites)
+      .set({ status: 'accepted', respondedAt: now, updatedAt: now })
+      .where(eq(groupInvites.id, inviteId))
+    await tx
+      .update(notifications)
+      .set({ readAt: now, updatedAt: now })
+      .where(eq(notifications.id, lockedInvite.notification.id))
+
+    const otherReceivedInvites = await tx
+      .select({ id: groupInvites.id })
+      .from(groupInvites)
+      .where(
+        and(
+          eq(groupInvites.inviteeId, requester.userId),
+          eq(groupInvites.status, 'pending'),
+          ne(groupInvites.id, inviteId),
+          isNull(groupInvites.deletedAt),
+        ),
+      )
+    await this.cancelInvites(
+      tx,
+      otherReceivedInvites.map((invite) => invite.id),
+      now,
+    )
+
+    if (currentMemberCount + 1 === 6) {
+      const remainingGroupInvites = await tx
         .select({ id: groupInvites.id })
         .from(groupInvites)
         .where(
           and(
-            eq(groupInvites.inviteeId, requester.userId),
+            eq(groupInvites.groupId, group.id),
             eq(groupInvites.status, 'pending'),
             ne(groupInvites.id, inviteId),
             isNull(groupInvites.deletedAt),
@@ -436,31 +426,55 @@ export class NotificationService implements INotificationService {
         )
       await this.cancelInvites(
         tx,
-        otherReceivedInvites.map((invite) => invite.id),
+        remainingGroupInvites.map((invite) => invite.id),
         now,
       )
+    }
 
-      if (currentMemberCount + 1 === 6) {
-        const remainingGroupInvites = await tx
-          .select({ id: groupInvites.id })
-          .from(groupInvites)
-          .where(
-            and(
-              eq(groupInvites.groupId, group.id),
-              eq(groupInvites.status, 'pending'),
-              ne(groupInvites.id, inviteId),
-              isNull(groupInvites.deletedAt),
-            ),
-          )
-        await this.cancelInvites(
-          tx,
-          remainingGroupInvites.map((invite) => invite.id),
-          now,
-        )
-      }
+    return { ok: true, id: inviteId, status: 'accepted', groupId: group.id }
+  }
 
-      return { ok: true as const, id: inviteId, status: 'accepted' as const, groupId: group.id }
-    })
+  private async lockPendingInvite(
+    tx: DrizzleTransactionClient,
+    inviteId: string,
+    requester: UserMetadata,
+  ): Promise<LockedPendingInviteContext | { errKey: ErrKeys }> {
+    const [context] = await tx
+      .select({
+        groupInvite: {
+          id: groupInvites.id,
+          inviteeId: groupInvites.inviteeId,
+          status: groupInvites.status,
+        },
+        notification: { id: notifications.id, userId: notifications.userId },
+      })
+      .from(groupInvites)
+      .innerJoin(notifications, eq(notifications.groupInviteId, groupInvites.id))
+      .where(
+        and(
+          eq(groupInvites.id, inviteId),
+          isNull(groupInvites.deletedAt),
+          isNull(notifications.deletedAt),
+        ),
+      )
+      .for('update')
+    const errKey = this.getPendingInviteErrKey(context, requester)
+    if (errKey) return { errKey }
+    return context as LockedPendingInviteContext
+  }
+
+  private getPendingInviteErrKey(
+    context: PendingInviteContext | undefined,
+    requester: UserMetadata,
+  ): ErrKeys | undefined {
+    if (!context) return ErrKeys.notFound
+    if (
+      context.groupInvite.inviteeId !== requester.userId ||
+      context.notification.userId !== requester.userId
+    ) {
+      return ErrKeys.forbidden
+    }
+    if (context.groupInvite.status !== 'pending') return ErrKeys.invalidPayload
   }
 
   private async cancelInvites(
