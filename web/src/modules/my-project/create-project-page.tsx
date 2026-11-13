@@ -18,13 +18,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Field, FieldError } from '@/components/ui/field'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { appRoutes } from '@/router/routes'
 import {
   dependencyManagerOptions,
@@ -36,6 +29,13 @@ import {
   technologyOptions,
   versionControlOptions,
 } from '@/types/project'
+import { OptionSelectField } from './option-select-field'
+
+const sortedTechnologyOptions = technologyOptions.toSorted((a, b) =>
+  a.label.localeCompare(b.label, 'pt-BR', {
+    sensitivity: 'base',
+  })
+)
 
 export function CreateProjectPage() {
   const navigate = useNavigate()
@@ -130,37 +130,31 @@ export function CreateProjectPage() {
                     <Field data-invalid={fieldState.invalid}>
                       <FormFieldLabel name='technologies'>Tecnologias utilizadas</FormFieldLabel>
                       <div className='grid grid-cols-2 gap-3 rounded-lg border p-4 sm:grid-cols-3 lg:grid-cols-4'>
-                        {technologyOptions
-                          .toSorted((a, b) =>
-                            a.label.localeCompare(b.label, 'pt-BR', {
-                              sensitivity: 'base',
-                            })
+                        {sortedTechnologyOptions.map((option) => {
+                          const id = `technology-${option.value}`
+                          const selected = (field.value ?? []).includes(option.value)
+                          return (
+                            <label
+                              key={option.value}
+                              htmlFor={id}
+                              className='flex cursor-pointer items-center gap-2 text-sm'
+                            >
+                              <Checkbox
+                                id={id}
+                                checked={selected}
+                                onCheckedChange={(checked) => {
+                                  const current = field.value ?? []
+                                  field.onChange(
+                                    checked
+                                      ? [...current, option.value]
+                                      : current.filter((value) => value !== option.value)
+                                  )
+                                }}
+                              />
+                              {option.label}
+                            </label>
                           )
-                          .map((option) => {
-                            const id = `technology-${option.value}`
-                            const selected = (field.value ?? []).includes(option.value)
-                            return (
-                              <label
-                                key={option.value}
-                                htmlFor={id}
-                                className='flex cursor-pointer items-center gap-2 text-sm'
-                              >
-                                <Checkbox
-                                  id={id}
-                                  checked={selected}
-                                  onCheckedChange={(checked) => {
-                                    const current = field.value ?? []
-                                    field.onChange(
-                                      checked
-                                        ? [...current, option.value]
-                                        : current.filter((value) => value !== option.value)
-                                    )
-                                  }}
-                                />
-                                {option.label}
-                              </label>
-                            )
-                          })}
+                        })}
                       </div>
                       <FieldError errors={[fieldState.error]} />
                     </Field>
@@ -190,44 +184,10 @@ export function CreateProjectPage() {
                 )}
 
                 <div className='grid gap-5 md:grid-cols-2'>
-                  <Controller
-                    control={form.control}
+                  <OptionSelectField
                     name='dependencyManager'
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FormFieldLabel name='dependencyManager' htmlFor='dependency-manager'>
-                          Gerenciador de dependências
-                        </FormFieldLabel>
-                        <Select value={field.value ?? null} onValueChange={field.onChange}>
-                          <SelectTrigger
-                            id='dependency-manager'
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className='w-full'
-                            aria-invalid={fieldState.invalid}
-                            aria-required='true'
-                            aria-describedby={
-                              fieldState.invalid ? 'dependency-manager-error' : undefined
-                            }
-                          >
-                            <SelectValue placeholder='Selecione um gerenciador'>
-                              {(value) =>
-                                dependencyManagerOptions.find((option) => option.value === value)
-                                  ?.label
-                              }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {dependencyManagerOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FieldError id='dependency-manager-error' errors={[fieldState.error]} />
-                      </Field>
-                    )}
+                    label='Gerenciador de dependências'
+                    options={dependencyManagerOptions}
                   />
 
                   {dependencyManager === 'other' && (
@@ -238,44 +198,10 @@ export function CreateProjectPage() {
                     />
                   )}
 
-                  <Controller
-                    control={form.control}
+                  <OptionSelectField
                     name='versionControl'
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FormFieldLabel name='versionControl' htmlFor='version-control'>
-                          Sistema de controle de versão
-                        </FormFieldLabel>
-                        <Select value={field.value ?? null} onValueChange={field.onChange}>
-                          <SelectTrigger
-                            id='version-control'
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className='w-full'
-                            aria-invalid={fieldState.invalid}
-                            aria-required='true'
-                            aria-describedby={
-                              fieldState.invalid ? 'version-control-error' : undefined
-                            }
-                          >
-                            <SelectValue placeholder='Selecione um sistema'>
-                              {(value) =>
-                                versionControlOptions.find((option) => option.value === value)
-                                  ?.label
-                              }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {versionControlOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FieldError id='version-control-error' errors={[fieldState.error]} />
-                      </Field>
-                    )}
+                    label='Sistema de controle de versão'
+                    options={versionControlOptions}
                   />
 
                   {versionControl === 'other' && (
@@ -286,44 +212,10 @@ export function CreateProjectPage() {
                     />
                   )}
 
-                  <Controller
-                    control={form.control}
+                  <OptionSelectField
                     name='repositoryType'
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FormFieldLabel name='repositoryType' htmlFor='repository-type'>
-                          Tipo de repositório
-                        </FormFieldLabel>
-                        <Select value={field.value ?? null} onValueChange={field.onChange}>
-                          <SelectTrigger
-                            id='repository-type'
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            className='w-full'
-                            aria-invalid={fieldState.invalid}
-                            aria-required='true'
-                            aria-describedby={
-                              fieldState.invalid ? 'repository-type-error' : undefined
-                            }
-                          >
-                            <SelectValue placeholder='Selecione um tipo'>
-                              {(value) =>
-                                repositoryTypeOptions.find((option) => option.value === value)
-                                  ?.label
-                              }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {repositoryTypeOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FieldError id='repository-type-error' errors={[fieldState.error]} />
-                      </Field>
-                    )}
+                    label='Tipo de repositório'
+                    options={repositoryTypeOptions}
                   />
                 </div>
 
