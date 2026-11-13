@@ -7,6 +7,14 @@ acadêmicos. Ela reúne estudantes, monitores, professores e administradores em
 um único ambiente para formar grupos, cadastrar projetos e repositórios,
 publicar atividades, acompanhar entregas e centralizar notificações.
 
+## Aplicação publicada
+
+- Web: https://carecahub-web.onrender.com/
+- API: https://carecahub-api.onrender.com/
+
+A publicação no Render é feita pela pipeline do Jenkins, na branch `main`. O
+passo a passo está em [jenkins/README.md](jenkins/README.md#deploy-no-render).
+
 ## Requisitos funcionais
 
 - Autenticar usuários e permitir a alteração de senha.

@@ -19,6 +19,7 @@ const mockedEnv = vi.hoisted(() => ({
   AWS_PUBLIC_BUCKET: 'public-bucket',
   AWS_PRIVATE_BUCKET: 'private-bucket',
   AWS_REGION: 'us-east-1',
+  AWS_PUBLIC_BUCKET_URL: undefined as string | undefined,
 }))
 
 vi.mock('@/providers/config/env', () => ({
@@ -33,6 +34,7 @@ describe('BucketService', () => {
 
   beforeEach(() => {
     mockedEnv.ENV_SCOPE = 'production'
+    mockedEnv.AWS_PUBLIC_BUCKET_URL = undefined
 
     const returningBucketFile = vi.fn(async () => [
       {
@@ -83,6 +85,24 @@ describe('BucketService', () => {
   })
 
   describe('S3 upload', () => {
+    it('stores the public URL for an upload to Supabase Storage', async () => {
+      const publicBucketUrl = 'https://example.supabase.co/storage/v1/object/public/public-bucket'
+      mockedEnv.AWS_PUBLIC_BUCKET_URL = `${publicBucketUrl}/`
+      const buffer = Buffer.from('<svg/>')
+
+      await service.upload({
+        file: { buffer, originalname: 'icon.svg', mimetype: 'image/svg+xml', size: buffer.length },
+        isPublic: true,
+      })
+
+      const [command] = sendToS3.mock.calls[0] as [PutObjectCommand]
+      assert.strictEqual(command.input.Bucket, 'public-bucket')
+      assert.strictEqual(
+        insertBucketFileValues.mock.calls[0][0].url,
+        `${publicBucketUrl}/${command.input.Key}`,
+      )
+    })
+
     it('should resize and convert image to jpeg', async () => {
       const pngBuffer = await sharp({
         create: {

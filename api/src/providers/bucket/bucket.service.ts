@@ -57,6 +57,11 @@ export class BucketService implements IBucketService {
       region: env.AWS_REGION,
       apiVersion: '2006-03-01',
       logger: this.logger,
+      ...(env.AWS_S3_ENDPOINT && {
+        endpoint: env.AWS_S3_ENDPOINT,
+        forcePathStyle: true,
+        requestChecksumCalculation: 'WHEN_REQUIRED',
+      }),
     })
   }
 
@@ -73,6 +78,10 @@ export class BucketService implements IBucketService {
   }
 
   buildPublicS3Url(key: string) {
+    if (env.AWS_PUBLIC_BUCKET_URL) {
+      return `${env.AWS_PUBLIC_BUCKET_URL.replace(/\/$/, '')}/${encodeURIComponent(key)}`
+    }
+
     return `https://${this.PUBLIC_BUCKET}.s3.${this.REGION}.amazonaws.com/${key}`
   }
 
