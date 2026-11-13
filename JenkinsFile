@@ -4,6 +4,11 @@ pipeline {
     options {
         timestamps()
         skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        booleanParam(name: 'DEPLOY_RENDER', defaultValue: false, description: 'Aplicar migrations no Supabase e publicar no Render após validar o commit')
     }
 
     stages {
@@ -148,6 +153,49 @@ pipeline {
                                 dir('web') {
                                     sh 'pnpm build'
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Render') {
+            when {
+                allOf {
+                    expression { params.DEPLOY_RENDER }
+                    not { changeRequest() }
+                    branch 'main'
+                }
+            }
+            stages {
+                stage('Migrate Supabase') {
+                    steps {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            withCredentials([
+                                string(credentialsId: 'supabase-database-url', variable: 'DATABASE_URL'),
+                                file(credentialsId: 'supabase-database-ca', variable: 'NODE_EXTRA_CA_CERTS')
+                            ]) {
+                                dir('api') {
+                                    sh '''
+                                        set +x
+                                        pnpm db:migrate
+                                    '''
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Publish API and Web') {
+                    steps {
+                        timeout(time: 20, unit: 'MINUTES') {
+                            withCredentials([
+                                string(credentialsId: 'render-api-key', variable: 'RENDER_API_KEY'),
+                                string(credentialsId: 'render-api-service-id', variable: 'RENDER_API_SERVICE_ID'),
+                                string(credentialsId: 'render-web-service-id', variable: 'RENDER_WEB_SERVICE_ID')
+                            ]) {
+                                sh 'node jenkins/deploy-render.mjs "$(git rev-parse HEAD)"'
                             }
                         }
                     }
