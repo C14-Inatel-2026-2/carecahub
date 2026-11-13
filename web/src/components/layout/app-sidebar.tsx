@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleUserRound,
+  ClipboardList,
   Home,
   KeyRound,
   LogOut,
@@ -186,6 +187,19 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
               >
                 <Box />
                 <span>Projeto</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {pagesByRole[user.role].includes(appRoutes.activities) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={location.pathname.startsWith(appRoutes.activities)}
+                tooltip='Atividades'
+                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                render={<Link to={appRoutes.activities} />}
+              >
+                <ClipboardList />
+                <span>Atividades</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}

@@ -10,6 +10,7 @@ export const appRoutes = {
   groups: '/groups',
   profile: '/profile',
   settings: '/settings',
+  activities: '/activities',
 } as const satisfies Record<string, `/${string}`>
 
 export type AppRoute = (typeof appRoutes)[keyof typeof appRoutes]
@@ -22,3 +23,6 @@ export const projectDetailsRoute = (projectId: string) =>
 
 export const projectCustomizeRoute = (projectId: string) =>
   `${projectDetailsRoute(projectId)}/customize`
+
+export const activityDetailsRoute = (activityId: string) =>
+  `${appRoutes.activities}/${encodeURIComponent(activityId)}`
