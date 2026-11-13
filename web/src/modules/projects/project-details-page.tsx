@@ -24,6 +24,7 @@ import {
   technologyOptions,
   versionControlOptions,
 } from '@/types/project'
+import { ProjectThumbnail, projectAccentStyle } from './components/project-thumbnail'
 
 function optionLabel(
   options: ReadonlyArray<{ value: string; label: string }>,
@@ -31,6 +32,25 @@ function optionLabel(
 ) {
   if (!value) return 'Não informado'
   return options.find((option) => option.value === value)?.label ?? value
+}
+
+function optionOrOtherLabel(
+  options: ReadonlyArray<{ value: string; label: string }>,
+  value?: string | null,
+  otherValue?: string | null
+) {
+  if (value === 'other' && otherValue) return otherValue
+  return optionLabel(options, value)
+}
+
+function getProjectTechnologies(project: Project) {
+  const technologies = (project.technologies ?? []).map((technology) =>
+    optionLabel(technologyOptions, technology)
+  )
+  if (project.usesOtherTechnology && project.otherTechnology) {
+    technologies.push(project.otherTechnology)
+  }
+  return technologies
 }
 
 function DetailItem({
@@ -53,6 +73,70 @@ function DetailItem({
   )
 }
 
+function ProjectMembersList({ members }: { members: NonNullable<Project['members']> }) {
+  const memberColumns = Math.ceil(members.length / 3) || 1
+  const memberRows = Math.ceil(members.length / memberColumns)
+
+  return (
+    <div>
+      <h2 className='mb-2 text-sm font-medium'>Grupo</h2>
+      {members.length > 0 ? (
+        <ul
+          className='grid grid-flow-col gap-2'
+          style={{
+            gridTemplateColumns: `repeat(${memberColumns}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${memberRows}, minmax(0, auto))`,
+          }}
+        >
+          {members.map((member) => (
+            <li key={member.id} className='flex min-w-0 items-center gap-2'>
+              {member.gitHubDetails?.avatarUrl ? (
+                <img
+                  src={member.gitHubDetails.avatarUrl}
+                  alt={member.name}
+                  className='size-7 shrink-0 rounded-full'
+                />
+              ) : (
+                <CircleUser className='size-7 shrink-0 text-muted-foreground' />
+              )}
+              <span className='truncate text-sm'>{member.name}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className='text-sm text-muted-foreground'>Nenhum integrante vinculado.</p>
+      )}
+    </div>
+  )
+}
+
+function ProjectRepositoriesList({ repositories }: { repositories: Project['repositories'] }) {
+  return (
+    <div>
+      <h2 className='mb-2 text-sm font-medium'>Repositórios</h2>
+      {repositories.length > 0 ? (
+        <ul className='space-y-2'>
+          {repositories.map((repository) => (
+            <li key={repository.id}>
+              <a
+                href={repository.url}
+                target='_blank'
+                rel='noreferrer'
+                className='flex min-w-0 items-center gap-2 rounded-lg border border-border/70 p-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              >
+                <ExternalLink className='size-4 shrink-0' aria-hidden='true' />
+                <span className='truncate'>{repository.url}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className='text-sm text-muted-foreground'>Nenhum repositório vinculado.</p>
+      )}
+    </div>
+  )
+}
+
 export function ProjectDetailsContent({
   project,
   canCustomize = false,
@@ -60,24 +144,17 @@ export function ProjectDetailsContent({
   project: Project
   canCustomize?: boolean
 }) {
-  const members = project.members ?? []
-  const memberColumns = Math.ceil(members.length / 3) || 1
-  const memberRows = Math.ceil(members.length / memberColumns)
-  const technologies = (project.technologies ?? []).map((technology) =>
-    optionLabel(technologyOptions, technology)
+  const technologies = getProjectTechnologies(project)
+  const dependencyManager = optionOrOtherLabel(
+    dependencyManagerOptions,
+    project.dependencyManager,
+    project.otherDependencyManager
   )
-  if (project.usesOtherTechnology && project.otherTechnology) {
-    technologies.push(project.otherTechnology)
-  }
-
-  const dependencyManager =
-    project.dependencyManager === 'other' && project.otherDependencyManager
-      ? project.otherDependencyManager
-      : optionLabel(dependencyManagerOptions, project.dependencyManager)
-  const versionControl =
-    project.versionControl === 'other' && project.otherVersionControl
-      ? project.otherVersionControl
-      : optionLabel(versionControlOptions, project.versionControl)
+  const versionControl = optionOrOtherLabel(
+    versionControlOptions,
+    project.versionControl,
+    project.otherVersionControl
+  )
 
   return (
     <section className='flex w-full flex-1 flex-col gap-4 px-4 py-5 md:px-6 lg:px-8'>
@@ -124,37 +201,8 @@ export function ProjectDetailsContent({
 
       <div className='grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.38fr)]'>
         <div className='flex min-w-0 flex-col gap-4'>
-          <Card
-            className='py-0'
-            style={
-              project.mainColor
-                ? {
-                    borderColor: `${project.mainColor}66`,
-                    boxShadow: `0 0px 16px ${project.mainColor}40`,
-                  }
-                : undefined
-            }
-          >
-            {project.thumbnailUrl ? (
-              <img
-                src={project.thumbnailUrl}
-                alt={`Imagem do projeto ${project.projectName}`}
-                className='aspect-video w-full rounded-lg object-cover'
-              />
-            ) : (
-              <>
-                <img
-                  src='/project-fallback-light.png'
-                  alt={`Imagem do projeto ${project.projectName}`}
-                  className='rounded-lg dark:hidden'
-                />
-                <img
-                  src='/project-fallback-dark.png'
-                  alt={`Imagem do projeto ${project.projectName}`}
-                  className='hidden rounded-lg dark:block'
-                />
-              </>
-            )}
+          <Card className='py-0' style={projectAccentStyle(project.mainColor, '0px')}>
+            <ProjectThumbnail project={project} describeFallback />
           </Card>
 
           <Card>
@@ -214,58 +262,8 @@ export function ProjectDetailsContent({
               />
             </dl>
 
-            <div>
-              <h2 className='mb-2 text-sm font-medium'>Grupo</h2>
-              {members.length > 0 ? (
-                <ul
-                  className='grid grid-flow-col gap-2'
-                  style={{
-                    gridTemplateColumns: `repeat(${memberColumns}, minmax(0, 1fr))`,
-                    gridTemplateRows: `repeat(${memberRows}, minmax(0, auto))`,
-                  }}
-                >
-                  {members.map((member) => (
-                    <li key={member.id} className='flex min-w-0 items-center gap-2'>
-                      {member.gitHubDetails?.avatarUrl ? (
-                        <img
-                          src={member.gitHubDetails.avatarUrl}
-                          alt={member.name}
-                          className='size-7 shrink-0 rounded-full'
-                        />
-                      ) : (
-                        <CircleUser className='size-7 shrink-0 text-muted-foreground' />
-                      )}
-                      <span className='truncate text-sm'>{member.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className='text-sm text-muted-foreground'>Nenhum integrante vinculado.</p>
-              )}
-            </div>
-
-            <div>
-              <h2 className='mb-2 text-sm font-medium'>Repositórios</h2>
-              {project.repositories.length > 0 ? (
-                <ul className='space-y-2'>
-                  {project.repositories.map((repository) => (
-                    <li key={repository.id}>
-                      <a
-                        href={repository.url}
-                        target='_blank'
-                        rel='noreferrer'
-                        className='flex min-w-0 items-center gap-2 rounded-lg border border-border/70 p-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-                      >
-                        <ExternalLink className='size-4 shrink-0' aria-hidden='true' />
-                        <span className='truncate'>{repository.url}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className='text-sm text-muted-foreground'>Nenhum repositório vinculado.</p>
-              )}
-            </div>
+            <ProjectMembersList members={project.members ?? []} />
+            <ProjectRepositoriesList repositories={project.repositories} />
           </CardContent>
         </Card>
       </div>
