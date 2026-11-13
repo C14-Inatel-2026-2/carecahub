@@ -1,5 +1,6 @@
 import useSWR from 'swr'
 import { buildQueryString, type FetcherParams } from '@/api'
+import type { Activity, Submission } from '@/types/activity'
 import type { PaginateParams, PaginateResponse } from '@/types/api'
 import type { GetGroupResponse } from '@/types/group'
 import type { Notification } from '@/types/notification'
@@ -15,6 +16,7 @@ type UseListParams = {
     | '/repositories'
     | '/notifications'
     | '/notifications/group-invites/candidates'
+    | '/activities'
   params: PaginateParams
 }
 
@@ -29,6 +31,9 @@ type ResponseTypeMap = {
   '/repositories/:id': GetRepositoryResponse
   '/notifications': Notification
   '/notifications/group-invites/candidates': GetUserResponse
+  '/activities': Activity
+  '/activities/:id': Activity
+  '/activities/:id/submissions': PaginateResponse<Submission>
 }
 
 /**
