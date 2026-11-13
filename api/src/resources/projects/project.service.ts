@@ -8,6 +8,7 @@ import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { ErrKeys, type UserMetadata } from '@/types'
 import { QueryDto } from '@/utils/dtos/query.dto'
+import { isUniqueViolation } from '@/utils/query-violations'
 import { GetUserDto } from '../users/dto/get-user.dto'
 import type { GetUserWithGitHubDetails } from '../users/user.interface'
 import type { GetProjectDtoRecord, ProjectRepositoryDto } from './dto/get-project.dto'
@@ -44,7 +45,7 @@ export class ProjectService implements IProjectService {
         ? await this.update({ ...input, id: input.id }, requester)
         : await this.create(input, requester)
     } catch (error) {
-      if (this.isUniqueViolation(error)) return { ok: false, errKey: ErrKeys.alreadyExists }
+      if (isUniqueViolation(error)) return { ok: false, errKey: ErrKeys.alreadyExists }
       throw error
     }
   }
@@ -261,10 +262,6 @@ export class ProjectService implements IProjectService {
   private async canReadGroup(groupId: string, requester: UserMetadata): Promise<boolean> {
     if (requester.role !== 'student') return true
     return (await this.findRequesterGroupId(requester.userId)) === groupId
-  }
-
-  private isUniqueViolation(error: unknown): error is { code: '23505' } {
-    return typeof error === 'object' && error !== null && 'code' in error && error.code === '23505'
   }
 
   private readonly selection = {
