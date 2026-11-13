@@ -65,6 +65,8 @@ estavam verdes antes e depois de cada mudança.
 
 | Lara | Componente longo e código duplicado: `create-project-page.tsx` tinha 3 blocos `Controller` + `Select` semelhantes | Extrair o componente `OptionSelectField` e a lista `sortedTechnologyOptions` | Centraliza a estrutura dos selects e reduz duplicação, mantendo os campos “Outro” logo abaixo dos respectivos campos | [#58](https://github.com/C14-Inatel-2026-2/carecahub/pull/58) |
 
+| Lara | Números mágicos e código duplicado: tipos de imagem repetidos nos campos de arquivo e tamanho máximo sem nome | Criar `ACCEPTED_IMAGE_TYPES` e `MAX_IMAGE_SIZE_BYTES`; extrair `validateImage` e `uploadIfSelected` | Mantém a validação e os formatos aceitos dos campos de upload alinhados, evitando duplicação | [#60](https://github.com/C14-Inatel-2026-2/carecahub/pull/60) |
+
 ## Run locally
 
 ```bash
