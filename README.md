@@ -63,6 +63,8 @@ estavam verdes antes e depois de cada mudança.
 | Isabelle | Código duplicado: imagem com fallback claro/escuro e estilo da `mainColor` copiados no card e nos detalhes do projeto, além de uma cópia local do `GitHubIcon` no card | Extrair componente `ProjectThumbnail` + função `projectAccentStyle` e reutilizar o `GitHubIcon` de `components/icons` | A regra de exibição da imagem do projeto fica em um componente só, usado pelas duas telas | [#55](https://github.com/C14-Inatel-2026-2/carecahub/pull/55) |
 | Isabelle | Componente longo: `ProjectDetailsContent` com ~220 linhas e regra do "Outro" repetida para gerenciador e controle de versão | Extrair função (`optionOrOtherLabel`, `getProjectTechnologies`) + extrair componente (`ProjectMembersList`, `ProjectRepositoriesList`) | Cada parte da tela ganha nome e a regra do "Outro" fica isolada e testável | [#55](https://github.com/C14-Inatel-2026-2/carecahub/pull/55) |
 
+| Lara | Componente longo e código duplicado: `create-project-page.tsx` tinha 3 blocos `Controller` + `Select` semelhantes | Extrair o componente `OptionSelectField` e a lista `sortedTechnologyOptions` | Centraliza a estrutura dos selects e reduz duplicação, mantendo os campos “Outro” logo abaixo dos respectivos campos | [#58](https://github.com/C14-Inatel-2026-2/carecahub/pull/58) |
+
 ## Run locally
 
 ```bash
