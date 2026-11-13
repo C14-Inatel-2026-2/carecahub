@@ -193,8 +193,8 @@ As histórias completas, com critérios de aceite, estão em
 | [US-02 Gerenciamento de usuários por papel](docs/stories/02-gerenciamento-de-usuarios.md) | Alta | Entregue | #1, #3, #4, #30, #32 | `user.service.test.ts`, `user.controller.test.ts`, `roles.guard.test.ts`, `user-analytics.test.ts` |
 | [US-03 Formação de grupos de projeto](docs/stories/03-formacao-de-grupos.md) | Alta | Entregue | #20, #21, #26, #27, #29, #38 | `group.service.test.ts`, `notification-invite.service.test.ts`, `notification-response.service.test.ts`, `my-project-group-creation.test.tsx` |
 | [US-04 Cadastro de projetos e repositórios](docs/stories/04-projetos-e-repositorios.md) | Alta | Entregue | #7, #15, #19, #28, #31, #39, #55, #56 | `project.service.test.ts`, `repository.service.test.ts`, `project-details-page.test.tsx`, `project-card.test.tsx` |
-| [US-05 Publicação de atividades e entregas](docs/stories/05-atividades-e-entregas.md) | Alta | Não entregue | — | — |
-| [US-06 Central de notificações](docs/stories/06-notificacoes.md) | Média | Parcial: convites de grupo funcionam; notificações de atividades dependem da US-05 | #29 | `notification.service.test.ts`, `notification-read-all.service.test.ts`, `notification-types.test.ts` |
+| [US-05 Publicação de atividades e entregas](docs/stories/05-atividades-e-entregas.md) | Alta | Entregue | #65, #66 | `activity.service.test.ts`, `submission.service.test.ts`, `activity-dtos.test.ts`, `activity-helpers.test.ts`, `activities-routes.test.tsx`, `student-submission-card.test.tsx` |
+| [US-06 Central de notificações](docs/stories/06-notificacoes.md) | Média | Parcial: convites de grupo funcionam; publicar ou alterar uma atividade ainda não gera notificação | #29 | `notification.service.test.ts`, `notification-read-all.service.test.ts`, `notification-types.test.ts` |
 
 ## Refactorings
 
