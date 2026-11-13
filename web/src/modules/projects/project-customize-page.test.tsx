@@ -31,6 +31,9 @@ describe('ProjectCustomizeContent', () => {
     expect(html).toContain('src="https://example.com/icon.png"')
     expect(html).toContain('src="https://example.com/thumbnail.png"')
     expect(html.match(/type="file"/g)).toHaveLength(2)
+    expect(
+      html.match(/accept="image\/png,image\/jpeg,image\/webp,image\/gif,image\/svg\+xml"/g)
+    ).toHaveLength(2)
   })
 
   it('accepts only six-digit HEX colors', () => {

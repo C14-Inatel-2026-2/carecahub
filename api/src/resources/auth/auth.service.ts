@@ -160,13 +160,13 @@ export class AuthService implements IAuthService {
       .where(eq(users.email, input.username))
 
     if (!user?.password || user.status !== 'active') {
-      return { ok: false, errKey: ErrKeys.unauthorized }
+      return { ok: false, errKey: ErrKeys.invalidCredentials }
     }
 
     const isPasswordValid = await comparePassword(input.password, user.password)
 
     if (!isPasswordValid) {
-      return { ok: false, errKey: ErrKeys.unauthorized }
+      return { ok: false, errKey: ErrKeys.invalidCredentials }
     }
 
     const jwtPayload: UserMetadata = {

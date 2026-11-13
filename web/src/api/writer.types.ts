@@ -1,4 +1,11 @@
 /** biome-ignore-all lint/suspicious/noConfusingVoidType: body can be void */
+import type {
+  Activity,
+  GradeSubmissionRequest,
+  Submission,
+  SubmitActivityRequest,
+  UpsertActivityRequest,
+} from '@/types/activity'
 import type { LoggedUser, LoginRequest, TwoFactorAuthRequest } from '@/types/auth'
 import type { CreateGroupRequest, Group, PromoteLeaderRequest } from '@/types/group'
 import type {
@@ -140,5 +147,25 @@ export type WriterMap = {
   'PATCH /notifications/:id/read': {
     body: void
     response: Notification
+  }
+  'POST /activities': {
+    body: UpsertActivityRequest
+    response: Activity
+  }
+  'PATCH /activities/:id': {
+    body: UpsertActivityRequest
+    response: Activity
+  }
+  'DELETE /activities/:id': {
+    body: void
+    response: object
+  }
+  'POST /activities/:id/submissions': {
+    body: SubmitActivityRequest
+    response: Submission
+  }
+  'PATCH /activities/submissions/:id/grade': {
+    body: GradeSubmissionRequest
+    response: Submission
   }
 }

@@ -13,6 +13,7 @@ const commonPages = [
   appRoutes.profile,
   appRoutes.settings,
   appRoutes.notifications,
+  appRoutes.activities,
 ] satisfies AppRoute[]
 
 export function isAllowedPath(pathname: string, allowedPages: readonly string[]) {
