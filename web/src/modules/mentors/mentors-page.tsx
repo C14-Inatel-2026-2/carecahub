@@ -1,25 +1,15 @@
-import { Ellipsis, Pencil, Search, Trash2, Users } from 'lucide-react'
+import { Search, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useList } from '@/api'
 import { type ColumnDef, DataTable } from '@/components/data-table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { getBadgeClassNamesByRole } from '@/lib/badges'
-import { cn } from '@/lib/utils'
+import { UserActions } from '@/modules/users/user-actions'
+import { userColumns } from '@/modules/users/user-columns'
 import { profileRoute } from '@/router/routes'
 import { useUser } from '@/stores/use-user'
-import { type User, userRoleLabels } from '@/types/user'
+import type { User } from '@/types/user'
 import { CreateMentorDialog } from './dialogs/create-mentor-dialog'
-import { DeleteUserDialog } from './dialogs/delete-mentor-dialog'
-import { EditUserDialog } from './dialogs/edit-mentor-dialog'
 
 export function MentorsPage() {
   const navigate = useNavigate()
@@ -36,41 +26,7 @@ export function MentorsPage() {
   })
   const [search, setSearch] = useState('')
   const columns: ColumnDef<User>[] = [
-    {
-      header: 'Nome',
-      accessorKey: 'name',
-      sortable: true,
-      cell: (listedUser) => <span className='font-medium text-foreground'>{listedUser.name}</span>,
-    },
-    { header: 'E-mail', accessorKey: 'email', sortable: true },
-    {
-      header: 'Função',
-      accessorKey: 'role',
-      sortable: false,
-      className: 'w-32',
-      cell: (listedUser) => (
-        <Badge
-          className={cn('mx-auto', getBadgeClassNamesByRole(listedUser.role))}
-          variant='default'
-        >
-          {userRoleLabels[listedUser.role]}
-        </Badge>
-      ),
-    },
-    {
-      header: 'Status',
-      accessorKey: 'status',
-      sortable: false,
-      className: 'w-28',
-      cell: (listedUser) => (
-        <span className='inline-flex items-center gap-2 text-xs'>
-          <span
-            className={`size-1.5 rounded-full ${listedUser.status === 'active' ? 'bg-emerald-500' : 'bg-muted-foreground'}`}
-          />
-          {listedUser.status === 'active' ? 'Ativo' : 'Inativo'}
-        </span>
-      ),
-    },
+    ...userColumns,
     {
       header: 'Ações',
       accessorKey: 'actions',
@@ -80,6 +36,7 @@ export function MentorsPage() {
         user?.role === 'admin' && (
           <UserActions
             user={listedUser}
+            label='monitor'
             requesterRole={user.role}
             onUpdated={() => void mutate()}
           />
@@ -142,64 +99,5 @@ export function MentorsPage() {
         />
       </div>
     </section>
-  )
-}
-
-function UserActions({
-  user,
-  requesterRole,
-  onUpdated,
-}: {
-  user: User
-  requesterRole: User['role']
-  onUpdated: () => void
-}) {
-  const [editOpen, setEditOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
-
-  return (
-    <div className='flex justify-end'>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon-sm'
-              aria-label={`Ações para ${user.name}`}
-            />
-          }
-        >
-          <Ellipsis />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='min-w-44'>
-          <DropdownMenuItem onClick={() => setEditOpen(true)}>
-            <Pencil />
-            Editar monitor
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className='text-destructive focus:text-destructive'
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 />
-            Excluir monitor
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <EditUserDialog
-        user={user}
-        requesterRole={requesterRole}
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        onUpdated={onUpdated}
-      />
-      <DeleteUserDialog
-        user={user}
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        onDeleted={onUpdated}
-      />
-    </div>
   )
 }

@@ -1,29 +1,19 @@
-import { Ellipsis, Pencil, Search, Trash2, Users } from 'lucide-react'
+import { Search, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useList } from '@/api'
 import { type ColumnDef, DataTable } from '@/components/data-table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { getBadgeClassNamesByRole } from '@/lib/badges'
-import { cn } from '@/lib/utils'
 import { isMockAPIEnabled } from '@/mocks/config'
 import { mockUsers } from '@/mocks/users'
 import { profileRoute } from '@/router/routes'
 import { useUser } from '@/stores/use-user'
-import { type User, userRoleLabels } from '@/types/user'
+import type { User } from '@/types/user'
 import { UserAnalyticsCards } from './components/user-analytics-cards'
 import { CreateUserDialog } from './dialogs/create-user-dialog'
-import { DeleteUserDialog } from './dialogs/delete-user-dialog'
-import { EditUserDialog } from './dialogs/edit-user-dialog'
 import { useUserAnalytics } from './use-user-analytics'
+import { UserActions } from './user-actions'
+import { userColumns } from './user-columns'
 
 export function UsersPage() {
   const navigate = useNavigate()
@@ -71,13 +61,7 @@ export function UsersPage() {
 
   const [search, setSearch] = useState('')
   const columns: ColumnDef<User>[] = [
-    {
-      header: 'Nome',
-      accessorKey: 'name',
-      sortable: true,
-      cell: (listedUser) => <span className='font-medium text-foreground'>{listedUser.name}</span>,
-    },
-    { header: 'E-mail', accessorKey: 'email', sortable: true },
+    ...userColumns.slice(0, 2),
     {
       header: 'Matrícula',
       accessorKey: 'registration',
@@ -94,34 +78,7 @@ export function UsersPage() {
         <span className='font-medium text-foreground'>{listedUser.classroom || '—'}</span>
       ),
     },
-    {
-      header: 'Função',
-      accessorKey: 'role',
-      sortable: false,
-      className: 'w-32',
-      cell: (listedUser) => (
-        <Badge
-          className={cn('mx-auto', getBadgeClassNamesByRole(listedUser.role))}
-          variant='default'
-        >
-          {userRoleLabels[listedUser.role]}
-        </Badge>
-      ),
-    },
-    {
-      header: 'Status',
-      accessorKey: 'status',
-      sortable: false,
-      className: 'w-28',
-      cell: (listedUser) => (
-        <span className='inline-flex items-center gap-2 text-xs'>
-          <span
-            className={`size-1.5 rounded-full ${listedUser.status === 'active' ? 'bg-emerald-500' : 'bg-muted-foreground'}`}
-          />
-          {listedUser.status === 'active' ? 'Ativo' : 'Inativo'}
-        </span>
-      ),
-    },
+    ...userColumns.slice(2),
     {
       header: 'Ações',
       accessorKey: 'actions',
@@ -129,7 +86,12 @@ export function UsersPage() {
       className: 'w-20 text-right',
       cell: (listedUser) =>
         user?.role === 'admin' && (
-          <UserActions user={listedUser} requesterRole={user.role} onUpdated={refreshUsers} />
+          <UserActions
+            user={listedUser}
+            label='usuário'
+            requesterRole={user.role}
+            onUpdated={refreshUsers}
+          />
         ),
     },
   ]
@@ -198,64 +160,5 @@ export function UsersPage() {
         />
       </div>
     </section>
-  )
-}
-
-function UserActions({
-  user,
-  requesterRole,
-  onUpdated,
-}: {
-  user: User
-  requesterRole: User['role']
-  onUpdated: () => void
-}) {
-  const [editOpen, setEditOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
-
-  return (
-    <div className='flex justify-end'>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon-sm'
-              aria-label={`Ações para ${user.name}`}
-            />
-          }
-        >
-          <Ellipsis />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='min-w-44'>
-          <DropdownMenuItem onClick={() => setEditOpen(true)}>
-            <Pencil />
-            Editar usuário
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className='text-destructive focus:text-destructive'
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 />
-            Excluir usuário
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <EditUserDialog
-        user={user}
-        requesterRole={requesterRole}
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        onUpdated={onUpdated}
-      />
-      <DeleteUserDialog
-        user={user}
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        onDeleted={onUpdated}
-      />
-    </div>
   )
 }
