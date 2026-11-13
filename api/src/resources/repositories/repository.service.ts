@@ -61,19 +61,12 @@ export class RepositoryService implements IRepositoryService {
       return { ok: false, errKey: ErrKeys.invalidPayload }
     }
 
-    if (project.repositoryType === 'monorepo') {
-      const [activeRepository] = await this.database.db
-        .select({ id: repositories.id })
-        .from(repositories)
-        .where(and(eq(repositories.projectId, project.id), isNull(repositories.deletedAt)))
-      if (activeRepository) return { ok: false, errKey: ErrKeys.resourceInUse }
+    if (project.repositoryType === 'monorepo' && (await this.hasActiveRepository(project.id))) {
+      return { ok: false, errKey: ErrKeys.resourceInUse }
     }
-
-    const [urlInUse] = await this.database.db
-      .select({ id: repositories.id })
-      .from(repositories)
-      .where(and(eq(repositories.url, input.url), isNull(repositories.deletedAt)))
-    if (urlInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
+    if (await this.isUrlInUse(input.url)) {
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
 
     const [created] = await this.database.db
       .insert(repositories)
@@ -103,31 +96,15 @@ export class RepositoryService implements IRepositoryService {
       return { ok: false, errKey: ErrKeys.invalidPayload }
     }
 
-    if (targetProject.repositoryType === 'monorepo') {
-      const [activeRepository] = await this.database.db
-        .select({ id: repositories.id })
-        .from(repositories)
-        .where(
-          and(
-            eq(repositories.projectId, targetProject.id),
-            ne(repositories.id, input.id),
-            isNull(repositories.deletedAt),
-          ),
-        )
-      if (activeRepository) return { ok: false, errKey: ErrKeys.resourceInUse }
+    if (
+      targetProject.repositoryType === 'monorepo' &&
+      (await this.hasActiveRepository(targetProject.id, input.id))
+    ) {
+      return { ok: false, errKey: ErrKeys.resourceInUse }
     }
-
-    const [urlInUse] = await this.database.db
-      .select({ id: repositories.id })
-      .from(repositories)
-      .where(
-        and(
-          eq(repositories.url, input.url),
-          ne(repositories.id, input.id),
-          isNull(repositories.deletedAt),
-        ),
-      )
-    if (urlInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
+    if (await this.isUrlInUse(input.url, input.id)) {
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
 
     await this.database.db
       .update(repositories)
@@ -198,21 +175,53 @@ export class RepositoryService implements IRepositoryService {
       .where(and(eq(repositories.id, id), isNull(repositories.deletedAt)))
     if (!repository) return { ok: false, errKey: ErrKeys.notFound }
 
-    if (requester.role !== 'admin') {
-      const [group] = await this.database.db
-        .select({ leaderId: groups.leaderId })
-        .from(groups)
-        .where(and(eq(groups.id, repository.groupId), isNull(groups.deletedAt)))
-      if (!group || group.leaderId !== requester.userId) {
-        return { ok: false, errKey: ErrKeys.forbidden }
-      }
+    if (!(await this.isGroupLeader(repository.groupId, requester))) {
+      return { ok: false, errKey: ErrKeys.forbidden }
     }
+
     await this.database.db
       .update(repositories)
       .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(repositories.id, id))
     this.logger.log(`Repository ${id} removed`)
     return { ok: true }
+  }
+
+  private async hasActiveRepository(projectId: string, ignoreId?: string): Promise<boolean> {
+    const [activeRepository] = await this.database.db
+      .select({ id: repositories.id })
+      .from(repositories)
+      .where(
+        and(
+          eq(repositories.projectId, projectId),
+          ignoreId ? ne(repositories.id, ignoreId) : undefined,
+          isNull(repositories.deletedAt),
+        ),
+      )
+    return Boolean(activeRepository)
+  }
+
+  private async isUrlInUse(url: string, ignoreId?: string): Promise<boolean> {
+    const [urlInUse] = await this.database.db
+      .select({ id: repositories.id })
+      .from(repositories)
+      .where(
+        and(
+          eq(repositories.url, url),
+          ignoreId ? ne(repositories.id, ignoreId) : undefined,
+          isNull(repositories.deletedAt),
+        ),
+      )
+    return Boolean(urlInUse)
+  }
+
+  private async isGroupLeader(groupId: string, requester: UserMetadata): Promise<boolean> {
+    if (requester.role === 'admin') return true
+    const [group] = await this.database.db
+      .select({ leaderId: groups.leaderId })
+      .from(groups)
+      .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)))
+    return group?.leaderId === requester.userId
   }
 
   private async findProject(id: string) {
