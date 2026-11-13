@@ -2,53 +2,12 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'vitest'
 import type { GitHubUserDetails } from '@/providers/github/github.types'
 import { ErrKeys } from '@/types'
+import { QueryResult } from '@/utils/mocks/query-result.mock'
 import { UsersService } from './user.service'
 
 const admin = { userId: 'admin-id', name: 'Admin', role: 'admin' }
 const teacher = { userId: 'teacher-id', name: 'Teacher', role: 'teacher' }
 const mentor = { userId: 'mentor-id', name: 'Mentor', role: 'mentor' }
-
-class QueryResult<T> implements PromiseLike<T> {
-  constructor(private readonly result: T) {}
-  from() {
-    return this
-  }
-  where() {
-    return this
-  }
-  groupBy() {
-    return this
-  }
-  orderBy() {
-    return this
-  }
-  offset() {
-    return this
-  }
-  limit() {
-    return this
-  }
-  values() {
-    return this
-  }
-  set() {
-    return this
-  }
-  returning() {
-    return this
-  }
-
-  // biome-ignore lint/suspicious/noThenProperty: Drizzle query builders are awaitable
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
-    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
-  ): PromiseLike<TResult1 | TResult2> {
-    if (this.result instanceof Error) {
-      return Promise.reject(this.result).then(onfulfilled, onrejected)
-    }
-    return Promise.resolve(this.result).then(onfulfilled, onrejected)
-  }
-}
 
 function createService(
   results: unknown[],
