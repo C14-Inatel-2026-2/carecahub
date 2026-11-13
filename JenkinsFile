@@ -165,7 +165,7 @@ pipeline {
                 allOf {
                     expression { params.DEPLOY_RENDER }
                     not { changeRequest() }
-                    branch 'main'
+                    branch pattern: 'main', comparator: 'EQUALS'
                 }
             }
             stages {
@@ -187,16 +187,46 @@ pipeline {
                     }
                 }
 
-                stage('Publish API and Web') {
+                stage('Trigger Render Deploys') {
                     steps {
-                        timeout(time: 20, unit: 'MINUTES') {
-                            withCredentials([
-                                string(credentialsId: 'render-api-key', variable: 'RENDER_API_KEY'),
-                                string(credentialsId: 'render-api-service-id', variable: 'RENDER_API_SERVICE_ID'),
-                                string(credentialsId: 'render-web-service-id', variable: 'RENDER_WEB_SERVICE_ID')
-                            ]) {
-                                sh 'node jenkins/deploy-render.mjs "$(git rev-parse HEAD)"'
-                            }
+                        withCredentials([
+                            string(credentialsId: 'render-api-deploy-hook', variable: 'RENDER_API_DEPLOY_HOOK'),
+                            string(credentialsId: 'render-web-deploy-hook', variable: 'RENDER_WEB_DEPLOY_HOOK')
+                        ]) {
+                            sh '''
+                                set +x
+                                commit="$(git rev-parse HEAD)"
+                                node --input-type=module -e '
+                                    const commit = process.argv[1]
+                                    const hooks = [
+                                        ["API", URL.parse(process.env.RENDER_API_DEPLOY_HOOK)],
+                                        ["Frontend", URL.parse(process.env.RENDER_WEB_DEPLOY_HOOK)],
+                                    ]
+
+                                    for (const [name, url] of hooks) {
+                                        if (url?.protocol !== "https:") {
+                                            console.error(name + ": invalid HTTPS deploy hook")
+                                            process.exit(1)
+                                        }
+                                        url.searchParams.set("ref", commit)
+                                    }
+
+                                    for (const [name, url] of hooks) {
+                                        const response = await fetch(url, {
+                                            method: "POST",
+                                            redirect: "error",
+                                            signal: AbortSignal.timeout(30_000),
+                                        }).catch(() => null)
+
+                                        if (!response?.ok) {
+                                            const reason = response ? "HTTP " + response.status : "request failed"
+                                            console.error(name + ": deploy hook failed (" + reason + ")")
+                                            process.exit(1)
+                                        }
+                                        console.log(name + ": Render accepted the deploy (HTTP " + response.status + ")")
+                                    }
+                                ' "$commit"
+                            '''
                         }
                     }
                 }

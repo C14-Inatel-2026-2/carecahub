@@ -55,16 +55,15 @@ vem desmarcado. PRs e demais branches executam apenas a validação.
 Se o Jenkins ainda não mostrar o parâmetro, execute primeiro um build da
 branch para carregar a configuração da pipeline.
 
-Em **Manage Jenkins → Credentials**, adicione as credenciais abaixo. Os serviços
-precisam estar no workspace Render acessível à chave.
+Em **Manage Jenkins → Credentials**, adicione as credenciais abaixo. No Render,
+copie a URL inteira do **Deploy Hook** em **Settings** de cada serviço.
 
 | ID da credencial no Jenkins | Tipo | Valor |
 | --- | --- | --- |
 | `supabase-database-url` | Secret text | URI do Session pooler (porta `5432`) com a senha codificada para URL e `?sslmode=verify-full` |
 | `supabase-database-ca` | Secret file | Certificado `prod-ca-2021.crt` baixado do Supabase |
-| `render-api-key` | Secret text | Chave de API do Render |
-| `render-api-service-id` | Secret text | ID do Web Service da API |
-| `render-web-service-id` | Secret text | ID do Static Site do frontend |
+| `render-api-deploy-hook` | Secret text | URL do Deploy Hook de `carecahub-api` |
+| `render-web-deploy-hook` | Secret text | URL do Deploy Hook de `carecahub-web` |
 
 A URI no Jenkins usa o certificado enviado como **Secret file**. Remova o
 parâmetro `sslrootcert` da URI se você copiar o valor do Render, porque o caminho
@@ -77,12 +76,12 @@ de publicação não roda. O seed é executado separadamente. Como a versão ant
 da API continua atendendo durante o deploy, mantenha as migrations compatíveis
 com ela até a nova versão ficar disponível.
 
-Mantenha os dois serviços do Render apontados para o mesmo repositório público
-que o Jenkins usa. Desative **Auto-Deploy** se estiver disponível. O Jenkins
-solicita ao Render o SHA exato que validou, aguarda a API ficar **Live** e
-então publica e acompanha o frontend. O Render precisa conseguir acessar o SHA
-no GitHub. Faça o merge da branch de deploy na `main` para usar a etapa de
-publicação.
+Mantenha os dois serviços do Render apontados para a `main` do repositório
+que o Jenkins usa. Desative **Auto-Deploy** se estiver disponível. Depois
+das migrations, o Jenkins envia o SHA validado aos Deploy Hooks. Se o Render
+aceitar a solicitação da API, o Jenkins dispara o deploy do frontend em seguida.
+Confira na página **Deploys** de cada serviço se o commit ficou **Live**.
+Faça o merge da branch de deploy na `main` para usar a etapa de publicação.
 
 As configurações de ambiente ficam no Render. Para ativar o Supabase Storage
 na API com esta versão, preencha `AWS_S3_ENDPOINT` e `AWS_REGION` com os dados
