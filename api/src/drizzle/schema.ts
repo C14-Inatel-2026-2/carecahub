@@ -1,4 +1,6 @@
 import {
+  activities,
+  activityRelations,
   bucketFiles,
   groupInviteRelations,
   groupInvites,
@@ -8,6 +10,8 @@ import {
   projects,
   repositories,
   repositoryRelations,
+  submissionRelations,
+  submissions,
   systemParams,
   users,
 } from './schema/entities'
@@ -36,10 +40,16 @@ export const schema = {
   notificationRelations,
   groupInviteStatusEnum,
   notificationTypeEnum,
+  activities,
+  submissions,
+  activityRelations,
+  submissionRelations,
 }
 
 export default schema
 export {
+  activities,
+  activityRelations,
   bucketFiles,
   groupInviteRelations,
   groupInviteStatusEnum,
@@ -52,6 +62,8 @@ export {
   repositories,
   repositoryRelations,
   repositoryTypeEnum,
+  submissionRelations,
+  submissions,
   systemParams,
   userRoleEnum,
   userStatusEnum,

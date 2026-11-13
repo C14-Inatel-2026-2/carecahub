@@ -1,4 +1,5 @@
 import {
+  activities,
   bucketFiles,
   groupInvites,
   groups,
@@ -6,6 +7,7 @@ import {
   projects,
   repositories,
   schema,
+  submissions,
   systemParams,
   users,
 } from './schema'
@@ -26,6 +28,7 @@ export {
   USER_STATUSES,
 } from './schema/enums/userEnums'
 export {
+  activities,
   bucketFiles,
   groupInvites,
   groups,
@@ -33,6 +36,7 @@ export {
   projects,
   repositories,
   schema,
+  submissions,
   systemParams,
   users,
 }
@@ -52,3 +56,7 @@ export type GroupInvite = typeof groupInvites.$inferSelect
 export type NewGroupInvite = typeof groupInvites.$inferInsert
 export type Notification = typeof notifications.$inferSelect
 export type NewNotification = typeof notifications.$inferInsert
+export type Activity = typeof activities.$inferSelect
+export type NewActivity = typeof activities.$inferInsert
+export type Submission = typeof submissions.$inferSelect
+export type NewSubmission = typeof submissions.$inferInsert
