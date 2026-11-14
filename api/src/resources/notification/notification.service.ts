@@ -19,6 +19,7 @@ import { GitHubService } from '@/providers/github/github.service'
 import { ErrKeys, type UserMetadata } from '@/types'
 import type { QueryDto } from '@/utils/dtos/query.dto'
 import { isUniqueViolation } from '@/utils/query-violations'
+import { MAX_GROUP_MEMBERS } from '../groups/group.constants'
 import { GetUserDto, type GetUserDtoRecord } from '../users/dto/get-user.dto'
 import type { GetUserWithGitHubDetails } from '../users/user.interface'
 import { GetNotificationDto, type GetNotificationDtoRecord } from './dto/get-notification.dto'
@@ -223,7 +224,7 @@ export class NotificationService implements INotificationService {
           .where(
             and(eq(users.groupId, group.id), eq(users.status, 'active'), isNull(users.deletedAt)),
           )
-        if (Number(memberCount?.count ?? 0) >= 6) {
+        if (Number(memberCount?.count ?? 0) >= MAX_GROUP_MEMBERS) {
           return { ok: false as const, errKey: ErrKeys.limitReached }
         }
 
@@ -378,7 +379,7 @@ export class NotificationService implements INotificationService {
       .from(users)
       .where(and(eq(users.groupId, group.id), eq(users.status, 'active'), isNull(users.deletedAt)))
     const currentMemberCount = Number(memberCount?.count ?? 0)
-    if (currentMemberCount >= 6) {
+    if (currentMemberCount >= MAX_GROUP_MEMBERS) {
       return { ok: false, errKey: ErrKeys.limitReached }
     }
 
@@ -412,7 +413,7 @@ export class NotificationService implements INotificationService {
       now,
     )
 
-    if (currentMemberCount + 1 === 6) {
+    if (currentMemberCount + 1 === MAX_GROUP_MEMBERS) {
       const remainingGroupInvites = await tx
         .select({ id: groupInvites.id })
         .from(groupInvites)

@@ -3,6 +3,7 @@ import type { GetProjectDto } from '@/resources/projects/dto/get-project.dto'
 import type { GetUserWithGitHubDetails } from '@/resources/users/user.interface'
 import { BaseDto } from '@/utils/dtos/base.dto'
 import { QueryDto } from '@/utils/dtos/query.dto'
+import { MAX_GROUP_MEMBERS } from '../group.constants'
 
 export type GroupTag = 'no_project' | 'full' | 'space_available'
 
@@ -38,7 +39,7 @@ export class GetGroupDto extends BaseDto<GetGroupDto> {
     members: GetUserWithGitHubDetails[] = [],
     project: GetProjectDto | null = null,
   ): GetGroupDto {
-    const tags: GroupTag[] = [members.length >= 6 ? 'full' : 'space_available']
+    const tags: GroupTag[] = [members.length >= MAX_GROUP_MEMBERS ? 'full' : 'space_available']
     if (!project) tags.push('no_project')
 
     return {
