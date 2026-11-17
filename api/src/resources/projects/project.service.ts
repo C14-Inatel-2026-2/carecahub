@@ -68,11 +68,9 @@ export class ProjectService implements IProjectService {
       .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)))
     if (!group) return { ok: false, errKey: ErrKeys.notFound }
 
-    const [nameInUse] = await this.database.db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(and(eq(projects.projectName, input.name), isNull(projects.deletedAt)))
-    if (nameInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
+    if (await this.isNameInUse(input.name)) {
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
 
     const [groupProject] = await this.database.db
       .select({ id: projects.id })
@@ -100,17 +98,9 @@ export class ProjectService implements IProjectService {
       return { ok: false, errKey: ErrKeys.forbidden }
     }
 
-    const [nameInUse] = await this.database.db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(
-        and(
-          eq(projects.projectName, input.name),
-          ne(projects.id, input.id),
-          isNull(projects.deletedAt),
-        ),
-      )
-    if (nameInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
+    if (await this.isNameInUse(input.name, input.id)) {
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
 
     await this.database.db
       .update(projects)
@@ -197,14 +187,8 @@ export class ProjectService implements IProjectService {
       .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
     if (!project) return { ok: false, errKey: ErrKeys.notFound }
 
-    if (requester.role !== 'admin') {
-      const [group] = await this.database.db
-        .select({ leaderId: groups.leaderId })
-        .from(groups)
-        .where(and(eq(groups.id, project.groupId), isNull(groups.deletedAt)))
-      if (!group || group.leaderId !== requester.userId) {
-        return { ok: false, errKey: ErrKeys.forbidden }
-      }
+    if (!(await this.isGroupLeader(project.groupId, requester))) {
+      return { ok: false, errKey: ErrKeys.forbidden }
     }
 
     await this.database.db
@@ -213,6 +197,29 @@ export class ProjectService implements IProjectService {
       .where(eq(projects.id, id))
     this.logger.log(`Project ${id} removed`)
     return { ok: true }
+  }
+
+  private async isNameInUse(name: string, ignoreId?: string): Promise<boolean> {
+    const [nameInUse] = await this.database.db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.projectName, name),
+          ignoreId ? ne(projects.id, ignoreId) : undefined,
+          isNull(projects.deletedAt),
+        ),
+      )
+    return Boolean(nameInUse)
+  }
+
+  private async isGroupLeader(groupId: string, requester: UserMetadata): Promise<boolean> {
+    if (requester.role === 'admin') return true
+    const [group] = await this.database.db
+      .select({ leaderId: groups.leaderId })
+      .from(groups)
+      .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)))
+    return group?.leaderId === requester.userId
   }
 
   private values(input: UpsertProjectDto, groupId: string) {
