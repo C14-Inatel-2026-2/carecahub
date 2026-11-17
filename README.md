@@ -213,6 +213,72 @@ estavam verdes antes e depois de cada mudança.
 | Felipe | Método longo: `respondToGroupInvite` com ~190 linhas e validação do convite copiada 2x | Extrair método: `lockPendingInvite`, `acceptInvite` e `rejectInvite` | Cada caminho (aceitar/recusar) fica legível sozinho e a validação existe em um lugar só | [#68](https://github.com/C14-Inatel-2026-2/carecahub/pull/68) |
 | Pedro | Código duplicado: checagens de nome, URL, monorepo e líder repetidas entre create, update e remove | Extrair método: isNameInUse, isUrlInUse, hasActiveRepository e isGroupLeader | create/update ficam curtos e uma correção na regra vale para todos os caminhos | [#69](https://github.com/C14-Inatel-2026-2/carecahub/pull/69) |
 
+## Uso de IA
+
+A IA foi consultada para propor soluções para a interface de usuários, a API de
+listagem e os convites de grupo. Os exemplos abaixo foram reconstruídos de
+memória e **não são transcrições literais** dos prompts originais.
+
+### Exemplos de prompts e resultado no projeto
+
+**1. Tabela de usuários**
+
+> "Gere uma tabela seguindo as constraints visuais do sistema para exibir uma
+> lista de usuários com colunas que representam os valores retornados pela API
+> no endpoint de busca de usuários. Quero que a coluna que mostra a role do
+> usuário seja uma badge com uma cor personalizada para cada role. Essa tela
+> com essa tabela só pode ser acessada por usuários cuja role seja professor,
+> administrador ou monitor."
+
+O web tem uma [tabela de usuários](web/src/modules/users/users-page.tsx),
+[colunas com badge por papel](web/src/modules/users/user-columns.tsx) e uma
+[regra de acesso à página](web/src/components/layout/auth-layout.tsx) para
+administrador, professor e monitor. O código final usa os nomes de papéis e as
+regras de visibilidade do projeto.
+
+**2. Listagem de usuários na API**
+
+> "Gere um endpoint GET responsável pela listagem dos usuários do sistema e
+> quero que esse endpoint seja protegido para que apenas usuários com as roles
+> professor, monitor ou administrador consigam utilizá-lo. Preciso de query
+> params para poder aplicar filtros e ordenações em cima dos resultados."
+
+O [GET `/users`](api/src/resources/users/user.controller.ts) aceita paginação,
+busca e filtro por papel. A implementação final difere do pedido aproximado:
+a rota também permite a chamada por aluno, mas o serviço retorna uma lista
+vazia para esse papel. A ordenação da listagem é fixa por nome em ordem
+crescente; os parâmetros genéricos de ordenação do `QueryDto` não são aplicados
+nesse serviço. A autorização e a consulta estão no
+[UsersService](api/src/resources/users/user.service.ts).
+
+**3. Convites e notificações de grupos**
+
+> "Quero que gere um sistema de notificações para que os alunos sejam capazes
+> de enviar convites de grupos para colegas que ainda não possuem nenhum grupo
+> alocado. Os endpoints devem ser protegidos para apenas usuários do tipo aluno
+> e caso um aluno já possua um grupo ele não deve ser listado como opção para
+> um aluno que quer realizar o convite. Caso o aluno aceite algum convite, os
+> demais convites pendentes devem ser registrados como cancelados."
+
+As [rotas de convite](api/src/resources/notification/notification.controller.ts)
+são restritas a alunos. A [busca de candidatos e a resposta ao
+convite](api/src/resources/notification/notification.service.ts) filtram alunos
+sem grupo e cancelam os outros convites recebidos quando um convite é aceito.
+O comportamento é verificado nos [testes de resposta a
+convites](api/src/resources/notification/notification-response.service.test.ts).
+
+Nesta revisão da documentação para a NP2, a IA também foi usada para analisar
+os critérios de avaliação e propor perguntas para a defesa. Após uma correção
+humana, a lista foi ajustada para enfatizar conceitos de Engenharia de Software
+aplicados ao projeto. Nenhum código, teste ou arquivo de configuração foi
+alterado nessa revisão.
+
+Não há registro das respostas originais aos três prompts acima para identificar
+com segurança o que foi aceito, modificado ou descartado pelo grupo. O
+repositório também não permite atribuir quais partes anteriores foram feitas
+inteiramente à mão. Esses detalhes dependem dos registros e relatos dos
+integrantes.
+
 ## Como rodar localmente
 
 Para apenas usar o sistema, acesse https://carecahub-web.onrender.com/.
