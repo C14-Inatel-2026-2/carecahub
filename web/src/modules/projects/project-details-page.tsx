@@ -56,25 +56,6 @@ function getProjectTechnologies(project: Project) {
   return technologies;
 }
 
-function optionOrOtherLabel(
-  options: ReadonlyArray<{ value: string; label: string }>,
-  value?: string | null,
-  otherValue?: string | null,
-) {
-  if (value === "other" && otherValue) return otherValue;
-  return optionLabel(options, value);
-}
-
-function getProjectTechnologies(project: Project) {
-  const technologies = (project.technologies ?? []).map((technology) =>
-    optionLabel(technologyOptions, technology),
-  );
-  if (project.usesOtherTechnology && project.otherTechnology) {
-    technologies.push(project.otherTechnology);
-  }
-  return technologies;
-}
-
 function DetailItem({
   icon: Icon,
   label,
@@ -94,82 +75,6 @@ function DetailItem({
         <dt className="text-xs text-muted-foreground">{label}</dt>
         <dd className="mt-0.5 wrap-break-word text-sm font-medium">{value}</dd>
       </div>
-    </div>
-  );
-}
-
-function ProjectMembersList({
-  members,
-}: {
-  members: NonNullable<Project["members"]>;
-}) {
-  const memberColumns = Math.ceil(members.length / 3) || 1;
-  const memberRows = Math.ceil(members.length / memberColumns);
-
-  return (
-    <div>
-      <h2 className="mb-2 text-sm font-medium">Grupo</h2>
-      {members.length > 0 ? (
-        <ul
-          className="grid grid-flow-col gap-2"
-          style={{
-            gridTemplateColumns: `repeat(${memberColumns}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${memberRows}, minmax(0, auto))`,
-          }}
-        >
-          {members.map((member) => (
-            <li key={member.id} className="flex min-w-0 items-center gap-2">
-              {member.gitHubDetails?.avatarUrl ? (
-                <img
-                  src={member.gitHubDetails.avatarUrl}
-                  alt={member.name}
-                  className="size-7 shrink-0 rounded-full"
-                />
-              ) : (
-                <CircleUser className="size-7 shrink-0 text-muted-foreground" />
-              )}
-              <span className="truncate text-sm">{member.name}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Nenhum integrante vinculado.
-        </p>
-      )}
-    </div>
-  );
-}
-
-function ProjectRepositoriesList({
-  repositories,
-}: {
-  repositories: Project["repositories"];
-}) {
-  return (
-    <div>
-      <h2 className="mb-2 text-sm font-medium">Repositórios</h2>
-      {repositories.length > 0 ? (
-        <ul className="space-y-2">
-          {repositories.map((repository) => (
-            <li key={repository.id}>
-              <a
-                href={repository.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex min-w-0 items-center gap-2 rounded-lg border border-border/70 p-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <ExternalLink className="size-4 shrink-0" aria-hidden="true" />
-                <span className="truncate">{repository.url}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Nenhum repositório vinculado.
-        </p>
-      )}
     </div>
   );
 }
