@@ -4,6 +4,11 @@ pipeline {
     options {
         timestamps()
         skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        booleanParam(name: 'DEPLOY_RENDER', defaultValue: false, description: 'Aplicar migrations no Supabase e publicar no Render após validar o commit')
     }
 
     stages {
@@ -149,6 +154,79 @@ pipeline {
                                     sh 'pnpm build'
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Render') {
+            when {
+                allOf {
+                    expression { params.DEPLOY_RENDER }
+                    not { changeRequest() }
+                    branch pattern: 'main', comparator: 'EQUALS'
+                }
+            }
+            stages {
+                stage('Migrate Supabase') {
+                    steps {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            withCredentials([
+                                string(credentialsId: 'supabase-database-url', variable: 'DATABASE_URL'),
+                                file(credentialsId: 'supabase-database-ca', variable: 'NODE_EXTRA_CA_CERTS')
+                            ]) {
+                                dir('api') {
+                                    sh '''
+                                        set +x
+                                        pnpm db:migrate
+                                    '''
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Trigger Render Deploys') {
+                    steps {
+                        withCredentials([
+                            string(credentialsId: 'render-api-deploy-hook', variable: 'RENDER_API_DEPLOY_HOOK'),
+                            string(credentialsId: 'render-web-deploy-hook', variable: 'RENDER_WEB_DEPLOY_HOOK')
+                        ]) {
+                            sh '''
+                                set +x
+                                commit="$(git rev-parse HEAD)"
+                                node --input-type=module -e '
+                                    const commit = process.argv[1]
+                                    const hooks = [
+                                        ["API", URL.parse(process.env.RENDER_API_DEPLOY_HOOK)],
+                                        ["Frontend", URL.parse(process.env.RENDER_WEB_DEPLOY_HOOK)],
+                                    ]
+
+                                    for (const [name, url] of hooks) {
+                                        if (url?.protocol !== "https:") {
+                                            console.error(name + ": invalid HTTPS deploy hook")
+                                            process.exit(1)
+                                        }
+                                        url.searchParams.set("ref", commit)
+                                    }
+
+                                    for (const [name, url] of hooks) {
+                                        const response = await fetch(url, {
+                                            method: "POST",
+                                            redirect: "error",
+                                            signal: AbortSignal.timeout(30_000),
+                                        }).catch(() => null)
+
+                                        if (!response?.ok) {
+                                            const reason = response ? "HTTP " + response.status : "request failed"
+                                            console.error(name + ": deploy hook failed (" + reason + ")")
+                                            process.exit(1)
+                                        }
+                                        console.log(name + ": Render accepted the deploy (HTTP " + response.status + ")")
+                                    }
+                                ' "$commit"
+                            '''
                         }
                     }
                 }

@@ -8,6 +8,7 @@ import { CustomLogger } from '@/providers/logger/custom-logger.service'
 import { LoggerFactory } from '@/providers/logger/logger-factory.service'
 import { ErrKeys, type UserMetadata } from '@/types'
 import { QueryDto } from '@/utils/dtos/query.dto'
+import { isUniqueViolation } from '@/utils/query-violations'
 import { GetUserDto } from '../users/dto/get-user.dto'
 import type { GetUserWithGitHubDetails } from '../users/user.interface'
 import type { GetProjectDtoRecord, ProjectRepositoryDto } from './dto/get-project.dto'
@@ -44,7 +45,7 @@ export class ProjectService implements IProjectService {
         ? await this.update({ ...input, id: input.id }, requester)
         : await this.create(input, requester)
     } catch (error) {
-      if (this.isUniqueViolation(error)) return { ok: false, errKey: ErrKeys.alreadyExists }
+      if (isUniqueViolation(error)) return { ok: false, errKey: ErrKeys.alreadyExists }
       throw error
     }
   }
@@ -67,11 +68,9 @@ export class ProjectService implements IProjectService {
       .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)))
     if (!group) return { ok: false, errKey: ErrKeys.notFound }
 
-    const [nameInUse] = await this.database.db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(and(eq(projects.projectName, input.name), isNull(projects.deletedAt)))
-    if (nameInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
+    if (await this.isNameInUse(input.name)) {
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
 
     const [groupProject] = await this.database.db
       .select({ id: projects.id })
@@ -99,17 +98,9 @@ export class ProjectService implements IProjectService {
       return { ok: false, errKey: ErrKeys.forbidden }
     }
 
-    const [nameInUse] = await this.database.db
-      .select({ id: projects.id })
-      .from(projects)
-      .where(
-        and(
-          eq(projects.projectName, input.name),
-          ne(projects.id, input.id),
-          isNull(projects.deletedAt),
-        ),
-      )
-    if (nameInUse) return { ok: false, errKey: ErrKeys.alreadyExists }
+    if (await this.isNameInUse(input.name, input.id)) {
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
 
     await this.database.db
       .update(projects)
@@ -208,14 +199,8 @@ export class ProjectService implements IProjectService {
       .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
     if (!project) return { ok: false, errKey: ErrKeys.notFound }
 
-    if (requester.role !== 'admin') {
-      const [group] = await this.database.db
-        .select({ leaderId: groups.leaderId })
-        .from(groups)
-        .where(and(eq(groups.id, project.groupId), isNull(groups.deletedAt)))
-      if (!group || group.leaderId !== requester.userId) {
-        return { ok: false, errKey: ErrKeys.forbidden }
-      }
+    if (!(await this.isGroupLeader(project.groupId, requester))) {
+      return { ok: false, errKey: ErrKeys.forbidden }
     }
 
     await this.database.db
@@ -224,6 +209,29 @@ export class ProjectService implements IProjectService {
       .where(eq(projects.id, id))
     this.logger.log(`Project ${id} removed`)
     return { ok: true }
+  }
+
+  private async isNameInUse(name: string, ignoreId?: string): Promise<boolean> {
+    const [nameInUse] = await this.database.db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.projectName, name),
+          ignoreId ? ne(projects.id, ignoreId) : undefined,
+          isNull(projects.deletedAt),
+        ),
+      )
+    return Boolean(nameInUse)
+  }
+
+  private async isGroupLeader(groupId: string, requester: UserMetadata): Promise<boolean> {
+    if (requester.role === 'admin') return true
+    const [group] = await this.database.db
+      .select({ leaderId: groups.leaderId })
+      .from(groups)
+      .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)))
+    return group?.leaderId === requester.userId
   }
 
   private values(input: UpsertProjectDto, groupId: string) {
@@ -273,10 +281,6 @@ export class ProjectService implements IProjectService {
   private async canReadGroup(groupId: string, requester: UserMetadata): Promise<boolean> {
     if (requester.role !== 'student') return true
     return (await this.findRequesterGroupId(requester.userId)) === groupId
-  }
-
-  private isUniqueViolation(error: unknown): error is { code: '23505' } {
-    return typeof error === 'object' && error !== null && 'code' in error && error.code === '23505'
   }
 
   private readonly selection = {

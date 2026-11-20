@@ -184,6 +184,41 @@ describe('AuthService', () => {
       password: 'secret',
     })
 
-    assert.deepEqual(result, { ok: false, errKey: 'unauthorizedErrKey' })
+    assert.deepEqual(result, { ok: false, errKey: 'invalidCredentialsErrKey' })
+  })
+
+  it('rejects login with a wrong password using the same error as an unknown email', async () => {
+    queryResults.push([
+      {
+        id: 'user-1',
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'hashed-password',
+        role: 'student',
+        status: 'active',
+        two_factor: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      },
+    ])
+
+    const result = await service.login({
+      username: 'test@example.com',
+      password: 'wrong-password',
+    })
+
+    assert.deepEqual(result, { ok: false, errKey: 'invalidCredentialsErrKey' })
+  })
+
+  it('rejects login for an unknown email', async () => {
+    queryResults.push([])
+
+    const result = await service.login({
+      username: 'nobody@example.com',
+      password: 'secret',
+    })
+
+    assert.deepEqual(result, { ok: false, errKey: 'invalidCredentialsErrKey' })
   })
 })

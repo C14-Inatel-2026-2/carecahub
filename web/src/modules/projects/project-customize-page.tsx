@@ -16,6 +16,27 @@ import {
   type UpdateProjectAppearanceRequest,
 } from '@/types/project'
 
+const ACCEPTED_IMAGE_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+] as const
+const MAX_IMAGE_SIZE_BYTES = 10_000_000
+
+type ImageUploadResult = { status: 'skipped' | 'failed' } | { status: 'uploaded'; url: string }
+
+function validateImage(file: File): string | null {
+  if (!ACCEPTED_IMAGE_TYPES.some((type) => type === file.type)) {
+    return 'Selecione uma imagem PNG, JPEG, WebP, GIF ou SVG.'
+  }
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    return 'Selecione uma imagem de até 10 MB.'
+  }
+  return null
+}
+
 function useFilePreview(file: File | null, savedUrl?: string | null) {
   const [preview, setPreview] = useState(savedUrl ?? '')
 
@@ -48,25 +69,22 @@ export function ProjectCustomizeContent({
   const iconPreview = useFilePreview(iconFile, project.iconUrl)
   const thumbnailPreview = useFilePreview(thumbnailFile, project.thumbnailUrl)
 
-  async function uploadImage(file: File): Promise<string | null> {
-    if (
-      !['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'].includes(file.type)
-    ) {
-      setError('Selecione uma imagem PNG, JPEG, WebP, GIF ou SVG.')
-      return null
+  async function uploadIfSelected(file: File | null): Promise<ImageUploadResult> {
+    if (!file) return { status: 'skipped' }
+    const validationError = validateImage(file)
+    if (validationError) {
+      setError(validationError)
+      return { status: 'failed' }
     }
-    if (file.size > 10_000_000) {
-      setError('Selecione uma imagem de até 10 MB.')
-      return null
-    }
+
     const body = new FormData()
     body.append('file', file)
     const result = await writer('POST /files/public', { body, silent: true })
     if (!result.ok || !result.data.url) {
       setError(result.ok ? 'O upload não retornou uma URL.' : result.error.message)
-      return null
+      return { status: 'failed' }
     }
-    return result.data.url
+    return { status: 'uploaded', url: result.data.url }
   }
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
@@ -81,15 +99,13 @@ export function ProjectCustomizeContent({
     try {
       const body: UpdateProjectAppearanceRequest = {}
       if (colorChanged) body.mainColor = color.toUpperCase()
-      if (iconFile) {
-        const url = await uploadImage(iconFile)
-        if (!url) return
-        body.iconUrl = url
-      }
-      if (thumbnailFile) {
-        const url = await uploadImage(thumbnailFile)
-        if (!url) return
-        body.thumbnailUrl = url
+      for (const [file, field] of [
+        [iconFile, 'iconUrl'],
+        [thumbnailFile, 'thumbnailUrl'],
+      ] as const) {
+        const upload = await uploadIfSelected(file)
+        if (upload.status === 'failed') return
+        if (upload.status === 'uploaded') body[field] = upload.url
       }
 
       const result = await writer('PATCH /projects/:id/appearance', {
@@ -173,7 +189,7 @@ export function ProjectCustomizeContent({
               Escolher imagem do ícone
               <Input
                 type='file'
-                accept='image/png,image/jpeg,image/webp,image/gif,image/svg+xml'
+                accept={ACCEPTED_IMAGE_TYPES.join(',')}
                 onChange={(event) => setIconFile(event.target.files?.[0] ?? null)}
               />
             </label>
@@ -199,7 +215,7 @@ export function ProjectCustomizeContent({
               Escolher thumbnail
               <Input
                 type='file'
-                accept='image/png,image/jpeg,image/webp,image/gif,image/svg+xml'
+                accept={ACCEPTED_IMAGE_TYPES.join(',')}
                 onChange={(event) => setThumbnailFile(event.target.files?.[0] ?? null)}
               />
             </label>

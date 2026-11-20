@@ -12,6 +12,7 @@ import { CorrelationIdInterceptor, CorrelationIdModule } from './providers/corre
 import { DatabaseModule } from './providers/database/database.module'
 import { LoggerModule } from './providers/logger/logger.module'
 import { MailModule } from './providers/mail/mail.module'
+import { ActivityModule } from './resources/activities/activity.module'
 import { AuthModule } from './resources/auth/auth.module'
 import { GroupModule } from './resources/groups/group.module'
 import { NotificationModule } from './resources/notification/notification.module'
@@ -33,6 +34,7 @@ import { UsersModule } from './resources/users/user.module'
     ProjectModule,
     GroupModule,
     NotificationModule,
+    ActivityModule,
     ThrottlerModule.forRoot([
       {
         name: 'short',

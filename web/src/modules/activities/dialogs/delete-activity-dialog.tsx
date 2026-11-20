@@ -10,53 +10,56 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog'
-import type { User } from '@/types/user'
+import type { Activity } from '@/types/activity'
 
-export function DeleteUserDialog({
-  user,
-  open,
-  onOpenChange,
+export function DeleteActivityDialog({
+  activity,
   onDeleted,
 }: {
-  user: User
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  activity: Activity
   onDeleted: () => void
 }) {
+  const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   async function remove() {
     setError('')
     setSubmitting(true)
-    const result = await writer('DELETE /users/:id', {
-      params: { id: user.id },
+    const result = await writer('DELETE /activities/:id', {
+      params: { id: activity.id },
       body: undefined,
       silent: true,
     })
-    if (result.ok) {
-      toast.success('Usuário excluído')
-      onOpenChange(false)
-      onDeleted()
-    } else {
-      setError(result.error.friendlyMessage ?? result.error.message)
-    }
     setSubmitting(false)
+    if (!result.ok) {
+      setError(result.error.friendlyMessage ?? result.error.message)
+      return
+    }
+    toast.success('Atividade removida')
+    setOpen(false)
+    onDeleted()
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button type='button' size='sm' variant='destructive' />}>
+        <Trash2 />
+        Remover
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Excluir usuário?</DialogTitle>
+          <DialogTitle>Remover atividade?</DialogTitle>
           <DialogDescription>
-            A conta de {user.name} será removida. Esta ação não pode ser desfeita.
+            "{activity.title}" deixa de aparecer para os alunos. As entregas já enviadas continuam
+            guardadas.
           </DialogDescription>
         </DialogHeader>
         {error && <p className='text-sm text-destructive'>{error}</p>}
         <DialogFooter>
-          <Button variant='outline' type='button' onClick={() => onOpenChange(false)}>
+          <Button variant='outline' type='button' onClick={() => setOpen(false)}>
             Cancelar
           </Button>
           <Button
@@ -66,7 +69,7 @@ export function DeleteUserDialog({
             disabled={submitting}
           >
             <Trash2 />
-            {submitting ? 'Excluindo…' : 'Excluir usuário'}
+            {submitting ? 'Removendo…' : 'Remover atividade'}
           </Button>
         </DialogFooter>
       </DialogContent>

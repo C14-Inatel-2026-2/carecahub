@@ -1,24 +1,28 @@
 export const appRoutes = {
-  home: '/',
-  login: '/login',
-  users: '/users',
-  mentors: '/mentors',
-  projects: '/projects',
-  myProject: '/my-project',
-  notifications: '/notifications',
-  createMyProject: '/my-project/create',
-  groups: '/groups',
-  profile: '/profile',
-  settings: '/settings',
-} as const satisfies Record<string, `/${string}`>
+  home: "/",
+  login: "/login",
+  users: "/users",
+  mentors: "/mentors",
+  projects: "/projects",
+  myProject: "/my-project",
+  notifications: "/notifications",
+  createMyProject: "/my-project/create",
+  groups: "/groups",
+  profile: "/profile",
+  settings: "/settings",
+  activities: "/activities",
+} as const satisfies Record<string, `/${string}`>;
 
-export type AppRoute = (typeof appRoutes)[keyof typeof appRoutes]
+export type AppRoute = (typeof appRoutes)[keyof typeof appRoutes];
 
 export const profileRoute = (githubUsername: string) =>
-  `${appRoutes.profile}/${encodeURIComponent(githubUsername)}`
+  `${appRoutes.profile}/${encodeURIComponent(githubUsername)}`;
 
 export const projectDetailsRoute = (projectName: string) =>
-  `${appRoutes.projects}/${encodeURIComponent(projectName)}`
+  `${appRoutes.projects}/${encodeURIComponent(projectName)}`;
 
 export const projectCustomizeRoute = (projectName: string) =>
-  `${projectDetailsRoute(projectName)}/customize`
+  `${projectDetailsRoute(projectName)}/customize`;
+
+export const activityDetailsRoute = (activityId: string) =>
+  `${appRoutes.activities}/${encodeURIComponent(activityId)}`;

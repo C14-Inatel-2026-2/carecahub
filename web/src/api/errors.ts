@@ -11,6 +11,7 @@ export const apiErrorMessages: Record<string, string> = {
   internalServerErrorErrKey: 'Não foi possível concluir a ação. Tente novamente mais tarde.',
   resourceInUseErrKey: 'Este registro está em uso e não pode ser alterado ou excluído.',
   noAccessToFeatureErrKey: 'Você não tem acesso a esta funcionalidade.',
+  deadlineExpiredErrKey: 'O prazo desta atividade já terminou.',
   repositoryNotFound: 'O repositório não foi encontrado no GitHub.',
   NETWORK_ERROR: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
 }

@@ -85,6 +85,13 @@
       "when": 1791238348925,
       "tag": "0011_broken_garia",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794587465627,
+      "tag": "0012_activities_and_submissions",
+      "breakpoints": true
     }
   ]
 }

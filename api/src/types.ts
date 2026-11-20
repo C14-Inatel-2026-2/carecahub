@@ -43,6 +43,7 @@ export enum ErrKeys {
   internalServerError = 'internalServerErrorErrKey',
   resourceInUse = 'resourceInUseErrKey',
   noAccessToFeature = 'noAccessToFeatureErrKey',
+  deadlineExpired = 'deadlineExpiredErrKey',
 }
 
 export const exceptionsDictionary: Record<
@@ -131,5 +132,11 @@ export const exceptionsDictionary: Record<
     friendlyMessage: 'Acesso negado',
     type: 'bad_request',
     errKey: ErrKeys.noAccessToFeature,
+  },
+  deadlineExpiredErrKey: {
+    message: 'Deadline expired',
+    friendlyMessage: 'O prazo desta atividade já terminou',
+    type: 'forbidden',
+    errKey: ErrKeys.deadlineExpired,
   },
 }
