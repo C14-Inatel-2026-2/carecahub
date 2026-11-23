@@ -14,12 +14,12 @@ import { GetUserDto } from './dto/get-user.dto'
 import { CreateUserDto, UpdateUserDto } from './dto/upsert-user.dto'
 import {
   GetUserOutput,
-  GetUserWithGitHubDetails,
   IUsersService,
   ListUserOutput,
   UpsertUserOutput,
   UserAnalyticsOutput,
 } from './user.interface'
+import { withGitHubDetails } from './with-github-details'
 
 @Injectable()
 export class UsersService implements IUsersService {
@@ -104,7 +104,7 @@ export class UsersService implements IUsersService {
     ])
 
     const data = await Promise.all(
-      userRows.map((user) => this.withGitHubDetails(GetUserDto.toDto(user))),
+      userRows.map((user) => withGitHubDetails(this.gitHubService, GetUserDto.toDto(user))),
     )
 
     return {
@@ -126,7 +126,7 @@ export class UsersService implements IUsersService {
 
     return {
       ok: true,
-      ...(await this.withGitHubDetails(GetUserDto.toDto(user))),
+      ...(await withGitHubDetails(this.gitHubService, GetUserDto.toDto(user))),
     }
   }
 
@@ -233,16 +233,5 @@ export class UsersService implements IUsersService {
 
   private canManage(requester: UserMetadata | undefined): boolean {
     return requester?.role === 'admin'
-  }
-
-  private async withGitHubDetails(user: GetUserDto): Promise<GetUserWithGitHubDetails> {
-    if (!user.githubName) {
-      return { ...user, gitHubDetails: null }
-    }
-
-    return {
-      ...user,
-      gitHubDetails: await this.gitHubService.getUserDetails(user.githubName),
-    }
   }
 }

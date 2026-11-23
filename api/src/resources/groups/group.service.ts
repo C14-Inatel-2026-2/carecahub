@@ -12,6 +12,7 @@ import { isUniqueViolation } from '@/utils/query-violations'
 import { ProjectService } from '../projects/project.service'
 import { GetUserDto } from '../users/dto/get-user.dto'
 import type { GetUserWithGitHubDetails } from '../users/user.interface'
+import { withGitHubDetails } from '../users/with-github-details'
 import { CreateGroupDto } from './dto/create-group.dto'
 import type { GetGroupDtoRecord } from './dto/get-group.dto'
 import { GetGroupDto } from './dto/get-group.dto'
@@ -328,15 +329,7 @@ export class GroupService implements IGroupService {
       .where(and(eq(users.groupId, groupId), eq(users.status, 'active'), isNull(users.deletedAt)))
       .orderBy(asc(users.name))
     return Promise.all(
-      rows.map(async (row) => {
-        const user = GetUserDto.toDto(row)
-        return {
-          ...user,
-          gitHubDetails: user.githubName
-            ? await this.gitHubService.getUserDetails(user.githubName)
-            : null,
-        }
-      }),
+      rows.map((row) => withGitHubDetails(this.gitHubService, GetUserDto.toDto(row))),
     )
   }
 

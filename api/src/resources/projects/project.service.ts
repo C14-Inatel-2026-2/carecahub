@@ -19,6 +19,7 @@ import { QueryDto } from '@/utils/dtos/query.dto'
 import { isUniqueViolation } from '@/utils/query-violations'
 import { GetUserDto } from '../users/dto/get-user.dto'
 import type { GetUserWithGitHubDetails } from '../users/user.interface'
+import { withGitHubDetails } from '../users/with-github-details'
 import type { GetProjectDtoRecord, ProjectRepositoryDto } from './dto/get-project.dto'
 import { GetProjectDto } from './dto/get-project.dto'
 import { UpdateProjectAppearanceDto } from './dto/update-project-appearance.dto'
@@ -398,15 +399,7 @@ export class ProjectService implements IProjectService {
       .orderBy(asc(users.name))
 
     return Promise.all(
-      rows.map(async (row) => {
-        const user = GetUserDto.toDto(row)
-        return {
-          ...user,
-          gitHubDetails: user.githubName
-            ? await this.gitHubService.getUserDetails(user.githubName)
-            : null,
-        }
-      }),
+      rows.map((row) => withGitHubDetails(this.gitHubService, GetUserDto.toDto(row))),
     )
   }
 }

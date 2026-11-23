@@ -23,7 +23,7 @@ import type { QueryDto } from '@/utils/dtos/query.dto'
 import { isUniqueViolation } from '@/utils/query-violations'
 import { MAX_GROUP_MEMBERS } from '../groups/group.constants'
 import { GetUserDto, type GetUserDtoRecord } from '../users/dto/get-user.dto'
-import type { GetUserWithGitHubDetails } from '../users/user.interface'
+import { withGitHubDetails } from '../users/with-github-details'
 import { GetNotificationDto, type GetNotificationDtoRecord } from './dto/get-notification.dto'
 import type { CreateGroupInviteDto, RespondGroupInviteDto } from './dto/group-invite.dto'
 import type {
@@ -215,7 +215,9 @@ export class NotificationService implements INotificationService {
       ok: true,
       totalCount: Number(totalRows[0]?.count ?? 0),
       data: await Promise.all(
-        rows.map((row) => this.withGitHubDetails(GetUserDto.toDto(row as GetUserDtoRecord))),
+        rows.map((row) =>
+          withGitHubDetails(this.gitHubService, GetUserDto.toDto(row as GetUserDtoRecord)),
+        ),
       ),
     }
   }
@@ -306,15 +308,6 @@ export class NotificationService implements INotificationService {
         return { ok: false, errKey: ErrKeys.alreadyExists }
       }
       throw error
-    }
-  }
-
-  private async withGitHubDetails(user: GetUserDto): Promise<GetUserWithGitHubDetails> {
-    if (!user.githubName) return { ...user, gitHubDetails: null }
-
-    return {
-      ...user,
-      gitHubDetails: await this.gitHubService.getUserDetails(user.githubName),
     }
   }
 
