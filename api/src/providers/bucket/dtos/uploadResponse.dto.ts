@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
 export class UploadResponseDto {
+  @ApiProperty()
+  id: string
+
   @ApiProperty({
     description: 'The key reference to access the file',
   })
@@ -10,4 +13,16 @@ export class UploadResponseDto {
     description: 'The URL to access the public file',
   })
   url?: string | null
+
+  @ApiProperty()
+  filename: string
+
+  @ApiProperty()
+  size: number
+
+  @ApiProperty()
+  mimeType: string
+
+  @ApiProperty()
+  isPublic: boolean
 }

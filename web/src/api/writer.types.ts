@@ -1,10 +1,10 @@
 /** biome-ignore-all lint/suspicious/noConfusingVoidType: body can be void */
+
 import type {
   Activity,
-  GradeSubmissionRequest,
-  Submission,
-  SubmitActivityRequest,
-  UpsertActivityRequest,
+  ActivityEvaluationRequest,
+  ActivityFormRequest,
+  ActivitySubmissionRequest,
 } from '@/types/activity'
 import type { LoggedUser, LoginRequest, TwoFactorAuthRequest } from '@/types/auth'
 import type { CreateGroupRequest, Group, PromoteLeaderRequest } from '@/types/group'
@@ -35,6 +35,21 @@ import type { CreateUserRequest, UpdateUserRequest, User } from '@/types/user'
  * To add a new endpoint, just add one entry here. That's it.
  */
 export type WriterMap = {
+  'POST /files/private': {
+    body: FormData
+    response: { id: string; filename: string; mimeType: string; size: number; isPublic: boolean }
+  }
+  'POST /activities': { body: ActivityFormRequest; response: Activity }
+  'PATCH /activities/:id': { body: Partial<ActivityFormRequest>; response: Activity }
+  'PATCH /activities/:id/archive': { body: void; response: Activity }
+  'POST /activities/:id/submissions': {
+    body: ActivitySubmissionRequest
+    response: { id: string; version: number; isLate: boolean }
+  }
+  'PUT /activities/:id/submissions/:submissionId/evaluation': {
+    body: ActivityEvaluationRequest
+    response: { score: number; evaluatedAt: string }
+  }
   // ── Auth ──────────────────────────────────────────────────────────
   'POST /auth/login': {
     body: LoginRequest
@@ -147,25 +162,5 @@ export type WriterMap = {
   'PATCH /notifications/:id/read': {
     body: void
     response: Notification
-  }
-  'POST /activities': {
-    body: UpsertActivityRequest
-    response: Activity
-  }
-  'PATCH /activities/:id': {
-    body: UpsertActivityRequest
-    response: Activity
-  }
-  'DELETE /activities/:id': {
-    body: void
-    response: object
-  }
-  'POST /activities/:id/submissions': {
-    body: SubmitActivityRequest
-    response: Submission
-  }
-  'PATCH /activities/submissions/:id/grade': {
-    body: GradeSubmissionRequest
-    response: Submission
   }
 }

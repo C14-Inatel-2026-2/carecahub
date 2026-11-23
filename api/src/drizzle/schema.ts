@@ -1,6 +1,12 @@
 import {
   activities,
-  activityRelations,
+  activityAttachments,
+  activityEvaluations,
+  activityGroups,
+  activitySubmissionFiles,
+  activitySubmissionLinks,
+  activitySubmissions,
+  activityViews,
   bucketFiles,
   groupInviteRelations,
   groupInvites,
@@ -10,12 +16,11 @@ import {
   projects,
   repositories,
   repositoryRelations,
-  submissionRelations,
-  submissions,
   systemParams,
   users,
 } from './schema/entities'
 import {
+  activitySubmissionTypeEnum,
   groupInviteStatusEnum,
   notificationTypeEnum,
   repositoryTypeEnum,
@@ -24,6 +29,15 @@ import {
 } from './schema/enums'
 
 export const schema = {
+  activities,
+  activityGroups,
+  activityAttachments,
+  activityViews,
+  activitySubmissions,
+  activitySubmissionFiles,
+  activitySubmissionLinks,
+  activityEvaluations,
+  activitySubmissionTypeEnum,
   users,
   bucketFiles,
   systemParams,
@@ -40,16 +54,19 @@ export const schema = {
   notificationRelations,
   groupInviteStatusEnum,
   notificationTypeEnum,
-  activities,
-  submissions,
-  activityRelations,
-  submissionRelations,
 }
 
 export default schema
 export {
   activities,
-  activityRelations,
+  activityAttachments,
+  activityEvaluations,
+  activityGroups,
+  activitySubmissionFiles,
+  activitySubmissionLinks,
+  activitySubmissions,
+  activitySubmissionTypeEnum,
+  activityViews,
   bucketFiles,
   groupInviteRelations,
   groupInviteStatusEnum,
@@ -62,8 +79,6 @@ export {
   repositories,
   repositoryRelations,
   repositoryTypeEnum,
-  submissionRelations,
-  submissions,
   systemParams,
   userRoleEnum,
   userStatusEnum,

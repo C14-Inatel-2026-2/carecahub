@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm'
-import { pgTable, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { integer, pgTable, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 import { groupInviteStatusEnum, notificationTypeEnum } from '../enums/notificationEnums'
+import { activities, activitySubmissions } from './activity'
 import { groups } from './group'
 import { users } from './user'
 
@@ -33,23 +34,40 @@ const groupInviteTable = pgTable(
   ],
 )
 
-const notificationTable = pgTable('Notification', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'restrict' }),
-  type: notificationTypeEnum('type').notNull(),
-  groupInviteId: uuid('group_invite_id')
-    .unique()
-    .references(() => groupInviteTable.id, { onDelete: 'restrict' }),
-  readAt: timestamp('read_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-})
+const notificationTable = pgTable(
+  'Notification',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    type: notificationTypeEnum('type').notNull(),
+    groupInviteId: uuid('group_invite_id')
+      .unique()
+      .references(() => groupInviteTable.id, { onDelete: 'restrict' }),
+    activityId: uuid('activity_id').references(() => activities.id, { onDelete: 'restrict' }),
+    submissionId: uuid('submission_id').references(() => activitySubmissions.id, {
+      onDelete: 'restrict',
+    }),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'restrict' }),
+    groupId: uuid('group_id').references(() => groups.id, { onDelete: 'restrict' }),
+    deadlineRevision: integer('deadline_revision'),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('Notification_activity_reminder_unique')
+      .on(table.userId, table.activityId, table.groupId, table.type, table.deadlineRevision)
+      .where(
+        sql`${table.activityId} is not null and ${table.groupId} is not null and ${table.deadlineRevision} is not null`,
+      ),
+  ],
+)
 
 export const groupInvitePublicColumns = {
   id: groupInviteTable.id,
@@ -68,6 +86,11 @@ export const notificationPublicColumns = {
   userId: notificationTable.userId,
   type: notificationTable.type,
   groupInviteId: notificationTable.groupInviteId,
+  activityId: notificationTable.activityId,
+  submissionId: notificationTable.submissionId,
+  actorId: notificationTable.actorId,
+  groupId: notificationTable.groupId,
+  deadlineRevision: notificationTable.deadlineRevision,
   readAt: notificationTable.readAt,
   createdAt: notificationTable.createdAt,
   updatedAt: notificationTable.updatedAt,

@@ -113,7 +113,7 @@ describe('ProjectCard', () => {
   it('links the project details button to the selected project', () => {
     const html = renderProjectCard(groupWithProject({}))
 
-    expect(html).toContain('href="/projects/project-1"')
+    expect(html).toContain('href="/projects/CarecaHub"')
     expect(html).toContain('Ver detalhes')
   })
 

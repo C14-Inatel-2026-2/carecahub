@@ -1,133 +1,163 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Controller, FormProvider, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { writer } from '@/api/writer'
 import { FormSchemaProvider } from '@/components/form-fields/form-schema'
-import { InputFF, TextAreaFF } from '@/components/form-fields/input-ff'
+import { InputFF } from '@/components/form-fields/input-ff'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
-import { FieldError } from '@/components/ui/field'
-import { type Activity, type ActivityFormValues, activityFormSchema } from '@/types/activity'
-import { toDateTimeLocal } from '../activity-helpers'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { type Activity, type ActivityFormRequest, activityFormSchema } from '@/types/activity'
+import { ActivityRichTextEditor } from '../components/activity-rich-text'
 
 export function ActivityFormDialog({
   activity,
   onSaved,
 }: {
   activity?: Activity
-  onSaved: (activity: Activity) => void
+  onSaved: () => void
 }) {
-  const [open, setOpen] = useState(false)
-  const defaultValues: ActivityFormValues = {
-    title: activity?.title ?? '',
-    description: activity?.description ?? '',
-    dueDate: activity ? toDateTimeLocal(activity.dueDate) : '',
-    allowLateSubmissions: activity?.allowLateSubmissions ?? false,
-  }
-  const form = useForm<ActivityFormValues>({
+  const [referenceFiles, setReferenceFiles] = useState<File[]>([])
+  const form = useForm<ActivityFormRequest>({
     resolver: zodResolver(activityFormSchema),
-    defaultValues,
+    defaultValues: activity
+      ? {
+          title: activity.title,
+          description: activity.description,
+          dueAt: activity.dueAt.slice(0, 16),
+          allowLateSubmissions: activity.allowLateSubmissions,
+          submissionType: activity.submissionType,
+          attachmentIds: [],
+        }
+      : {
+          title: '',
+          description: '',
+          dueAt: '',
+          allowLateSubmissions: false,
+          submissionType: 'both',
+          attachmentIds: [],
+        },
   })
-
-  function handleOpenChange(next: boolean) {
-    if (next) form.reset(defaultValues)
-    setOpen(next)
-  }
-
-  async function submit(values: ActivityFormValues) {
-    form.clearErrors('root')
-    const dueDate = new Date(values.dueDate)
-    const dueDateChanged = !activity || dueDate.getTime() !== new Date(activity.dueDate).getTime()
-
-    // Same rule as the API: a new deadline must be in the future.
-    if (dueDateChanged && dueDate.getTime() <= Date.now()) {
-      form.setError('dueDate', { message: 'O prazo precisa ser uma data futura.' })
+  async function submit(values: ActivityFormRequest) {
+    if (referenceFiles.length > 10) {
+      form.setError('root', { message: 'Envie no máximo 10 arquivos de referência.' })
       return
     }
-
+    const attachmentIds: string[] = []
+    for (const file of referenceFiles) {
+      const upload = new FormData()
+      upload.append('file', file)
+      const result = await writer('POST /files/private', { body: upload, silent: true })
+      if (!result.ok) return form.setError('root', { message: result.error.message })
+      attachmentIds.push(result.data.id)
+    }
     const body = {
-      title: values.title.trim(),
-      description: values.description.trim(),
-      dueDate: dueDate.toISOString(),
-      allowLateSubmissions: values.allowLateSubmissions,
+      ...values,
+      dueAt: new Date(values.dueAt).toISOString(),
     }
     const result = activity
-      ? await writer('PATCH /activities/:id', { silent: true, params: { id: activity.id }, body })
-      : await writer('POST /activities', { silent: true, body })
-
-    if (!result.ok) {
-      form.setError('root', { message: result.error.friendlyMessage ?? result.error.message })
-      return
-    }
+      ? await writer('PATCH /activities/:id', {
+          params: { id: activity.id },
+          body: referenceFiles.length
+            ? { ...body, attachmentIds }
+            : { ...body, attachmentIds: undefined },
+        })
+      : await writer('POST /activities', { body: { ...body, attachmentIds } })
+    if (!result.ok) return form.setError('root', { message: result.error.message })
     toast.success(activity ? 'Atividade atualizada' : 'Atividade publicada')
-    setOpen(false)
-    onSaved(result.data)
+    onSaved()
   }
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={<Button type='button' size='sm' variant={activity ? 'outline' : 'highlight'} />}
-      >
-        {activity ? <Pencil /> : <Plus />}
-        {activity ? 'Editar' : 'Nova atividade'}
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{activity ? 'Editar atividade' : 'Nova atividade'}</DialogTitle>
-          <DialogDescription>
-            Os alunos veem sempre a versão mais recente das instruções e do prazo.
-          </DialogDescription>
-        </DialogHeader>
-        <FormSchemaProvider schema={activityFormSchema}>
-          <FormProvider {...form}>
-            <form noValidate onSubmit={form.handleSubmit(submit)} className='grid gap-4'>
-              <InputFF name='title' label='Título' id='activity-title' maxLength={255} />
-              <TextAreaFF
-                name='description'
-                label='Instruções'
-                id='activity-description'
-                rows={5}
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{activity ? 'Editar atividade' : 'Nova atividade'}</DialogTitle>
+        <DialogDescription>Defina as orientações e o prazo para os grupos.</DialogDescription>
+      </DialogHeader>
+      <FormSchemaProvider schema={activityFormSchema}>
+        <FormProvider {...form}>
+          <form className='grid gap-4' noValidate onSubmit={form.handleSubmit(submit)}>
+            <InputFF name='title' label='Título' />
+            <Controller
+              name='description'
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Descrição</FieldLabel>
+                  <div className='overflow-hidden rounded-lg border'>
+                    <ActivityRichTextEditor value={field.value} onChange={field.onChange} />
+                  </div>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+            <InputFF name='dueAt' label='Prazo de entrega' type='datetime-local' />
+            <Field>
+              <FieldLabel>Tipo de entrega</FieldLabel>
+              <Select
+                value={form.watch('submissionType')}
+                onValueChange={(value) =>
+                  form.setValue('submissionType', value as ActivityFormRequest['submissionType'])
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='links'>Links</SelectItem>
+                  <SelectItem value='files'>Arquivos</SelectItem>
+                  <SelectItem value='both'>Links e arquivos</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <label className='flex items-center gap-2 text-sm'>
+              <input
+                type='checkbox'
+                checked={form.watch('allowLateSubmissions')}
+                onChange={(event) => form.setValue('allowLateSubmissions', event.target.checked)}
+              />{' '}
+              Aceitar primeira entrega após o prazo
+            </label>
+            <Field>
+              <FieldLabel>Anexos de referência</FieldLabel>
+              <input
+                type='file'
+                multiple
+                onChange={(event) =>
+                  setReferenceFiles(Array.from(event.target.files ?? []).slice(0, 10))
+                }
               />
-              <InputFF name='dueDate' label='Prazo' id='activity-due-date' type='datetime-local' />
-              <Controller
-                control={form.control}
-                name='allowLateSubmissions'
-                render={({ field }) => (
-                  <label className='flex items-center gap-2 text-sm' htmlFor='activity-allow-late'>
-                    <Checkbox
-                      id='activity-allow-late'
-                      checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(checked === true)}
-                    />
-                    Aceitar entregas depois do prazo (ficam marcadas como atrasadas)
-                  </label>
-                )}
-              />
-              <FieldError errors={[form.formState.errors.root]} />
-              <DialogFooter>
-                <Button type='button' variant='outline' onClick={() => setOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button variant='highlight' type='submit' disabled={form.formState.isSubmitting}>
-                  {activity ? 'Salvar' : 'Publicar'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </FormProvider>
-        </FormSchemaProvider>
-      </DialogContent>
-    </Dialog>
+              <p className='text-xs text-muted-foreground'>
+                Até 10 arquivos para orientar os grupos.
+              </p>
+              {referenceFiles.length > 0 && (
+                <p className='text-xs text-muted-foreground'>
+                  {referenceFiles.map((file) => file.name).join(', ')}
+                </p>
+              )}
+            </Field>
+            <FieldError errors={[form.formState.errors.root]} />
+            <DialogFooter>
+              <Button type='submit' variant='highlight' disabled={form.formState.isSubmitting}>
+                {activity ? 'Salvar' : 'Publicar atividade'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </FormProvider>
+      </FormSchemaProvider>
+    </DialogContent>
   )
 }

@@ -1,4 +1,6 @@
 import {
+  activities,
+  activitySubmissions,
   type GroupInvite,
   groupInvites,
   groups,
@@ -25,6 +27,7 @@ import { withGitHubDetails } from '../users/with-github-details'
 import { GetNotificationDto, type GetNotificationDtoRecord } from './dto/get-notification.dto'
 import type { CreateGroupInviteDto, RespondGroupInviteDto } from './dto/group-invite.dto'
 import type {
+  CreateActivityNotificationsInput,
   GetNotificationOutput,
   ListGroupInviteCandidatesOutput,
   ListNotificationOutput,
@@ -34,11 +37,15 @@ import type {
 import { INotificationService } from './notification.interface'
 
 const inviters = alias(users, 'notification_inviter')
+const actors = alias(users, 'notification_actor')
 const notificationSelection = {
   notification: notificationPublicColumns,
   groupInvite: groupInvitePublicColumns,
   group: { id: groups.id, friendlyId: groups.friendlyId },
   inviter: { id: inviters.id, name: inviters.name },
+  activity: { id: activities.id, title: activities.title, dueAt: activities.dueAt },
+  submission: { id: activitySubmissions.id, version: activitySubmissions.version },
+  actor: { id: actors.id, name: actors.name },
 }
 
 type PendingInviteContext = {
@@ -57,6 +64,29 @@ export class NotificationService implements INotificationService {
     private readonly gitHubService: GitHubService,
   ) {}
 
+  async createActivityNotifications(
+    input: CreateActivityNotificationsInput,
+    tx: DrizzleTransactionClient = this.database.db,
+  ) {
+    if (!input.recipientIds.length) return 0
+    const inserted = await tx
+      .insert(notifications)
+      .values(
+        input.recipientIds.map((userId) => ({
+          userId,
+          type: input.type,
+          activityId: input.activityId,
+          actorId: input.actorId,
+          groupId: input.groupId,
+          submissionId: input.submissionId,
+          deadlineRevision: input.deadlineRevision,
+        })),
+      )
+      .onConflictDoNothing()
+      .returning({ id: notifications.id })
+    return inserted.length
+  }
+
   async findAll(query: QueryDto, requester: UserMetadata): Promise<ListNotificationOutput> {
     const inboxWhere = and(
       eq(notifications.userId, requester.userId),
@@ -70,6 +100,9 @@ export class NotificationService implements INotificationService {
         .leftJoin(groupInvites, eq(notifications.groupInviteId, groupInvites.id))
         .leftJoin(groups, eq(groupInvites.groupId, groups.id))
         .leftJoin(inviters, eq(groupInvites.inviterId, inviters.id))
+        .leftJoin(activities, eq(notifications.activityId, activities.id))
+        .leftJoin(activitySubmissions, eq(notifications.submissionId, activitySubmissions.id))
+        .leftJoin(actors, eq(notifications.actorId, actors.id))
         .where(inboxWhere)
         .orderBy(desc(notifications.createdAt))
         .offset(query.skip)
@@ -494,6 +527,9 @@ export class NotificationService implements INotificationService {
       .leftJoin(groupInvites, eq(notifications.groupInviteId, groupInvites.id))
       .leftJoin(groups, eq(groupInvites.groupId, groups.id))
       .leftJoin(inviters, eq(groupInvites.inviterId, inviters.id))
+      .leftJoin(activities, eq(notifications.activityId, activities.id))
+      .leftJoin(activitySubmissions, eq(notifications.submissionId, activitySubmissions.id))
+      .leftJoin(actors, eq(notifications.actorId, actors.id))
       .where(and(eq(notifications.id, notificationId), isNull(notifications.deletedAt)))
   }
 
