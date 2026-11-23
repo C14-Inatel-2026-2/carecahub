@@ -24,6 +24,7 @@ import {
   technologyOptions,
   versionControlOptions,
 } from '@/types/project'
+import { ProjectActivityDeliveries } from './components/project-activity-deliveries'
 import { ProjectThumbnail, projectAccentStyle } from './components/project-thumbnail'
 
 function optionLabel(
@@ -144,6 +145,7 @@ export function ProjectDetailsContent({
   project: Project
   canCustomize?: boolean
 }) {
+  const user = useUser((state) => state.user)
   const technologies = getProjectTechnologies(project)
   const dependencyManager = optionOrOtherLabel(
     dependencyManagerOptions,
@@ -186,7 +188,7 @@ export function ProjectDetailsContent({
           </div>
           {canCustomize && (
             <Button
-              render={<Link to={projectCustomizeRoute(project.id)} />}
+              render={<Link to={projectCustomizeRoute(project.projectName)} />}
               variant='default'
               size='icon-lg'
               className='bg-card text-foreground hover:bg-card/70 hover:text-foreground/80'
@@ -236,6 +238,10 @@ export function ProjectDetailsContent({
               )}
             </CardContent>
           </Card>
+
+          {(user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'mentor') && (
+            <ProjectActivityDeliveries projectId={project.id} />
+          )}
         </div>
 
         <Card className='h-fit lg:h-full'>
@@ -272,9 +278,9 @@ export function ProjectDetailsContent({
 }
 
 export function ProjectDetailsPage() {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { projectName } = useParams<{ projectName: string }>()
   const user = useUser((state) => state.user)
-  const { data: project, error, isLoading } = useGet('/projects/:id', projectId)
+  const { data: project, error, isLoading } = useGet('/projects/by-name/:id', projectName)
 
   if (isLoading) {
     return (
@@ -295,7 +301,7 @@ export function ProjectDetailsPage() {
     )
   }
 
-  if (error || !projectId || !project) {
+  if (error || !projectName || !project) {
     return (
       <section role='alert' className='grid w-full flex-1 place-items-center px-4 py-10'>
         <div className='max-w-md text-center'>

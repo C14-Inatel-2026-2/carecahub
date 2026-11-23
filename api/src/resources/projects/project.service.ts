@@ -1,4 +1,12 @@
-import { groups, projects, repositories, users } from '@db'
+import {
+  activities,
+  activityEvaluations,
+  activitySubmissions,
+  groups,
+  projects,
+  repositories,
+  users,
+} from '@db'
 import { Injectable } from '@nestjs/common'
 import { and, asc, count, desc, eq, ilike, isNull, ne } from 'drizzle-orm'
 import { userPublicColumns } from '@/drizzle/schema/entities'
@@ -18,6 +26,7 @@ import { UpsertProjectDto } from './dto/upsert-project.dto'
 import type {
   GetProjectOutput,
   ListProjectOutput,
+  ProjectActivityDeliveriesOutput,
   RemoveProjectOutput,
   UpsertProjectOutput,
 } from './project.interface'
@@ -48,6 +57,38 @@ export class ProjectService implements IProjectService {
       if (isUniqueViolation(error)) return { ok: false, errKey: ErrKeys.alreadyExists }
       throw error
     }
+  }
+
+  async findActivityDeliveries(
+    id: string,
+    requester: UserMetadata,
+  ): Promise<ProjectActivityDeliveriesOutput> {
+    if (!['admin', 'teacher', 'mentor'].includes(requester.role)) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
+
+    const [project] = await this.database.db
+      .select({ groupId: projects.groupId })
+      .from(projects)
+      .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    if (!project) return { ok: false, errKey: ErrKeys.notFound }
+
+    const data = await this.database.db
+      .select({
+        activityId: activities.id,
+        title: activities.title,
+        submissionId: activitySubmissions.id,
+        version: activitySubmissions.version,
+        isLate: activitySubmissions.isLate,
+        submittedAt: activitySubmissions.submittedAt,
+        score: activityEvaluations.score,
+      })
+      .from(activitySubmissions)
+      .innerJoin(activities, eq(activitySubmissions.activityId, activities.id))
+      .leftJoin(activityEvaluations, eq(activityEvaluations.submissionId, activitySubmissions.id))
+      .where(and(eq(activitySubmissions.groupId, project.groupId), isNull(activities.deletedAt)))
+
+    return { ok: true, data }
   }
 
   private async create(
@@ -144,6 +185,15 @@ export class ProjectService implements IProjectService {
 
   async findOne(id: string, requester?: UserMetadata): Promise<GetProjectOutput> {
     const project = await this.getRecord(id)
+    if (!project) return { ok: false, errKey: ErrKeys.notFound }
+    if (requester && !(await this.canReadGroup(project.groupId, requester))) {
+      return { ok: false, errKey: ErrKeys.forbidden }
+    }
+    return { ok: true, ...(await this.withRepositoryStats(project, true)) }
+  }
+
+  async findOneByName(projectName: string, requester?: UserMetadata): Promise<GetProjectOutput> {
+    const project = await this.getRecordByName(projectName)
     if (!project) return { ok: false, errKey: ErrKeys.notFound }
     if (requester && !(await this.canReadGroup(project.groupId, requester))) {
       return { ok: false, errKey: ErrKeys.forbidden }
@@ -297,6 +347,14 @@ export class ProjectService implements IProjectService {
       .select(this.selection)
       .from(projects)
       .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    return project
+  }
+
+  private async getRecordByName(projectName: string): Promise<GetProjectDtoRecord | undefined> {
+    const [project] = await this.database.db
+      .select(this.selection)
+      .from(projects)
+      .where(and(eq(projects.projectName, projectName), isNull(projects.deletedAt)))
     return project
   }
 

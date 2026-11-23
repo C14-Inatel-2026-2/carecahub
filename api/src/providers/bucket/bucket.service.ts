@@ -171,10 +171,12 @@ export class BucketService implements IBucketService {
     file,
     isPublic,
     localPath,
+    uploadedById,
   }: {
     file: UploadFileDto
     isPublic: boolean
     localPath?: string
+    uploadedById?: string
   }) {
     const allowedMimes = [
       'image/jpeg',
@@ -202,12 +204,16 @@ export class BucketService implements IBucketService {
       throw new UnsupportedMediaTypeException()
     }
 
+    if (!isPublic && !uploadedById) {
+      throw new BadRequestException('Private upload requires an authenticated uploader')
+    }
+
     if (this.isLocal) {
       const key = this.buildFileKey(file.originalname)
       let url = localPath
       if (!url) {
-        if (!isPublic || !Buffer.isBuffer(file.buffer)) {
-          throw new BadRequestException('Local public upload requires a file buffer')
+        if (!Buffer.isBuffer(file.buffer)) {
+          throw new BadRequestException('Local upload requires a file buffer')
         }
         const directory = resolve(process.cwd(), env.LOCAL_UPLOAD_DIR)
         await mkdir(directory, { recursive: true })
@@ -223,6 +229,8 @@ export class BucketService implements IBucketService {
         size: file.size,
         url,
         isPublic,
+        mimeType: file.mimetype,
+        uploadedById,
       })
     }
 
@@ -293,6 +301,8 @@ export class BucketService implements IBucketService {
         size: file.size,
         url,
         isPublic,
+        mimeType: file.mimetype,
+        uploadedById,
       })
     } catch (error) {
       this.logger.error(`S3 Upload error - Key: ${key}, Error: ${JSON.stringify(error, null, 2)}`)
@@ -307,12 +317,16 @@ export class BucketService implements IBucketService {
     size,
     url,
     isPublic,
+    mimeType,
+    uploadedById,
   }: {
     key: string
     filename: string
     size: number
     url: string
     isPublic: boolean
+    mimeType: string
+    uploadedById?: string
   }) {
     const [bucketFile] = await this.databaseService.db
       .insert(bucketFiles)
@@ -322,17 +336,20 @@ export class BucketService implements IBucketService {
         size,
         url,
         is_public: isPublic,
+        mimeType,
+        uploadedById,
       })
       .returning({
         id: bucketFiles.id,
         key: bucketFiles.key,
         url: bucketFiles.url,
-        createdAt: bucketFiles.createdAt,
         filename: bucketFiles.filename,
         size: bucketFiles.size,
+        mimeType: bucketFiles.mimeType,
+        isPublic: bucketFiles.is_public,
       })
 
-    return bucketFile
+    return { ...bucketFile, mimeType: bucketFile.mimeType ?? mimeType }
   }
 
   async download(key: string) {

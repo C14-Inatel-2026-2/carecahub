@@ -1,5 +1,12 @@
 import {
   activities,
+  activityAttachments,
+  activityEvaluations,
+  activityGroups,
+  activitySubmissionFiles,
+  activitySubmissionLinks,
+  activitySubmissions,
+  activityViews,
   bucketFiles,
   groupInvites,
   groups,
@@ -7,10 +14,12 @@ import {
   projects,
   repositories,
   schema,
-  submissions,
   systemParams,
   users,
 } from './schema'
+
+export type { ActivitySubmissionType } from './schema/enums/activityEnums'
+export { ACTIVITY_SUBMISSION_TYPES } from './schema/enums/activityEnums'
 
 export type { GroupInviteStatus, NotificationType } from './schema/enums/notificationEnums'
 export { GROUP_INVITE_STATUSES, NOTIFICATION_TYPES } from './schema/enums/notificationEnums'
@@ -29,6 +38,13 @@ export {
 } from './schema/enums/userEnums'
 export {
   activities,
+  activityAttachments,
+  activityEvaluations,
+  activityGroups,
+  activitySubmissionFiles,
+  activitySubmissionLinks,
+  activitySubmissions,
+  activityViews,
   bucketFiles,
   groupInvites,
   groups,
@@ -36,12 +52,15 @@ export {
   projects,
   repositories,
   schema,
-  submissions,
   systemParams,
   users,
 }
 
 export type User = typeof users.$inferSelect
+export type Activity = typeof activities.$inferSelect
+export type NewActivity = typeof activities.$inferInsert
+export type ActivityGroup = typeof activityGroups.$inferSelect
+export type ActivitySubmission = typeof activitySubmissions.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type BucketFile = typeof bucketFiles.$inferSelect
 export type NewBucketFile = typeof bucketFiles.$inferInsert
@@ -56,7 +75,3 @@ export type GroupInvite = typeof groupInvites.$inferSelect
 export type NewGroupInvite = typeof groupInvites.$inferInsert
 export type Notification = typeof notifications.$inferSelect
 export type NewNotification = typeof notifications.$inferInsert
-export type Activity = typeof activities.$inferSelect
-export type NewActivity = typeof activities.$inferInsert
-export type Submission = typeof submissions.$inferSelect
-export type NewSubmission = typeof submissions.$inferInsert

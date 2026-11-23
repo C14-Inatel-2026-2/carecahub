@@ -44,6 +44,9 @@ export enum ErrKeys {
   resourceInUse = 'resourceInUseErrKey',
   noAccessToFeature = 'noAccessToFeatureErrKey',
   deadlineExpired = 'deadlineExpiredErrKey',
+  submissionClosed = 'submissionClosedErrKey',
+  submissionImmutable = 'submissionImmutableErrKey',
+  submissionRequirementsNotMet = 'submissionRequirementsNotMetErrKey',
 }
 
 export const exceptionsDictionary: Record<
@@ -138,5 +141,23 @@ export const exceptionsDictionary: Record<
     friendlyMessage: 'O prazo desta atividade já terminou',
     type: 'forbidden',
     errKey: ErrKeys.deadlineExpired,
+  },
+  submissionClosedErrKey: {
+    message: 'Submission closed',
+    friendlyMessage: 'O prazo de entrega foi encerrado.',
+    type: 'bad_request',
+    errKey: ErrKeys.submissionClosed,
+  },
+  submissionImmutableErrKey: {
+    message: 'Submission immutable',
+    friendlyMessage: 'Esta entrega não pode mais ser alterada.',
+    type: 'bad_request',
+    errKey: ErrKeys.submissionImmutable,
+  },
+  submissionRequirementsNotMetErrKey: {
+    message: 'Submission requirements not met',
+    friendlyMessage: 'A entrega não atende aos requisitos da atividade.',
+    type: 'bad_request',
+    errKey: ErrKeys.submissionRequirementsNotMet,
   },
 }

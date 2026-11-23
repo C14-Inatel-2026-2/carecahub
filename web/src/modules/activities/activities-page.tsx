@@ -1,94 +1,44 @@
-import { CalendarClock, Search } from 'lucide-react'
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useList } from '@/api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useDebounce } from '@/lib/use-debounce'
-import { isMockAPIEnabled } from '@/mocks/config'
-import { activityDetailsRoute } from '@/router/routes'
+import { Button } from '@/components/ui/button'
+import { appRoutes } from '@/router/routes'
 import { useUser } from '@/stores/use-user'
-import { canManageActivities, formatDueDate } from './activity-helpers'
-import { ActivityStatusBadge } from './components/activity-status-badge'
-import { ActivityFormDialog } from './dialogs/activity-form-dialog'
+import { ActivityCard } from './components/activity-card'
 
 export function ActivitiesPage() {
   const user = useUser((state) => state.user)
-  const navigate = useNavigate()
-  const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 350)
   const { data: activities, isLoading } = useList({
     endpoint: '/activities',
-    params: { take: 100, search: debouncedSearch.trim() || undefined },
-    disabled: isMockAPIEnabled || !user,
+    params: { skip: 0, take: 100 },
   })
+  const canManage = user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'mentor'
 
   return (
-    <section className='w-full px-4 py-5 md:px-6 lg:px-8'>
-      <div className='flex flex-wrap items-start justify-between gap-3'>
+    <section className='flex flex-1 flex-col px-4 py-5 md:px-6 lg:px-8'>
+      <div className='flex items-end justify-between gap-4'>
         <div>
           <h1 className='text-lg font-medium'>Atividades</h1>
           <p className='mt-0.5 text-xs text-muted-foreground'>
-            {canManageActivities(user)
-              ? 'Publique atividades e acompanhe as entregas dos grupos.'
-              : 'Veja as atividades da turma e envie as entregas do seu grupo.'}
+            Acompanhe prazos, entregas e avaliações.
           </p>
         </div>
-        {canManageActivities(user) && (
-          <ActivityFormDialog onSaved={(activity) => navigate(activityDetailsRoute(activity.id))} />
+        {canManage && (
+          <Button render={<Link to={appRoutes.createActivity} />} variant='highlight' type='button'>
+            <Plus />
+            Nova atividade
+          </Button>
         )}
       </div>
-
-      <label className='relative mt-6 block max-w-md'>
-        <span className='sr-only'>Buscar atividades</span>
-        <Search className='pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-icon-muted' />
-        <Input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className='pl-8'
-          placeholder='Buscar pelo título…'
-        />
-      </label>
-
-      <div className='mt-4 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+      <div className='mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
         {activities.map((activity) => (
-          <Link
-            key={activity.id}
-            to={activityDetailsRoute(activity.id)}
-            className='rounded-xl focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none'
-          >
-            <Card className='h-full transition-colors hover:bg-muted/40'>
-              <CardHeader>
-                <div className='flex items-start justify-between gap-2'>
-                  <CardTitle className='line-clamp-2'>{activity.title}</CardTitle>
-                  <ActivityStatusBadge activity={activity} />
-                </div>
-                <CardDescription className='flex items-center gap-1.5'>
-                  <CalendarClock className='size-3.5' />
-                  Prazo: {formatDueDate(activity.dueDate)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className='line-clamp-3 text-sm text-muted-foreground'>{activity.description}</p>
-              </CardContent>
-            </Card>
-          </Link>
+          <ActivityCard key={activity.id} activity={activity} />
         ))}
       </div>
-
-      {isLoading && (
-        <div className='mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-          {[0, 1, 2].map((item) => (
-            <Skeleton key={item} className='h-40 w-full' />
-          ))}
-        </div>
-      )}
       {!isLoading && activities.length === 0 && (
-        <p className='mt-6 text-sm text-muted-foreground'>
-          {debouncedSearch ? 'Nenhuma atividade encontrada.' : 'Nenhuma atividade publicada ainda.'}
-        </p>
+        <p className='mt-6 text-sm text-muted-foreground'>Nenhuma atividade publicada.</p>
       )}
+      {isLoading && <p className='mt-6 text-sm text-muted-foreground'>Carregando atividades…</p>}
     </section>
   )
 }

@@ -8,4 +8,9 @@ describe('isAllowedPathForRole', () => {
     expect(isAllowedPathForRole('/projects/project-1/customize', 'student')).toBe(true)
     expect(isAllowedPathForRole('/projects/project-1/settings', 'student')).toBe(false)
   })
+
+  it('does not grant students access to staff delivery details', () => {
+    expect(isAllowedPathForRole('/activities/activity-1/groups/group-1', 'student')).toBe(false)
+    expect(isAllowedPathForRole('/activities/activity-1/groups/group-1', 'teacher')).toBe(true)
+  })
 })

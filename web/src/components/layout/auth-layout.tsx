@@ -36,10 +36,15 @@ export const pagesByRole: Record<UserRole, AppRoute[]> = {
 }
 
 export function isAllowedPathForRole(pathname: string, role: UserRole) {
+  const isStudentGroupDelivery =
+    role === 'student' && /^\/activities\/[^/]+\/groups\/[^/]+$/.test(pathname)
   const isStudentProjectDetails =
     role === 'student' && /^\/projects\/[^/]+(?:\/customize)?$/.test(pathname)
 
-  return isAllowedPath(pathname, pagesByRole[role]) || isStudentProjectDetails
+  return (
+    !isStudentGroupDelivery &&
+    (isAllowedPath(pathname, pagesByRole[role]) || isStudentProjectDetails)
+  )
 }
 
 export function AuthLayout() {

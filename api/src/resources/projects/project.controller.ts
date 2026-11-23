@@ -1,4 +1,4 @@
-import { Body, Delete, Get, Patch, Post, Query } from '@nestjs/common'
+import { Body, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common'
 import { ApiController } from '@/infra/controller.decorator'
 import { Roles } from '@/infra/roles.guard'
 import { User } from '@/infra/user.decorator'
@@ -41,10 +41,22 @@ export class ProjectController {
     return this.projectService.findAll(query, requester)
   }
 
+  @Get('by-name/:projectName')
+  @Roles(['admin', 'teacher', 'mentor', 'student'])
+  findOneByName(@User() requester: UserMetadata, @Param('projectName') projectName: string) {
+    return this.projectService.findOneByName(projectName, requester)
+  }
+
   @Get(':id')
   @Roles(['admin', 'teacher', 'mentor', 'student'])
   findOne(@User() requester: UserMetadata, @UUIDParam() id: string) {
     return this.projectService.findOne(id, requester)
+  }
+
+  @Get(':id/activities')
+  @Roles(['admin', 'teacher', 'mentor'])
+  findActivityDeliveries(@User() requester: UserMetadata, @UUIDParam() id: string) {
+    return this.projectService.findActivityDeliveries(id, requester)
   }
 
   @Delete(':id')

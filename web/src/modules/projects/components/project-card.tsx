@@ -117,7 +117,10 @@ export function ProjectCard({ group, project }: { group: Group; project: Project
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-      <Button className='p-5 mt-auto' render={<Link to={projectDetailsRoute(project.id)} />}>
+      <Button
+        className='p-5 mt-auto'
+        render={<Link to={projectDetailsRoute(project.projectName)} />}
+      >
         Ver detalhes <ArrowRight />
       </Button>
     </div>

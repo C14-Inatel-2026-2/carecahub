@@ -11,8 +11,19 @@ describe('BucketController', () => {
   let batchUploadPublic: ReturnType<typeof vi.fn>
 
   const defaultUploadResponse: UploadResponseDto = {
+    id: 'file-id',
     key: 'key-mock',
     url: 'url-mock',
+    filename: 'file-mock.png',
+    size: 100,
+    mimeType: 'image/png',
+    isPublic: false,
+  }
+
+  const requester = {
+    userId: 'student-id',
+    name: 'Student',
+    role: 'student' as const,
   }
 
   const defaultFile = {
@@ -97,29 +108,33 @@ describe('BucketController', () => {
   })
 
   it('uploads a private file', async () => {
-    const uploadedFile = await controller.uploadPrivateFile(defaultFile)
+    const uploadedFile = await controller.uploadPrivateFile(defaultFile, undefined, requester)
 
     assert.deepStrictEqual(upload.mock.calls[0], [
       {
         file: defaultFile,
         isPublic: false,
         localPath: undefined,
+        uploadedById: requester.userId,
       },
     ])
 
+    assert.strictEqual(uploadedFile.id, defaultUploadResponse.id)
     assert.strictEqual(uploadedFile.key, defaultUploadResponse.key)
+    assert.strictEqual(uploadedFile.mimeType, defaultUploadResponse.mimeType)
   })
 
   it('forwards local path when uploading a private file', async () => {
     const localPath = '/fixtures/private/image.png'
 
-    await controller.uploadPrivateFile(defaultFile, localPath)
+    await controller.uploadPrivateFile(defaultFile, localPath, requester)
 
     assert.deepStrictEqual(upload.mock.calls[0], [
       {
         file: defaultFile,
         isPublic: false,
         localPath,
+        uploadedById: requester.userId,
       },
     ])
   })

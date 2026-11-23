@@ -202,3 +202,46 @@ describe('GitHubService.getUserDetails', () => {
     assert.equal(await service.getUserDetails('ada'), null)
   })
 })
+
+describe('GitHubService.getRepositoryOpenGraphImageUrl', () => {
+  it('gets the social preview URL through the GitHub GraphQL API', async () => {
+    const requests: Array<{ path: string; body: unknown }> = []
+    const service = new GitHubService({ info() {}, error() {} } as never)
+    Object.assign(service, {
+      axios: {
+        post: async (path: string, body: unknown) => {
+          requests.push({ path, body })
+          return {
+            data: {
+              data: {
+                repository: {
+                  openGraphImageUrl: 'https://repository-images.githubusercontent.com/1/preview',
+                },
+              },
+            },
+          }
+        },
+      },
+    })
+
+    const result = await service.getRepositoryOpenGraphImageUrl('https://github.com/acme/api')
+
+    assert.equal(result, 'https://repository-images.githubusercontent.com/1/preview')
+    assert.equal(requests.length, 1)
+    assert.equal(requests[0].path, '/graphql')
+    assert.deepEqual((requests[0].body as { variables: unknown }).variables, {
+      owner: 'acme',
+      name: 'api',
+    })
+    assert.match((requests[0].body as { query: string }).query, /openGraphImageUrl/)
+  })
+
+  it('returns null when the GitHub GraphQL request fails', async () => {
+    const service = new GitHubService({ info() {}, error() {} } as never)
+    Object.assign(service, {
+      axios: { post: async () => Promise.reject(new Error('offline')) },
+    })
+
+    assert.equal(await service.getRepositoryOpenGraphImageUrl('https://github.com/acme/api'), null)
+  })
+})

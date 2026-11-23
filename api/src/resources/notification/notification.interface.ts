@@ -1,8 +1,26 @@
+import type { DrizzleTransactionClient } from '@/providers/database/drizzle.service'
 import type { ServiceOutput, UserMetadata } from '@/types'
 import type { List } from '@/utils/dtos/base.dto'
 import type { QueryDto } from '@/utils/dtos/query.dto'
 import type { GetUserWithGitHubDetails } from '../users/user.interface'
 import type { GetNotificationDto } from './dto/get-notification.dto'
+
+export type CreateActivityNotificationsInput = {
+  type:
+    | 'activity_published'
+    | 'activity_updated'
+    | 'activity_deadline_week'
+    | 'activity_deadline_three_days'
+    | 'activity_deadline_today'
+    | 'activity_submission_created'
+  activityId: string
+  actorId: string
+  recipientIds: string[]
+  groupId?: string
+  submissionId?: string
+  deadlineRevision?: number
+}
+
 import type { CreateGroupInviteDto, RespondGroupInviteDto } from './dto/group-invite.dto'
 
 export type NotificationList = {
@@ -24,6 +42,10 @@ export type ListGroupInviteCandidatesOutput = ServiceOutput<List<GetUserWithGitH
 export type RespondGroupInviteOutput = ServiceOutput<RespondGroupInviteResult>
 
 export abstract class INotificationService {
+  abstract createActivityNotifications(
+    input: CreateActivityNotificationsInput,
+    tx?: DrizzleTransactionClient,
+  ): Promise<number>
   abstract findAll(query: QueryDto, requester: UserMetadata): Promise<ListNotificationOutput>
   abstract markAllAsRead(requester: UserMetadata): Promise<MarkAllNotificationsReadOutput>
   abstract markAsRead(
