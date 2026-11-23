@@ -1,39 +1,40 @@
-import { ServiceOutput, UserMetadata } from "@/types";
-import { List } from "@/utils/dtos/base.dto";
-import { QueryDto } from "@/utils/dtos/query.dto";
-import { GetProjectDto } from "./dto/get-project.dto";
-import { UpdateProjectAppearanceDto } from "./dto/update-project-appearance.dto";
-import { UpsertProjectDto } from "./dto/upsert-project.dto";
+import { ServiceOutput, UserMetadata } from '@/types'
+import { List } from '@/utils/dtos/base.dto'
+import { QueryDto } from '@/utils/dtos/query.dto'
+import { GetProjectDto } from './dto/get-project.dto'
+import { UpdateProjectAppearanceDto } from './dto/update-project-appearance.dto'
+import { UpsertProjectDto } from './dto/upsert-project.dto'
 
-export type UpsertProjectOutput = ServiceOutput<GetProjectDto>;
-export type GetProjectOutput = ServiceOutput<GetProjectDto>;
-export type ListProjectOutput = ServiceOutput<List<GetProjectDto>>;
-export type RemoveProjectOutput = ServiceOutput<object>;
+export type UpsertProjectOutput = ServiceOutput<GetProjectDto>
+export type GetProjectOutput = ServiceOutput<GetProjectDto>
+export type ListProjectOutput = ServiceOutput<List<GetProjectDto>>
+export type RemoveProjectOutput = ServiceOutput<object>
+export type ProjectActivityDelivery = {
+  activityId: string
+  title: string
+  submissionId: string
+  version: number
+  isLate: boolean
+  submittedAt: Date
+  score: number | null
+}
+export type ProjectActivityDeliveriesOutput = ServiceOutput<{
+  data: ProjectActivityDelivery[]
+}>
 
 export abstract class IProjectService {
-  abstract upsert(
-    input: UpsertProjectDto,
-    requester: UserMetadata,
-  ): Promise<UpsertProjectOutput>;
-  abstract findAll(
-    query: QueryDto,
-    requester?: UserMetadata,
-  ): Promise<ListProjectOutput>;
-  abstract findOne(
-    id: string,
-    requester?: UserMetadata,
-  ): Promise<GetProjectOutput>;
-  abstract findOneByName(
-    projectName: string,
-    requester?: UserMetadata,
-  ): Promise<GetProjectOutput>;
+  abstract upsert(input: UpsertProjectDto, requester: UserMetadata): Promise<UpsertProjectOutput>
+  abstract findAll(query: QueryDto, requester?: UserMetadata): Promise<ListProjectOutput>
+  abstract findOne(id: string, requester?: UserMetadata): Promise<GetProjectOutput>
+  abstract findOneByName(projectName: string, requester?: UserMetadata): Promise<GetProjectOutput>
   abstract updateAppearance(
     id: string,
     input: UpdateProjectAppearanceDto,
     requester: UserMetadata,
-  ): Promise<GetProjectOutput>;
-  abstract remove(
+  ): Promise<GetProjectOutput>
+  abstract findActivityDeliveries(
     id: string,
     requester: UserMetadata,
-  ): Promise<RemoveProjectOutput>;
+  ): Promise<ProjectActivityDeliveriesOutput>
+  abstract remove(id: string, requester: UserMetadata): Promise<RemoveProjectOutput>
 }

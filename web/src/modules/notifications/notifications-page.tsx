@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { isMockAPIEnabled } from '@/mocks/config'
 import { useUser } from '@/stores/use-user'
 import type { GroupInviteResponseStatus, Notification } from '@/types/notification'
+import { ActivityNotificationCard } from './components/activity-notification-card'
 import { GroupInviteNotificationCard } from './components/group-invite-notification-card'
 import {
   filterNotifications,
@@ -128,15 +129,23 @@ export function NotificationsList({
 
   return (
     <div className='grid gap-3'>
-      {notifications.map((notification) => (
-        <GroupInviteNotificationCard
-          key={notification.id}
-          notification={notification}
-          isBusy={busyId === notification.id}
-          onRespond={onRespond}
-          onMarkAsRead={onMarkAsRead}
-        />
-      ))}
+      {notifications.map((notification) =>
+        notification.type === 'group_invite' ? (
+          <GroupInviteNotificationCard
+            key={notification.id}
+            notification={notification}
+            isBusy={busyId === notification.id}
+            onRespond={onRespond}
+            onMarkAsRead={onMarkAsRead}
+          />
+        ) : (
+          <ActivityNotificationCard
+            key={notification.id}
+            notification={notification}
+            onMarkAsRead={onMarkAsRead}
+          />
+        )
+      )}
     </div>
   )
 }

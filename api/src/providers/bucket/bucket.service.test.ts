@@ -130,6 +130,7 @@ describe('BucketService', () => {
       await service.upload({
         file,
         isPublic: false,
+        uploadedById: 'user-id',
       })
 
       assert.strictEqual(sendToS3.mock.calls.length, 1)
@@ -173,6 +174,7 @@ describe('BucketService', () => {
       await service.upload({
         file,
         isPublic: false,
+        uploadedById: 'user-id',
       })
 
       const callArgs = sendToS3.mock.calls[0][0] as PutObjectCommand
@@ -197,6 +199,7 @@ describe('BucketService', () => {
       await service.upload({
         file,
         isPublic: false,
+        uploadedById: 'user-id',
       })
 
       const callArgs = sendToS3.mock.calls[0][0] as PutObjectCommand

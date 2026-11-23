@@ -23,6 +23,14 @@ type GitHubUserResponse = {
   public_repos: number
 }
 
+type GitHubOpenGraphImageResponse = {
+  data?: {
+    repository: {
+      openGraphImageUrl: string | null
+    } | null
+  }
+}
+
 @Injectable()
 export class GitHubService {
   private readonly axios: AxiosInstance
@@ -110,6 +118,30 @@ export class GitHubService {
           ? 'Repositório do GitHub não encontrado. Verifique a URL vinculada.'
           : 'Falha ao buscar o repositório no GitHub.',
       }
+    }
+  }
+
+  async getRepositoryOpenGraphImageUrl(repositoryUrl: string): Promise<string | null> {
+    try {
+      const { owner, repository } = this.parseRepositoryUrl(repositoryUrl)
+      this.logger.info(`GET GitHub repository social preview: ${owner}/${repository}`)
+      const response = await this.axios.post<GitHubOpenGraphImageResponse>('/graphql', {
+        query: `
+          query RepositoryOpenGraphImage($owner: String!, $name: String!) {
+            repository(owner: $owner, name: $name) {
+              openGraphImageUrl
+            }
+          }
+        `,
+        variables: { owner, name: repository },
+      })
+
+      return response.data.data?.repository?.openGraphImageUrl ?? null
+    } catch (error) {
+      this.logger.error(
+        `Failed to get GitHub repository social preview: ${error instanceof Error ? error.message : String(error)}`,
+      )
+      return null
     }
   }
 

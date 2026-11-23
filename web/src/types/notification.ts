@@ -3,7 +3,15 @@ import { z } from 'zod'
 export const GROUP_INVITE_STATUSES = ['pending', 'accepted', 'rejected', 'cancelled'] as const
 export type GroupInviteStatus = (typeof GROUP_INVITE_STATUSES)[number]
 
-export const NOTIFICATION_TYPES = ['group_invite'] as const
+export const NOTIFICATION_TYPES = [
+  'group_invite',
+  'activity_published',
+  'activity_updated',
+  'activity_deadline_week',
+  'activity_deadline_three_days',
+  'activity_deadline_today',
+  'activity_submission_created',
+] as const
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
 
 export const createGroupInviteSchema = z.object({
@@ -36,6 +44,9 @@ export type Notification = {
   type: NotificationType
   readAt: string | null
   groupInvite: GroupInvite | null
+  activity: { id: string; title: string; dueAt: string } | null
+  submission: { id: string; version: number } | null
+  actor: { id: string; name: string } | null
   createdAt: string
   updatedAt: string
   deletedAt?: string

@@ -53,6 +53,12 @@ export class ProjectController {
     return this.projectService.findOne(id, requester)
   }
 
+  @Get(':id/activities')
+  @Roles(['admin', 'teacher', 'mentor'])
+  findActivityDeliveries(@User() requester: UserMetadata, @UUIDParam() id: string) {
+    return this.projectService.findActivityDeliveries(id, requester)
+  }
+
   @Delete(':id')
   @Roles(['admin', 'student'])
   remove(@User() requester: UserMetadata, @UUIDParam() id: string) {

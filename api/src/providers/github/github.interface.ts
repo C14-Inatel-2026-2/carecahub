@@ -4,4 +4,5 @@ import type { GitHubUserDetails, RepositoryDetails } from './github.types'
 export abstract class IGitHubService {
   abstract getUserDetails(username: string): Promise<GitHubUserDetails | null>
   abstract getRepositoryFromUrl(repositoryUrl: string): Promise<EitherResponse<RepositoryDetails>>
+  abstract getRepositoryOpenGraphImageUrl(repositoryUrl: string): Promise<string | null>
 }

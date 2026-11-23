@@ -19,6 +19,7 @@ export abstract class IBucketService {
     file: UploadFileDto
     isPublic: boolean
     localPath?: string
+    uploadedById?: string
   }): Promise<UploadResponseDto>
 
   abstract download(key: string): Promise<Buffer>

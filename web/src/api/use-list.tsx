@@ -1,6 +1,12 @@
 import useSWR from 'swr'
 import { buildQueryString, type FetcherParams } from '@/api'
-import type { Activity, Submission } from '@/types/activity'
+import type {
+  Activity,
+  ActivityGroupDelivery,
+  ActivityPipeline,
+  ActivitySubmission,
+  ProjectActivityDelivery,
+} from '@/types/activity'
 import type { PaginateParams, PaginateResponse } from '@/types/api'
 import type { GetGroupResponse } from '@/types/group'
 import type { Notification } from '@/types/notification'
@@ -28,13 +34,16 @@ type ResponseTypeMap = {
   '/projects': GetProjectResponse
   '/projects/:id': GetProjectResponse
   '/projects/by-name/:id': GetProjectResponse
+  '/projects/:id/activities': { data: ProjectActivityDelivery[] }
   '/repositories': GetRepositoryResponse
   '/repositories/:id': GetRepositoryResponse
   '/notifications': Notification
   '/notifications/group-invites/candidates': GetUserResponse
   '/activities': Activity
   '/activities/:id': Activity
-  '/activities/:id/submissions': PaginateResponse<Submission>
+  '/activities/:id/pipeline': ActivityPipeline
+  '/activities/:id/group-delivery': ActivityGroupDelivery
+  '/activities/:id/submissions': { data: ActivitySubmission[] }
 }
 
 /**

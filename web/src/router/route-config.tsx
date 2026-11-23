@@ -1,7 +1,9 @@
 import { Navigate, type RouteObject } from 'react-router-dom'
 import { AuthLayout } from '@/components/layout/auth-layout'
 import { ActivitiesPage } from '@/modules/activities/activities-page'
+import { ActivityComposerPage } from '@/modules/activities/activity-composer-page'
 import { ActivityDetailsPage } from '@/modules/activities/activity-details-page'
+import { ActivityGroupDeliveryPage } from '@/modules/activities/activity-group-delivery-page'
 import { LoginPage } from '@/modules/auth/login-page'
 import { GroupsPage } from '@/modules/groups/groups-page'
 import { HomePage } from '@/modules/home/home-page'
@@ -46,6 +48,11 @@ export const appRouterRoutes = [
         path: appRoutes.activities,
         children: [
           { index: true, Component: ActivitiesPage },
+          { path: 'new', Component: ActivityComposerPage },
+          {
+            path: ':activityId/groups/:groupId',
+            Component: ActivityGroupDeliveryPage,
+          },
           { path: ':activityId', Component: ActivityDetailsPage },
         ],
       },

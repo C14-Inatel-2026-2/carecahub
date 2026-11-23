@@ -2,6 +2,8 @@ import { Body, Post, UploadedFile, UploadedFiles } from '@nestjs/common'
 
 import { ApiController } from '@/infra/controller.decorator'
 import { UploadRoute } from '@/infra/upload-route.decorator'
+import { User } from '@/infra/user.decorator'
+import type { UserMetadata } from '@/types'
 import { CustomLogger } from '../logger/custom-logger.service'
 import { LoggerFactory } from '../logger/logger-factory.service'
 import { BucketService } from './bucket.service'
@@ -39,6 +41,7 @@ export class BucketController {
   async uploadPrivateFile(
     @UploadedFile() file: UploadFileDto,
     @Body('localPath') localPath?: string,
+    @User() requester?: UserMetadata,
   ) {
     this.logger.log('Uploading private file')
 
@@ -46,6 +49,7 @@ export class BucketController {
       file,
       isPublic: false,
       localPath,
+      uploadedById: requester?.userId,
     })
   }
 

@@ -28,6 +28,9 @@ export type GetNotificationDtoRecord = {
   groupInvite: NotificationGroupInviteRecord | null
   group: { id: string; friendlyId: string } | null
   inviter: { id: string; name: string } | null
+  activity: { id: string; title: string; dueAt: Date } | null
+  submission: { id: string; version: number } | null
+  actor: { id: string; name: string } | null
 }
 
 export type GroupInviteNotification = {
@@ -48,8 +51,17 @@ export class GetNotificationDto extends BaseDto<GetNotificationDto> {
   @ApiProperty({ nullable: true })
   groupInvite: GroupInviteNotification | null
 
+  @ApiProperty({ nullable: true })
+  activity: { id: string; title: string; dueAt: Date } | null
+
+  @ApiProperty({ nullable: true })
+  submission: { id: string; version: number } | null
+
+  @ApiProperty({ nullable: true })
+  actor: { id: string; name: string } | null
+
   static toDto(record: GetNotificationDtoRecord): GetNotificationDto {
-    const { notification, groupInvite, group, inviter } = record
+    const { notification, groupInvite, group, inviter, activity, submission, actor } = record
 
     return {
       id: notification.id,
@@ -65,6 +77,9 @@ export class GetNotificationDto extends BaseDto<GetNotificationDto> {
               inviter,
             }
           : null,
+      activity: activity ?? null,
+      submission: submission ?? null,
+      actor: actor ?? null,
       createdAt: notification.createdAt,
       updatedAt: notification.updatedAt,
       deletedAt: notification.deletedAt ?? undefined,
