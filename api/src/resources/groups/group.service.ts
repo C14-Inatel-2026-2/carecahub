@@ -16,6 +16,7 @@ import { withGitHubDetails } from '../users/with-github-details'
 import { CreateGroupDto } from './dto/create-group.dto'
 import type { GetGroupDtoRecord } from './dto/get-group.dto'
 import { GetGroupDto } from './dto/get-group.dto'
+import { MAX_GROUP_MEMBERS } from './group.constants'
 import type {
   GetGroupOutput,
   GetUsersInGroupOutput,
@@ -130,11 +131,8 @@ export class GroupService implements IGroupService {
     groupId: string,
     requester: UserMetadata,
   ): Promise<ServiceOutput<object>> {
-    const group = await this.findGroup(groupId)
-    if (!group) return { ok: false, errKey: ErrKeys.notFound }
-    if (!this.canManageGroup(group, requester)) {
-      return { ok: false, errKey: ErrKeys.forbidden }
-    }
+    const found = await this.findManageableGroup(groupId, requester)
+    if (!found.ok) return found
     const [user] = await this.database.db
       .select({ id: users.id, groupId: users.groupId, status: users.status })
       .from(users)
@@ -149,7 +147,7 @@ export class GroupService implements IGroupService {
       .select({ count: count() })
       .from(users)
       .where(and(eq(users.groupId, groupId), eq(users.status, 'active'), isNull(users.deletedAt)))
-    if (Number(memberCount?.count ?? 0) >= 6) {
+    if (Number(memberCount?.count ?? 0) >= MAX_GROUP_MEMBERS) {
       return { ok: false, errKey: ErrKeys.limitReached }
     }
 
@@ -166,11 +164,9 @@ export class GroupService implements IGroupService {
     groupId: string,
     requester: UserMetadata,
   ): Promise<ServiceOutput<object>> {
-    const group = await this.findGroup(groupId)
-    if (!group) return { ok: false, errKey: ErrKeys.notFound }
-    if (!this.canManageGroup(group, requester)) {
-      return { ok: false, errKey: ErrKeys.forbidden }
-    }
+    const found = await this.findManageableGroup(groupId, requester)
+    if (!found.ok) return found
+    const { group } = found
     if (group.leaderId === userId) return { ok: false, errKey: ErrKeys.resourceInUse }
 
     const [updated] = await this.database.db
@@ -233,11 +229,8 @@ export class GroupService implements IGroupService {
     groupId: string,
     requester: UserMetadata,
   ): Promise<GetGroupOutput> {
-    const group = await this.findGroup(groupId)
-    if (!group) return { ok: false, errKey: ErrKeys.notFound }
-    if (!this.canManageGroup(group, requester)) {
-      return { ok: false, errKey: ErrKeys.forbidden }
-    }
+    const found = await this.findManageableGroup(groupId, requester)
+    if (!found.ok) return found
     const [member] = await this.database.db
       .select({ id: users.id, groupId: users.groupId, status: users.status })
       .from(users)
@@ -265,11 +258,8 @@ export class GroupService implements IGroupService {
   }
 
   async delete(groupId: string, requester: UserMetadata): Promise<ServiceOutput<object>> {
-    const group = await this.findGroup(groupId)
-    if (!group) return { ok: false, errKey: ErrKeys.notFound }
-    if (!this.canManageGroup(group, requester)) {
-      return { ok: false, errKey: ErrKeys.forbidden }
-    }
+    const found = await this.findManageableGroup(groupId, requester)
+    if (!found.ok) return found
     const [project] = await this.database.db
       .select({ id: projects.id })
       .from(projects)
@@ -356,6 +346,16 @@ export class GroupService implements IGroupService {
       .from(groups)
       .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)))
     return group
+  }
+
+  private async findManageableGroup(
+    groupId: string,
+    requester: UserMetadata,
+  ): ServiceOutput<{ group: GetGroupDtoRecord }> {
+    const group = await this.findGroup(groupId)
+    if (!group) return { ok: false, errKey: ErrKeys.notFound }
+    if (!this.canManageGroup(group, requester)) return { ok: false, errKey: ErrKeys.forbidden }
+    return { ok: true, group }
   }
 
   private canManageGroup(group: GetGroupDtoRecord, requester: UserMetadata): boolean {

@@ -207,12 +207,80 @@ estavam verdes antes e depois de cada mudança.
 | Isabelle | Componente longo: `ProjectDetailsContent` com ~220 linhas e regra do "Outro" repetida para gerenciador e controle de versão | Extrair função (`optionOrOtherLabel`, `getProjectTechnologies`) + extrair componente (`ProjectMembersList`, `ProjectRepositoriesList`) | Cada parte da tela ganha nome e a regra do "Outro" fica isolada e testável | [#55](https://github.com/C14-Inatel-2026-2/carecahub/pull/55) |
 | Lara | Componente longo e código duplicado: `create-project-page.tsx` tinha 3 blocos `Controller` + `Select` semelhantes | Extrair o componente `OptionSelectField` e a lista `sortedTechnologyOptions` | Centraliza a estrutura dos selects e reduz duplicação, mantendo os campos “Outro” logo abaixo dos respectivos campos | [#58](https://github.com/C14-Inatel-2026-2/carecahub/pull/58) |
 | Lara | Números mágicos e código duplicado: tipos de imagem repetidos nos campos de arquivo e tamanho máximo sem nome | Criar `ACCEPTED_IMAGE_TYPES` e `MAX_IMAGE_SIZE_BYTES`; extrair `validateImage` e `uploadIfSelected` | Mantém a validação e os formatos aceitos dos campos de upload alinhados, evitando duplicação | [#60](https://github.com/C14-Inatel-2026-2/carecahub/pull/60) |
+| Rander | Número mágico e código duplicado: o limite de 6 membros por grupo estava escrito à mão em 5 lugares (`group.service`, `get-group.dto` e 3x em `notification.service`) | Extrair constante `MAX_GROUP_MEMBERS` em `groups/group.constants.ts` e usá-la nos 5 pontos | Mudar o limite exigia lembrar de 5 lugares em 3 arquivos; agora é uma linha só, e o nome explica o que o número significa | [#70](https://github.com/C14-Inatel-2026-2/carecahub/pull/70) |
+| Rander | Código duplicado: `addUserToGroup`, `removeUserFromGroup`, `promoteLeader` e `delete` repetiam o mesmo bloco (buscar grupo → `notFound` → checar admin/líder → `forbidden`) | Extrair método privado `findManageableGroup` no `GroupService` | A regra "só admin ou líder gerencia o grupo" fica em um lugar só e os 4 métodos ficam mais curtos; os testes existentes do `GroupService` garantem que o comportamento não mudou | [#70](https://github.com/C14-Inatel-2026-2/carecahub/pull/70) |
 | Daniel | Código duplicado: detecção do erro 23505 do Postgres copiada como método privado em `group.service`, `project.service` e `repository.service` | Substituir os métodos privados pela função compartilhada `isUniqueViolation` de `utils/query-violations.ts` | A extração já existia pela metade: dois services usavam o utilitário e três mantinham cópias, então uma mudança na regra precisaria ser lembrada em cinco lugares | [#62](https://github.com/C14-Inatel-2026-2/carecahub/pull/62) |
 | Daniel | Código duplicado: classe `QueryResult` (dublê do query builder do Drizzle) copiada em oito arquivos de teste, com cópias já divergindo nos métodos | Extrair classe para `utils/mocks/query-result.mock.ts` e reutilizar em cinco testes; as cópias que registram chamadas (spies, em `group` e `notification-response`) ficaram de fora | Mudar a forma de simular o banco exigia editar oito arquivos; antes de unificar, conferi que nenhum teste dependia da diferença no tratamento de erro entre as cópias | [#63](https://github.com/C14-Inatel-2026-2/carecahub/pull/63) |
 | Felipe | Código duplicado entre módulos: diálogos, `UserActions` e colunas de Monitores copiados de Usuários | Extrair componente (`UserActions`, `user-columns`) e reutilizar os diálogos de `users` | Uma correção na tabela ou nos diálogos passa a valer para as duas telas | [#67](https://github.com/C14-Inatel-2026-2/carecahub/pull/67) |
 | Felipe | Método longo: `respondToGroupInvite` com ~190 linhas e validação do convite copiada 2x | Extrair método: `lockPendingInvite`, `acceptInvite` e `rejectInvite` | Cada caminho (aceitar/recusar) fica legível sozinho e a validação existe em um lugar só | [#68](https://github.com/C14-Inatel-2026-2/carecahub/pull/68) |
 | Pedro | Código duplicado entre classes: isUniqueViolation copiado em 3 serviços e withGitHubDetails em 4 | Mover método para utils/query-violations e para uma função compartilhada em resources/users | Uma única versão de cada regra; mudanças no formato do GitHub são feitas em um lugar só | [#71](https://github.com/C14-Inatel-2026-2/carecahub/pull/71) |
-| Pedro | Código duplicado entre classes: isUniqueViolation copiado em 3 serviços e withGitHubDetails em 4 | Mover método para utils/query-violations e para uma função compartilhada em resources/users | Uma única versão de cada regra; mudanças no formato do GitHub são feitas em um lugar só | [#71](https://github.com/C14-Inatel-2026-2/carecahub/pull/71) |
+| Pedro | Código duplicado: checagens de nome, URL, monorepo e líder repetidas entre create, update e remove | Extrair método: isNameInUse, isUrlInUse, hasActiveRepository e isGroupLeader | create/update ficam curtos e uma correção na regra vale para todos os caminhos | [#69](https://github.com/C14-Inatel-2026-2/carecahub/pull/69) |
+
+## Uso de IA
+
+A IA foi consultada para propor soluções para a interface de usuários, a API de
+listagem e os convites de grupo. Os exemplos abaixo foram reconstruídos de
+memória e **não são transcrições literais** dos prompts originais.
+
+### Exemplos de prompts e resultado no projeto
+
+**1. Tabela de usuários**
+
+> "Gere uma tabela seguindo as constraints visuais do sistema para exibir uma
+> lista de usuários com colunas que representam os valores retornados pela API
+> no endpoint de busca de usuários. Quero que a coluna que mostra a role do
+> usuário seja uma badge com uma cor personalizada para cada role. Essa tela
+> com essa tabela só pode ser acessada por usuários cuja role seja professor,
+> administrador ou monitor."
+
+O web tem uma [tabela de usuários](web/src/modules/users/users-page.tsx),
+[colunas com badge por papel](web/src/modules/users/user-columns.tsx) e uma
+[regra de acesso à página](web/src/components/layout/auth-layout.tsx) para
+administrador, professor e monitor. O código final usa os nomes de papéis e as
+regras de visibilidade do projeto.
+
+**2. Listagem de usuários na API**
+
+> "Gere um endpoint GET responsável pela listagem dos usuários do sistema e
+> quero que esse endpoint seja protegido para que apenas usuários com as roles
+> professor, monitor ou administrador consigam utilizá-lo. Preciso de query
+> params para poder aplicar filtros e ordenações em cima dos resultados."
+
+O [GET `/users`](api/src/resources/users/user.controller.ts) aceita paginação,
+busca e filtro por papel. A implementação final difere do pedido aproximado:
+a rota também permite a chamada por aluno, mas o serviço retorna uma lista
+vazia para esse papel. A ordenação da listagem é fixa por nome em ordem
+crescente; os parâmetros genéricos de ordenação do `QueryDto` não são aplicados
+nesse serviço. A autorização e a consulta estão no
+[UsersService](api/src/resources/users/user.service.ts).
+
+**3. Convites e notificações de grupos**
+
+> "Quero que gere um sistema de notificações para que os alunos sejam capazes
+> de enviar convites de grupos para colegas que ainda não possuem nenhum grupo
+> alocado. Os endpoints devem ser protegidos para apenas usuários do tipo aluno
+> e caso um aluno já possua um grupo ele não deve ser listado como opção para
+> um aluno que quer realizar o convite. Caso o aluno aceite algum convite, os
+> demais convites pendentes devem ser registrados como cancelados."
+
+As [rotas de convite](api/src/resources/notification/notification.controller.ts)
+são restritas a alunos. A [busca de candidatos e a resposta ao
+convite](api/src/resources/notification/notification.service.ts) filtram alunos
+sem grupo e cancelam os outros convites recebidos quando um convite é aceito.
+O comportamento é verificado nos [testes de resposta a
+convites](api/src/resources/notification/notification-response.service.test.ts).
+
+Nesta revisão da documentação para a NP2, a IA também foi usada para analisar
+os critérios de avaliação e propor perguntas para a defesa. Após uma correção
+humana, a lista foi ajustada para enfatizar conceitos de Engenharia de Software
+aplicados ao projeto. Nenhum código, teste ou arquivo de configuração foi
+alterado nessa revisão.
+
+Não há registro das respostas originais aos três prompts acima para identificar
+com segurança o que foi aceito, modificado ou descartado pelo grupo. O
+repositório também não permite atribuir quais partes anteriores foram feitas
+inteiramente à mão. Esses detalhes dependem dos registros e relatos dos
+integrantes.
 
 ## Como rodar localmente
 
