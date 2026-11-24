@@ -15,6 +15,7 @@ import { MyProjectSkeleton } from "./components/my-project-skeleton";
 import { UserCard } from "./components/user-card";
 import { InviteUserDialog } from "./dialogs/invite-user-dialog";
 import { RepositoryDialog } from "./dialogs/repository-dialog";
+import { GitHubIcon } from "@/components/icons";
 
 export function MyProjectPage() {
   const navigate = useNavigate();
@@ -69,12 +70,14 @@ export function MyProjectPage() {
   }
 
   return (
-    <section className="flex w-full flex-1 flex-col px-4 py-5 md:px-6 lg:px-8">
-      <h1 className="text-lg font-medium">Meu Projeto</h1>
-      <p className="mt-0.5 text-xs text-muted-foreground">
-        Gerencie seu projeto no CarecaHub.
-      </p>
-      <div className="mt-7 border-t pt-7">
+    <section className="flex w-full flex-1 flex-col">
+      <div className="sticky top-0 z-10 bg-card px-4 py-5 md:px-6 lg:px-8">
+        <h1 className="text-lg font-medium">Meu Projeto</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Gerencie seu projeto no CarecaHub.
+        </p>
+      </div>
+      <div className="px-4 py-5 md:px-6 lg:px-8">
         {!group ? (
           <div className="flex flex-col items-center gap-4 py-16">
             <p>Você ainda não participa de um grupo.</p>
@@ -131,7 +134,7 @@ export function MyProjectPage() {
                   <div className="max-w-xl">
                     <ProjectCard group={group} project={group.project} />
                   </div>
-                  <div className="rounded-lg border bg-card p-5">
+                  <div className="h-fit w-full rounded-lg border bg-card p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <h3 className="font-medium">Repositórios do projeto</h3>
                       {(group.project.repositoryType === "multirepo" ||
@@ -146,15 +149,16 @@ export function MyProjectPage() {
                       {group.project.repositories.map((repository) => (
                         <div
                           key={repository.id}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
+                          className="flex flex-wrap items-center justify-between gap-3"
                         >
                           <a
-                            className="min-w-0 truncate text-sm hover:underline"
+                            className="flex min-w-0 items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:underline"
                             href={repository.url}
                             target="_blank"
                             rel="noreferrer"
                           >
-                            {repository.url}
+                            <GitHubIcon className="size-5" />
+                            <span className="truncate">{repository.url}</span>
                           </a>
                           <div className="flex gap-2">
                             <RepositoryDialog

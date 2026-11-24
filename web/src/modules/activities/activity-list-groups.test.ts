@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Activity } from '@/types/activity'
 import {
+  getActivitiesByDueDate,
   getNextStudentActivitySectionUpdate,
   getStudentActivitySections,
 } from './activity-list-groups'
@@ -81,5 +82,21 @@ describe('getStudentActivitySections', () => {
     )
 
     expect(updateAt).toEqual(new Date('2026-11-25T12:00:00.001Z'))
+  })
+})
+
+describe('getActivitiesByDueDate', () => {
+  it('groups activities by their deadline in ascending date order', () => {
+    const groups = getActivitiesByDueDate([
+      activity({ id: 'later', dueAt: '2026-11-26T12:00:00.000Z' }),
+      activity({ id: 'first', dueAt: '2026-11-25T17:00:00.000Z' }),
+      activity({ id: 'second', dueAt: '2026-11-25T12:00:00.000Z' }),
+    ])
+
+    expect(groups.map((group) => group.label)).toEqual([
+      '25 de novembro de 2026',
+      '26 de novembro de 2026',
+    ])
+    expect(groups[0].activities.map((item) => item.id)).toEqual(['second', 'first'])
   })
 })

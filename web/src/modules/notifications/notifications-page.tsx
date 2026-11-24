@@ -77,8 +77,8 @@ export function NotificationsPage() {
   }
 
   return (
-    <section className="flex w-full flex-1 flex-col px-4 py-5 md:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <section className="flex w-full flex-1 flex-col">
+      <div className="sticky top-0 z-10 bg-card flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between px-4 py-5 md:px-6 lg:px-8">
         <div>
           <h1 className="text-lg font-medium">Notificações</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -93,7 +93,7 @@ export function NotificationsPage() {
           onMarkAllAsRead={() => void markAllAsRead()}
         />
       </div>
-      <div className="mt-7 pt-7">
+      <div className="px-4 py-5 md:px-6 lg:px-8">
         {isLoading ? (
           <div className="grid gap-3">
             <Skeleton className="h-32 w-full" />

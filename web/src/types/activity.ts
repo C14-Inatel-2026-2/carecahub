@@ -49,7 +49,7 @@ export type GroupRow = {
 
 export type ActivityPipeline = {
   metrics: { viewed: number; submitted: number; notViewed: number }
-  columns: Record<'not_viewed' | 'viewed' | 'not_submitted' | 'submitted' | 'evaluated', GroupRow[]>
+  columns: Record<'not_viewed' | 'viewed' | 'submitted' | 'evaluated', GroupRow[]>
 }
 
 export type ActivityGroupDelivery = {

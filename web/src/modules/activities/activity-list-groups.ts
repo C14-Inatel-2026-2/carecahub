@@ -29,29 +29,40 @@ function getSection(activity: Activity, now: Date): StudentActivitySection {
   return new Date(activity.dueAt) < now ? 'overdue' : 'todo'
 }
 
-export function getStudentActivitySections(
-  activities: Activity[],
-  now = new Date()
-): StudentActivitySections {
-  const sections: StudentActivitySections = { todo: [], overdue: [], submitted: [] }
+export function getActivitiesByDueDate(activities: Activity[]): ActivityDateGroup[] {
+  const groups: ActivityDateGroup[] = []
 
   for (const activity of [...activities].sort(
     (first, second) => new Date(first.dueAt).getTime() - new Date(second.dueAt).getTime()
   )) {
     const dueAt = new Date(activity.dueAt)
-    const section = sections[getSection(activity, now)]
     const date = getDateKey(dueAt)
-    const previousGroup = section.at(-1)
+    const previousGroup = groups.at(-1)
 
     if (previousGroup?.date === date) {
       previousGroup.activities.push(activity)
       continue
     }
 
-    section.push({ date, label: getDateLabel(dueAt), activities: [activity] })
+    groups.push({ date, label: getDateLabel(dueAt), activities: [activity] })
   }
 
-  return sections
+  return groups
+}
+
+export function getStudentActivitySections(
+  activities: Activity[],
+  now = new Date()
+): StudentActivitySections {
+  return {
+    todo: getActivitiesByDueDate(activities.filter((activity) => getSection(activity, now) === 'todo')),
+    overdue: getActivitiesByDueDate(
+      activities.filter((activity) => getSection(activity, now) === 'overdue')
+    ),
+    submitted: getActivitiesByDueDate(
+      activities.filter((activity) => getSection(activity, now) === 'submitted')
+    ),
+  }
 }
 
 export function getNextStudentActivitySectionUpdate(activities: Activity[], now: Date) {

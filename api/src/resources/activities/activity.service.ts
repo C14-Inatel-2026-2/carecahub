@@ -809,7 +809,6 @@ export class ActivityService implements IActivityService {
     const typedColumns: Record<PipelineStatus, ActivityPipelineRow[]> = {
       not_viewed: [],
       viewed: [],
-      not_submitted: [],
       submitted: [],
       evaluated: [],
     }
@@ -821,11 +820,9 @@ export class ActivityService implements IActivityService {
         ? evaluated.has(submission.id)
           ? 'evaluated'
           : 'submitted'
-        : new Date() > activity.dueAt
-          ? 'not_submitted'
-          : viewed.has(group.id)
-            ? 'viewed'
-            : 'not_viewed'
+        : viewed.has(group.id)
+          ? 'viewed'
+          : 'not_viewed'
       typedColumns[status].push({
         group,
         project: group.project,

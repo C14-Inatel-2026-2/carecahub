@@ -77,6 +77,7 @@ function createService(
   const db = {
     select: next,
     insert: next,
+    update: next,
     transaction: async (run: (tx: typeof db) => unknown) => run(db),
   }
   const notifications = { createActivityNotifications: async () => 0 }
@@ -284,6 +285,26 @@ describe('ActivityService.findOne', () => {
   })
 })
 
+describe('ActivityService.invalidateSubmission', () => {
+  it('invalidates a student group delivery before the deadline', async () => {
+    const invalidatedAt = new Date('2026-11-25T12:00:00.000Z')
+    const service = createService([
+      [{ groupId }],
+      [{ dueAt: new Date('2099-11-25T12:00:00.000Z') }],
+      [{ id: 'submission-id' }],
+      [{ invalidatedAt }],
+    ])
+
+    const result = await service.invalidateSubmission(
+      activityId,
+      'submission-id',
+      requester('student'),
+    )
+
+    assert.deepEqual(result, { ok: true, invalidatedAt })
+  })
+})
+
 describe('ActivityService.getPipeline', () => {
   it('includes complete group and project details in each pipeline row', async () => {
     const project = {
@@ -344,7 +365,6 @@ describe('ActivityService.getPipeline', () => {
           },
         ],
         viewed: [],
-        not_submitted: [],
         submitted: [],
         evaluated: [],
       },

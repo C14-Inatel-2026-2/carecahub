@@ -11,7 +11,7 @@ export function ActivityCard({ activity }: { activity: Activity }) {
       render={<Link to={activityDetailsRoute(activity.id)} />}
       variant="card"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex w-full items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-highlight-soft text-highlight-soft-foreground">
             <ClipboardCheck className="size-5" />

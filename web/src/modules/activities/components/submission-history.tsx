@@ -44,7 +44,7 @@ export function SubmissionHistory({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="w-full">
                 <p className="flex flex-row justify-between items-center font-medium">
-                  Entrega versão {submission.version}
+                  Entrega {submission.version}
                   <div className="flex flex-row gap-2 justify-center items-center">
                     {submission.score !== null && (
                       <Badge>Nota: {submission.score}</Badge>

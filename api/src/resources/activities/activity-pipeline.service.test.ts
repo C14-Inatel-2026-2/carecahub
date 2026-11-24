@@ -11,7 +11,7 @@ describe('calculatePipelineMetrics', () => {
         'submitted',
         'evaluated',
         'submitted',
-        'not_submitted',
+        'viewed',
       ]),
       { viewed: 83, submitted: 50, notViewed: 17 },
     )

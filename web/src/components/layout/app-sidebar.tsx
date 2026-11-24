@@ -101,7 +101,7 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
         size="icon"
         aria-label={state === "expanded" ? "Recolher menu" : "Expandir menu"}
         className={cn(
-          "absolute top-9 z-20 hidden translate-x-1/2 rounded-lg border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm after:absolute after:-inset-2 after:rounded-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:translate-y-0! md:inline-flex",
+          "absolute top-9 z-999 hidden translate-x-1/2 rounded-lg border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm after:absolute after:-inset-2 after:rounded-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:translate-y-0! md:inline-flex",
           state === "expanded" ? "right-4" : "right-2",
         )}
         onClick={toggleSidebar}

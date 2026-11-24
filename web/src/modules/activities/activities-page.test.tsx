@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { SWRConfig, unstable_serialize } from 'swr'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -70,7 +70,7 @@ describe('ActivitiesPage', () => {
     vi.useRealTimers()
   })
 
-  it('renders student activities in delivery-status sections with due-date labels', () => {
+  it('renders student delivery statuses as navigation tabs', () => {
     renderPage(student, [
       activity({
         id: 'submitted',
@@ -82,22 +82,26 @@ describe('ActivitiesPage', () => {
       activity({ id: 'todo', title: 'Próxima atividade', dueAt: '2026-12-25T12:00:00.000Z' }),
     ])
 
-    expect(screen.getByText('A fazer')).toBeTruthy()
-    expect(screen.getByText('Atrasadas/Não entregues')).toBeTruthy()
-    expect(screen.getByText('Entregues')).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'A fazer' })).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Em atraso' })).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Entregues' })).toBeTruthy()
     expect(screen.getByText('Próxima atividade')).toBeTruthy()
-    expect(screen.getByText('Atividade atrasada')).toBeTruthy()
-    expect(screen.getByText('Relatório entregue')).toBeTruthy()
     expect(screen.getByText('25 de dezembro de 2026')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Entregues' }))
+
+    expect(screen.getByRole('tab', { name: 'Entregues' }).getAttribute('data-active')).not.toBeNull()
+    expect(screen.getByText('Relatório entregue')).toBeTruthy()
   })
 
-  it('keeps the ungrouped list for staff members', () => {
+  it('groups staff activities by delivery date', () => {
     renderPage(
       { ...student, id: 'teacher-1', role: 'teacher' },
       [activity({ title: 'Atividade da turma' })],
     )
 
     expect(screen.getByText('Atividade da turma')).toBeTruthy()
+    expect(screen.getByText('25 de novembro de 2026')).toBeTruthy()
     expect(screen.queryByText('Atrasadas/Não entregues')).toBeNull()
     expect(screen.queryByText('Entregues')).toBeNull()
   })
