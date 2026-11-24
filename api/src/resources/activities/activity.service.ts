@@ -167,10 +167,43 @@ export class ActivityService implements IActivityService {
       .offset(query.skip)
       .limit(query.take)
     const visible = groupId ? await this.filterAudience(rows, groupId) : rows
+    const submissionsByActivity = new Map<string, { id: string; submittedAt: Date; isLate: boolean }>()
+    if (groupId && visible.length) {
+      const submissions = await this.database.db
+        .select({
+          id: activitySubmissions.id,
+          activityId: activitySubmissions.activityId,
+          version: activitySubmissions.version,
+          submittedAt: activitySubmissions.submittedAt,
+          isLate: activitySubmissions.isLate,
+        })
+        .from(activitySubmissions)
+        .where(
+          and(
+            eq(activitySubmissions.groupId, groupId),
+            inArray(
+              activitySubmissions.activityId,
+              visible.map((activity) => activity.id),
+            ),
+          ),
+        )
+        .orderBy(desc(activitySubmissions.version))
+      for (const submission of submissions) {
+        if (submissionsByActivity.has(submission.activityId)) continue
+        const { activityId, version: _version, ...summary } = submission
+        submissionsByActivity.set(activityId, summary)
+      }
+    }
     return {
       ok: true,
       totalCount: visible.length,
-      data: await Promise.all(visible.map((activity) => this.toDetailDto(activity))),
+      data: await Promise.all(
+        visible.map(async (activity) => {
+          const detail = await this.toDetailDto(activity)
+          if (!groupId) return detail
+          return { ...detail, submission: submissionsByActivity.get(activity.id) ?? null }
+        }),
+      ),
     }
   }
 
