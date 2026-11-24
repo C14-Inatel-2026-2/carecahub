@@ -11,6 +11,12 @@ export type Attachment = {
   size: number
 }
 
+export type ActivitySubmissionSummary = {
+  id: string
+  submittedAt: string
+  isLate: boolean
+}
+
 export type Activity = {
   id: string
   title: string
@@ -25,6 +31,7 @@ export type Activity = {
   createdAt: string
   updatedAt: string
   attachments: Attachment[]
+  submission?: ActivitySubmissionSummary | null
 }
 
 export type GroupRow = {

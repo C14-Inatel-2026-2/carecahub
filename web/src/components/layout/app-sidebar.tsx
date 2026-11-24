@@ -13,12 +13,12 @@ import {
   User,
   UserRound,
   Users,
-} from 'lucide-react'
-import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useList } from '@/api'
-import { writer } from '@/api/writer'
-import { Button } from '@/components/ui/button'
+} from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useList } from "@/api";
+import { writer } from "@/api/writer";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -29,14 +29,14 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
   useSidebar,
-} from '@/components/ui/sidebar'
-import { logoutMockUser } from '@/mocks/auth'
-import { isMockAPIEnabled } from '@/mocks/config'
-import { ChangePasswordDialog } from '@/modules/auth/dialogs/change-password-dialog'
-import { appRoutes } from '@/router/routes'
-import { useUser } from '@/stores/use-user'
-import type { LoggedUser } from '@/types/auth'
-import { userRoleLabels } from '@/types/user'
+} from "@/components/ui/sidebar";
+import { logoutMockUser } from "@/mocks/auth";
+import { isMockAPIEnabled } from "@/mocks/config";
+import { ChangePasswordDialog } from "@/modules/auth/dialogs/change-password-dialog";
+import { appRoutes } from "@/router/routes";
+import { useUser } from "@/stores/use-user";
+import type { LoggedUser } from "@/types/auth";
+import { userRoleLabels } from "@/types/user";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,79 +45,91 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
-import { pagesByRole } from './auth-layout'
-import { ThemeSelector } from './theme-selector'
+} from "../ui/dropdown-menu";
+import { pagesByRole } from "./auth-layout";
+import { ThemeSelector } from "./theme-selector";
+import { cn } from "@/lib/utils";
 
 export function NotificationNavLabel({ unreadCount }: { unreadCount: number }) {
   return (
     <>
-      <span className='group-data-[collapsible=icon]:hidden'>Notificações</span>
+      <span className="group-data-[collapsible=icon]:hidden">Notificações</span>
       {unreadCount > 0 && (
         <span
           aria-label={`${unreadCount} notificações não lidas`}
-          className='ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center text-xs text-primary-foreground group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:right-0'
+          className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center text-xs text-primary-foreground group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:right-0"
         >
-          {unreadCount > 99 ? '99+' : unreadCount}
+          {unreadCount > 99 ? "99+" : unreadCount}
         </span>
       )}
     </>
-  )
+  );
 }
 
 export function AppSidebar({ user }: { user: LoggedUser }) {
-  const location = useLocation()
-  const { state, toggleSidebar } = useSidebar()
-  const usersLabel = user.role === 'admin' ? 'Usuários' : 'Alunos'
-  const navigate = useNavigate()
-  const clearUser = useUser((state) => state.clearUser)
-  const [passwordOpen, setPasswordOpen] = useState(false)
+  const location = useLocation();
+  const { state, toggleSidebar } = useSidebar();
+  const usersLabel = user.role === "admin" ? "Usuários" : "Alunos";
+  const navigate = useNavigate();
+  const clearUser = useUser((state) => state.clearUser);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const { unreadCount } = useList({
-    endpoint: '/notifications',
+    endpoint: "/notifications",
     params: { skip: 0, take: 100 },
     disabled: isMockAPIEnabled,
-  })
+  });
 
   async function logout() {
     if (isMockAPIEnabled) {
-      logoutMockUser(localStorage)
+      logoutMockUser(localStorage);
     } else {
-      await writer('POST /auth/logout', { body: undefined, silent: true })
+      await writer("POST /auth/logout", { body: undefined, silent: true });
     }
-    clearUser()
-    navigate(appRoutes.login, { replace: true })
+    clearUser();
+    navigate(appRoutes.login, { replace: true });
   }
 
   return (
-    <Sidebar variant='floating' collapsible='icon' className='border-sidebar-border/70'>
+    <Sidebar
+      variant="floating"
+      collapsible="icon"
+      className="border-sidebar-border/70"
+    >
       <Button
-        type='button'
-        variant='default'
-        size='icon'
-        aria-label={state === 'expanded' ? 'Recolher menu' : 'Expandir menu'}
-        className='absolute top-9 right-1.5 z-20 hidden translate-x-1/2 rounded-lg border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm after:absolute after:-inset-2 after:rounded-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:translate-y-0! md:inline-flex'
+        type="button"
+        variant="default"
+        size="icon"
+        aria-label={state === "expanded" ? "Recolher menu" : "Expandir menu"}
+        className={cn(
+          "absolute top-9 z-20 hidden translate-x-1/2 rounded-lg border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm after:absolute after:-inset-2 after:rounded-full hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:translate-y-0! md:inline-flex",
+          state === "expanded" ? "right-4" : "right-2",
+        )}
         onClick={toggleSidebar}
       >
-        {state === 'expanded' ? <ChevronLeft /> : <ChevronRight />}
+        {state === "expanded" ? <ChevronLeft /> : <ChevronRight />}
       </Button>
-      <SidebarHeader className='px-3 pt-3 pb-2 group-data-[collapsible=icon]:px-3'>
-        <div className='flex h-16 items-center gap-2.5 px-1'>
-          <span className='flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md'>
-            <img src='/carecahub.png' alt='' className='size-full object-contain' />
+      <SidebarHeader className="px-3 pt-3 pb-2 group-data-[collapsible=icon]:px-3">
+        <div className="flex h-16 items-center gap-2.5 px-2">
+          <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
+            <img
+              src="/carecahub.png"
+              alt=""
+              className="size-full object-contain"
+            />
           </span>
-          <span className='truncate text-base font-medium tracking-tight group-data-[collapsible=icon]:hidden'>
+          <span className="truncate text-base font-medium tracking-tight group-data-[collapsible=icon]:hidden">
             CarecaHub
           </span>
         </div>
       </SidebarHeader>
-      <SidebarContent className='px-4 pt-2 group-data-[collapsible=icon]:px-5'>
-        <SidebarMenu className='gap-0.5'>
+      <SidebarContent className="px-4 pt-2 group-data-[collapsible=icon]:px-5">
+        <SidebarMenu className="gap-0.5">
           {pagesByRole[user.role].includes(appRoutes.home) && (
             <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={location.pathname === appRoutes.home}
-                tooltip='Início'
-                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                tooltip="Início"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
                 render={<Link to={appRoutes.home} />}
               >
                 <Home />
@@ -130,7 +142,7 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
               <SidebarMenuButton
                 isActive={location.pathname === appRoutes.users}
                 tooltip={usersLabel}
-                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
                 render={<Link to={appRoutes.users} />}
               >
                 <BookUser />
@@ -142,8 +154,8 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={location.pathname === appRoutes.mentors}
-                tooltip='Monitores'
-                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                tooltip="Monitores"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
                 render={<Link to={appRoutes.mentors} />}
               >
                 <User />
@@ -155,8 +167,8 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={location.pathname === appRoutes.groups}
-                tooltip='Grupos'
-                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                tooltip="Grupos"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
                 render={<Link to={appRoutes.groups} />}
               >
                 <Users />
@@ -168,8 +180,8 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={location.pathname === appRoutes.projects}
-                tooltip='Projetos'
-                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                tooltip="Projetos"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
                 render={<Link to={appRoutes.projects} />}
               >
                 <Boxes />
@@ -181,8 +193,8 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={location.pathname === appRoutes.myProject}
-                tooltip='Projeto'
-                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                tooltip="Projeto"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
                 render={<Link to={appRoutes.myProject} />}
               >
                 <Box />
@@ -194,8 +206,8 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={location.pathname.startsWith(appRoutes.activities)}
-                tooltip='Atividades'
-                className='h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+                tooltip="Atividades"
+                className="h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
                 render={<Link to={appRoutes.activities} />}
               >
                 <ClipboardList />
@@ -206,8 +218,8 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={location.pathname === appRoutes.notifications}
-              tooltip='Notificações'
-              className='relative h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!'
+              tooltip="Notificações"
+              className="relative h-12 px-2.5 font-normal text-sidebar-foreground/80 hover:text-sidebar-foreground data-active:bg-sidebar-accent/70 data-active:font-normal data-active:text-sidebar-accent-foreground [&>svg]:text-icon-muted data-active:[&>svg]:text-icon-accent [&_svg]:size-6 group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-10!"
               render={<Link to={appRoutes.notifications} />}
             >
               <Bell />
@@ -216,41 +228,41 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarSeparator className='w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-12!' />
-      <SidebarFooter className='px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-1'>
-        <div className='flex flex-wrap items-center justify-start gap-2 py-2 text-sm group-data-[collapsible=icon]:justify-center'>
+      <SidebarSeparator className="w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-12!" />
+      <SidebarFooter className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-1">
+        <div className="flex flex-wrap items-center justify-start gap-2 py-2 text-sm group-data-[collapsible=icon]:justify-center">
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
                 <Button
-                  size='xl'
-                  aria-label='Abrir menu da conta'
-                  variant='ghost'
-                  className='font-normal group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:p-0!'
+                  size="xl"
+                  aria-label="Abrir menu da conta"
+                  variant="ghost"
+                  className="font-normal group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:p-0!"
                 />
               }
             >
-              <CircleUserRound className='size-8' />
-              <div className='hidden flex-col items-start gap-1 leading-tight sm:flex group-data-[collapsible=icon]:hidden!'>
-                <span className='text-xs uppercase text-muted-foreground'>
+              <CircleUserRound className="size-8" />
+              <div className="hidden flex-col items-start gap-1 leading-tight sm:flex group-data-[collapsible=icon]:hidden!">
+                <span className="text-xs uppercase text-muted-foreground">
                   {userRoleLabels[user.role]}
                 </span>
-                <span className='text-sm font-semibold'>{user.name}</span>
+                <span className="text-sm font-semibold">{user.name}</span>
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              align='start'
-              side='top'
+              align="start"
+              side="top"
               sideOffset={8}
-              className='w-64 min-w-56 max-w-[calc(100vw-2rem)] p-1.5'
+              className="w-64 min-w-56 max-w-[calc(100vw-2rem)] p-1.5"
             >
-              <DropdownMenuGroup className='mb-1 rounded-md bg-muted/50'>
-                <DropdownMenuLabel className='px-2.5 py-3'>
-                  <span className='block truncate text-sm font-semibold text-foreground'>
+              <DropdownMenuGroup className="mb-1 rounded-md bg-muted/50">
+                <DropdownMenuLabel className="px-2.5 py-3">
+                  <span className="block truncate text-sm font-semibold text-foreground">
                     {user.name}
                   </span>
                   <span
-                    className='mt-1 block truncate text-xs font-normal text-muted-foreground'
+                    className="mt-1 block truncate text-xs font-normal text-muted-foreground"
                     title={user.email}
                   >
                     {user.email}
@@ -258,24 +270,24 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuItem
-                className='min-h-9 gap-2.5 px-2.5 font-normal'
+                className="min-h-9 gap-2.5 px-2.5 font-normal"
                 render={<Link to={appRoutes.profile} />}
               >
-                <UserRound className='text-muted-foreground' />
+                <UserRound className="text-muted-foreground" />
                 Meu perfil
               </DropdownMenuItem>
               <DropdownMenuItem
-                className='min-h-9 gap-2.5 px-2.5 font-normal'
+                className="min-h-9 gap-2.5 px-2.5 font-normal"
                 onClick={() => setPasswordOpen(true)}
               >
-                <KeyRound className='text-muted-foreground' />
+                <KeyRound className="text-muted-foreground" />
                 Alterar senha
               </DropdownMenuItem>
               <ThemeSelector />
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                variant='destructive'
-                className='min-h-9 gap-2.5 px-2.5 font-normal'
+                variant="destructive"
+                className="min-h-9 gap-2.5 px-2.5 font-normal"
                 onClick={() => void logout()}
               >
                 <LogOut />
@@ -283,9 +295,12 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
+          <ChangePasswordDialog
+            open={passwordOpen}
+            onOpenChange={setPasswordOpen}
+          />
         </div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

@@ -1,5 +1,6 @@
 import useSWR from 'swr'
 import { buildQueryString, type FetcherParams } from '@/api'
+import { useUser } from '@/stores/use-user'
 import type {
   Activity,
   ActivityGroupDelivery,
@@ -65,9 +66,10 @@ export function useList<T extends UseListParams>({
 }: T & {
   disabled?: boolean
 }) {
+  const userId = useUser((state) => state.user?.id)
   const swrKey: FetcherParams | null = disabled
     ? null
-    : { url: `${endpoint}${buildQueryString(params)}` }
+    : { url: `${endpoint}${buildQueryString(params)}`, userId }
 
   const response = useSWR<PaginateResponse<ResponseTypeMap[T['endpoint']]>>(swrKey)
 
@@ -94,6 +96,7 @@ export function useGet<T extends keyof ResponseTypeMap>(
   query?: Record<string, string | number | boolean | Date | null | undefined>,
   disabled?: boolean
 ) {
+  const userId = useUser((state) => state.user?.id)
   const isIdEndpoint = endpoint.includes(':id')
   const basePath = isIdEndpoint ? (id ? endpoint.replace(':id', id) || null : null) : endpoint
 
@@ -103,7 +106,6 @@ export function useGet<T extends keyof ResponseTypeMap>(
       : basePath
 
   return useSWR<ResponseTypeMap[T]>(
-    // biome-ignore lint/suspicious/noExplicitAny: fix swr
-    disabled || !basePath ? null : url ? ({ url } as unknown as any) : null
+    disabled || !basePath ? null : url ? { url, userId } : null
   )
 }
