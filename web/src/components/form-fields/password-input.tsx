@@ -12,9 +12,15 @@ export function PasswordInput({
   className,
   type: _type,
   disabled,
+  showToggle = true,
   ...props
-}: React.ComponentProps<typeof Input>) {
+}: React.ComponentProps<typeof Input> & { showToggle?: boolean }) {
   const [visible, setVisible] = useState(false)
+
+  if (!showToggle) {
+    return <Input {...props} className={className} disabled={disabled} type='password' />
+  }
+
   return (
     <InputGroup className={className}>
       <InputGroupInput {...props} disabled={disabled} type={visible ? 'text' : 'password'} />
