@@ -25,6 +25,9 @@ class QueryResult<T> implements PromiseLike<T> {
   limit() {
     return this
   }
+  for() {
+    return this
+  }
   leftJoin() {
     return this
   }
@@ -32,6 +35,9 @@ class QueryResult<T> implements PromiseLike<T> {
     return this
   }
   values() {
+    return this
+  }
+  set() {
     return this
   }
   returning() {
@@ -448,6 +454,7 @@ describe('ActivityService.getGroupDelivery', () => {
           groupId,
           version: 1,
           isLate: false,
+          invalidatedAt: null,
           submittedAt: new Date('2026-10-12T10:00:00.000Z'),
           score: null,
           submittedBy: { id: 'student-id', name: 'Ana' },

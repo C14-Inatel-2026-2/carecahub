@@ -13,12 +13,14 @@ export type GetActivityOutput = ServiceOutput<GetActivityDto>
 export type ListActivityOutput = ServiceOutput<List<GetActivityDto>>
 export type GetActivityAttachmentDownloadOutput = ServiceOutput<{ url: string }>
 export type CreateSubmissionOutput = ServiceOutput<{ id: string; version: number; isLate: boolean }>
+export type InvalidateSubmissionOutput = ServiceOutput<{ invalidatedAt: Date }>
 export type GetSubmissionFileDownloadOutput = ServiceOutput<{ url: string }>
 export type ActivitySubmissionDetail = {
   id: string
   groupId: string
   version: number
   isLate: boolean
+  invalidatedAt: Date | null
   submittedAt: Date
   score: number | null
   submittedBy: { id: string; name: string }
@@ -71,6 +73,11 @@ export abstract class IActivityService {
     input: CreateSubmissionDto,
     requester: UserMetadata,
   ): Promise<CreateSubmissionOutput>
+  abstract invalidateSubmission(
+    activityId: string,
+    submissionId: string,
+    requester: UserMetadata,
+  ): Promise<InvalidateSubmissionOutput>
   abstract findSubmissions(
     activityId: string,
     requester: UserMetadata,

@@ -47,6 +47,12 @@ export class ProjectController {
     return this.projectService.findOneByName(projectName, requester)
   }
 
+  @Get(':id/contributions')
+  @Roles(['admin', 'teacher', 'mentor', 'student'])
+  getContributionSummary(@User() requester: UserMetadata, @UUIDParam() id: string) {
+    return this.projectService.getContributionSummary(id, requester)
+  }
+
   @Get(':id')
   @Roles(['admin', 'teacher', 'mentor', 'student'])
   findOne(@User() requester: UserMetadata, @UUIDParam() id: string) {

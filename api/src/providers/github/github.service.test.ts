@@ -165,6 +165,24 @@ describe('GitHubService.getRepositoryFromUrl', () => {
   })
 })
 
+describe('GitHubService.getRepositoryContributors', () => {
+  it('returns each GitHub contributor with their total commits', async () => {
+    const { service, requestedPaths } = createService({
+      '/repos/acme/api/stats/contributors': {
+        data: [
+          { total: 12, author: { login: 'ada' } },
+          { total: 4, author: null },
+        ],
+      },
+    })
+
+    const result = await service.getRepositoryContributors('https://github.com/acme/api')
+
+    assert.deepEqual(result, [{ login: 'ada', commits: 12 }])
+    assert.deepEqual(requestedPaths, ['/repos/acme/api/stats/contributors'])
+  })
+})
+
 describe('GitHubService.getUserDetails', () => {
   it('maps selected public fields and encodes the username', async () => {
     const { service, requestedPaths } = createService({

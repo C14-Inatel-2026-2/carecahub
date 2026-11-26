@@ -28,6 +28,7 @@ import type {
   GetProjectOutput,
   ListProjectOutput,
   ProjectActivityDeliveriesOutput,
+  ProjectContributionsOutput,
   RemoveProjectOutput,
   UpsertProjectOutput,
 } from './project.interface'
@@ -200,6 +201,55 @@ export class ProjectService implements IProjectService {
       return { ok: false, errKey: ErrKeys.forbidden }
     }
     return { ok: true, ...(await this.withRepositoryStats(project, true)) }
+  }
+
+  async getContributionSummary(
+    id: string,
+    requester: UserMetadata,
+  ): Promise<ProjectContributionsOutput> {
+    const project = await this.getRecord(id)
+    if (!project) return { ok: false, errKey: ErrKeys.notFound }
+    if (!(await this.canReadGroup(project.groupId, requester)))
+      return { ok: false, errKey: ErrKeys.forbidden }
+
+    const [repositoryRows, members] = await Promise.all([
+      this.database.db
+        .select({ url: repositories.url })
+        .from(repositories)
+        .where(and(eq(repositories.projectId, project.id), isNull(repositories.deletedAt))),
+      this.database.db
+        .select({ id: users.id, name: users.name, githubName: users.githubName })
+        .from(users)
+        .where(
+          and(
+            eq(users.groupId, project.groupId),
+            eq(users.status, 'active'),
+            isNull(users.deletedAt),
+          ),
+        )
+        .orderBy(asc(users.name)),
+    ])
+    const contributions = await Promise.all(
+      repositoryRows.map((repository) =>
+        this.gitHubService.getRepositoryContributors(repository.url),
+      ),
+    )
+    const commitsByGithubName = new Map<string, number>()
+    for (const contributor of contributions.flat()) {
+      const login = contributor.login.toLowerCase()
+      commitsByGithubName.set(login, (commitsByGithubName.get(login) ?? 0) + contributor.commits)
+    }
+    return {
+      ok: true,
+      data: members.map((member) => ({
+        userId: member.id,
+        name: member.name,
+        githubName: member.githubName,
+        commits: member.githubName
+          ? (commitsByGithubName.get(member.githubName.toLowerCase()) ?? 0)
+          : 0,
+      })),
+    }
   }
 
   async updateAppearance(

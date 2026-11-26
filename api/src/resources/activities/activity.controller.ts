@@ -63,6 +63,16 @@ export class ActivityController {
     return this.activityService.createSubmission(id, body, requester)
   }
 
+  @Patch(':id/submissions/:submissionId/invalidate')
+  @Roles(['student'])
+  invalidateSubmission(
+    @User() requester: UserMetadata,
+    @UUIDParam() id: string,
+    @UUIDParam('submissionId') submissionId: string,
+  ) {
+    return this.activityService.invalidateSubmission(id, submissionId, requester)
+  }
+
   @Get(':id/submissions')
   @Roles(['admin', 'teacher', 'mentor', 'student'])
   findSubmissions(@User() requester: UserMetadata, @UUIDParam() id: string) {
