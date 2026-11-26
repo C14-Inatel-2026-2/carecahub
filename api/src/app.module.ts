@@ -9,6 +9,7 @@ import { LoggingInterceptor } from './infra/logging.interceptor'
 import { ResponseValidatorInterceptor } from './infra/response-validator.interceptor'
 import { BucketModule } from './providers/bucket/bucket.module'
 import { CacheModule } from './providers/cache/cache.module'
+import { ClassroomModule } from './resources/classrooms/classroom.module'
 import { CorrelationIdInterceptor, CorrelationIdModule } from './providers/correlation-id'
 import { DatabaseModule } from './providers/database/database.module'
 import { LoggerModule } from './providers/logger/logger.module'
@@ -30,6 +31,7 @@ import { UsersModule } from './resources/users/user.module'
     LoggerModule,
     MailModule,
     AuthModule,
+    ClassroomModule,
     UsersModule,
     RepositoryModule,
     ProjectModule,
