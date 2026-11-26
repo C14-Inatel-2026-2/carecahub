@@ -1,0 +1,177 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  changes:
+    name: Detectar alteracoes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      projects: ${{ steps.filter.outputs.projects }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Selecionar projetos
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          api_changed=false
+          web_changed=false
+
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then
+            api_changed=true
+            web_changed=true
+          else
+            # NUL preserva nomes com espacos; --no-renames verifica origem e destino.
+            diff_file="$RUNNER_TEMP/ci-changed-files"
+            git diff --no-renames --name-only -z "${BASE_SHA}...${HEAD_SHA}" -- > "$diff_file"
+
+            while IFS= read -r -d '' file; do
+              printf 'Alterado: %q\n' "$file"
+              case "$file" in
+                api/*) api_changed=true ;;
+                web/*) web_changed=true ;;
+                *)
+                  # Arquivos fora de api/ e web/ podem afetar os dois projetos.
+                  api_changed=true
+                  web_changed=true
+                  ;;
+              esac
+            done < "$diff_file"
+          fi
+
+          case "$api_changed:$web_changed" in
+            true:true) projects='["api","web"]' ;;
+            true:false) projects='["api"]' ;;
+            false:true) projects='["web"]' ;;
+            false:false) projects='[]' ;;
+          esac
+
+          printf 'projects=%s\n' "$projects" >> "$GITHUB_OUTPUT"
+          printf 'Projetos selecionados: %s\n' "$projects"
+
+  validate:
+    name: Validar ${{ matrix.project }}
+    needs: changes
+    if: ${{ needs.changes.outputs.projects != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.changes.outputs.projects) }}
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          package_json_file: ${{ matrix.project }}/package.json
+          run_install: false
+
+      - name: Configurar Node.js e cache
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            ${{ matrix.project }}/pnpm-lock.yaml
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Testes
+        id: tests
+        run: |
+          rm -rf reports
+          mkdir -p reports
+          pnpm test --reporter=default --reporter=junit --outputFile=reports/junit.xml
+
+      - name: Build
+        run: pnpm build
+
+      - name: Salvar relatorio JUnit
+        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: junit-${{ matrix.project }}
+          path: ${{ matrix.project }}/reports/junit.xml
+          if-no-files-found: error
+          retention-days: 14
+
+  ci:
+    name: CI
+    needs: [changes, validate]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Conferir resultado final
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          PROJECTS: ${{ needs.changes.outputs.projects }}
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+        run: |
+          if [[ "$CHANGES_RESULT" != "success" ]]; then
+            echo "::error::A deteccao de alteracoes falhou ou foi cancelada."
+            exit 1
+          fi
+
+          case "$PROJECTS" in
+            '[]') expected=skipped ;;
+            '["api"]'|'["web"]'|'["api","web"]') expected=success ;;
+            *)
+              echo "::error::A selecao de projetos e invalida."
+              exit 1
+              ;;
+          esac
+
+          if [[ "$VALIDATE_RESULT" != "$expected" ]]; then
+            echo "::error::CI reprovado. Resultado da validacao: $VALIDATE_RESULT"
+            exit 1
+          fi
+
+          echo "CI aprovado para os projetos selecionados."
