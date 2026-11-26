@@ -16,7 +16,7 @@ concurrency:
 env:
   CI: "true"
   NODE_VERSION: "22"
-  PNPM_VERSION: "10"
+  PNPM_VERSION: "11.17.0"
 
 defaults:
   run:
@@ -112,9 +112,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            ${{ matrix.project }}/pnpm-lock.yaml
+          cache-dependency-path: ${{ matrix.project }}/pnpm-lock.yaml
 
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
