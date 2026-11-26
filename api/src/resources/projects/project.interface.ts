@@ -21,6 +21,13 @@ export type ProjectActivityDelivery = {
 export type ProjectActivityDeliveriesOutput = ServiceOutput<{
   data: ProjectActivityDelivery[]
 }>
+export type ProjectContribution = {
+  userId: string
+  name: string
+  githubName: string | null
+  commits: number
+}
+export type ProjectContributionsOutput = ServiceOutput<{ data: ProjectContribution[] }>
 
 export abstract class IProjectService {
   abstract upsert(input: UpsertProjectDto, requester: UserMetadata): Promise<UpsertProjectOutput>
@@ -36,5 +43,9 @@ export abstract class IProjectService {
     id: string,
     requester: UserMetadata,
   ): Promise<ProjectActivityDeliveriesOutput>
+  abstract getContributionSummary(
+    id: string,
+    requester: UserMetadata,
+  ): Promise<ProjectContributionsOutput>
   abstract remove(id: string, requester: UserMetadata): Promise<RemoveProjectOutput>
 }

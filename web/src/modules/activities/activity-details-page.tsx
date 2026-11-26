@@ -1,23 +1,45 @@
-import { ClipboardCheck, Eye, EyeDashed, File } from 'lucide-react'
+import { File } from 'lucide-react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useGet } from '@/api'
 import { API_BASE_URL } from '@/api/fetchers'
+import { writer } from '@/api/writer'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUser } from '@/stores/use-user'
 import type { Activity, Attachment } from '@/types/activity'
+import type { UserRole } from '@/types/user'
 import { ActivityActions } from './components/activity-actions'
 import {
   ActivityDetailsSkeleton,
   ActivityPipelineSkeleton,
 } from './components/activity-details-skeleton'
+import { ActivityPipeline } from './components/activity-pipeline'
 import { ActivityRichTextContent } from './components/activity-rich-text'
-import { GroupPipelineRow } from './components/group-pipeline-row'
 import { SubmissionForm } from './components/submission-form'
 import { SubmissionHistory } from './components/submission-history'
+
+export function canShowSubmissionForm({
+  role,
+  dueAt,
+  hasSubmission,
+  isLoadingSubmissions,
+  now = new Date(),
+}: {
+  role?: UserRole
+  dueAt: string
+  hasSubmission: boolean
+  isLoadingSubmissions: boolean
+  now?: Date
+}) {
+  return role === 'student' && !isLoadingSubmissions && !hasSubmission && new Date(dueAt) > now
+}
 
 export function ActivityDetailsPage() {
   const { activityId } = useParams()
   const user = useUser((state) => state.user)
+  const [isInvalidatingSubmission, setIsInvalidatingSubmission] = useState(false)
   const {
     data: activity,
     isLoading,
@@ -29,16 +51,42 @@ export function ActivityDetailsPage() {
     isLoading: isLoadingPipeline,
     mutate: mutatePipeline,
   } = useGet('/activities/:id/pipeline', activityId, undefined, !canTrack)
-  const { data: submissions, mutate: mutateSubmissions } = useGet(
-    '/activities/:id/submissions',
-    activityId,
-    undefined,
-    user?.role !== 'student'
-  )
+  const {
+    data: submissions,
+    isLoading: isLoadingSubmissions,
+    mutate: mutateSubmissions,
+  } = useGet('/activities/:id/submissions', activityId, undefined, user?.role !== 'student')
 
   if (isLoading) return <ActivityDetailsSkeleton showPipeline={canTrack} />
   if (!activity)
     return <main className='p-6 text-sm text-muted-foreground'>Atividade não encontrada.</main>
+
+  const submissionFormId = `activity-submission-${activity.id}`
+  const currentActivityId = activity.id
+  const activeSubmission = submissions?.data.find((submission) => !submission.invalidatedAt)
+  const showSubmissionForm = canShowSubmissionForm({
+    role: user?.role,
+    dueAt: activity.dueAt,
+    hasSubmission: Boolean(activeSubmission),
+    isLoadingSubmissions,
+  })
+  const canInvalidateSubmission =
+    user?.role === 'student' && Boolean(activeSubmission) && new Date(activity.dueAt) > new Date()
+
+  async function invalidateSubmission() {
+    if (!activeSubmission || isInvalidatingSubmission) return
+
+    setIsInvalidatingSubmission(true)
+    const result = await writer('PATCH /activities/:id/submissions/:submissionId/invalidate', {
+      params: { id: currentActivityId, submissionId: activeSubmission.id },
+      body: undefined,
+      silent: true,
+    })
+    setIsInvalidatingSubmission(false)
+    if (!result.ok) return toast.error(result.error.message)
+    toast.success('Entrega desfeita. Você já pode enviar uma nova versão.')
+    void mutateSubmissions()
+  }
 
   async function fetchAttachmentFile({
     activity,
@@ -57,33 +105,48 @@ export function ActivityDetailsPage() {
 
   return (
     <section className='flex flex-1 flex-col px-4 py-5 md:px-6 lg:px-8'>
-      <div className='flex items-start justify-between gap-4'>
-        <div>
-          <h1 className='text-2xl font-medium'>{activity.title}</h1>
+      <div className='flex flex-col gap-4 pt-2 sm:flex-row sm:items-start sm:justify-between'>
+        <div className='min-w-0'>
+          <h1 className='break-words text-xl font-medium sm:text-2xl'>{activity.title}</h1>
           <p className='mt-1 text-sm text-muted-foreground'>
             Prazo: {new Date(activity.dueAt).toLocaleString('pt-BR')}
           </p>
         </div>
-        {(user?.role === 'teacher' || user?.role === 'mentor') && (
-          <ActivityActions activity={activity} onChanged={() => void mutateActivity()} />
-        )}
+        <div className='flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end'>
+          {showSubmissionForm && (
+            <Button
+              className='flex-1 sm:flex-none'
+              variant='highlight'
+              type='submit'
+              form={submissionFormId}
+            >
+              Enviar entrega
+            </Button>
+          )}
+          {canInvalidateSubmission && (
+            <Button
+              className='flex-1 sm:flex-none'
+              disabled={isInvalidatingSubmission}
+              type='button'
+              variant='outline'
+              onClick={() => void invalidateSubmission()}
+            >
+              {isInvalidatingSubmission ? 'Desfazendo…' : 'Desfazer entrega'}
+            </Button>
+          )}
+          {(user?.role === 'teacher' || user?.role === 'mentor') && (
+            <ActivityActions activity={activity} onChanged={() => void mutateActivity()} />
+          )}
+        </div>
       </div>
 
-      <div className='mt-6 max-w-3xl flex flex-col gap-3'>
-        <p className='text-lg'>Instruções</p>
+      <div className='mt-6 flex max-w-3xl flex-col gap-3'>
+        <p className='text-lg font-semibold'>Instruções</p>
         <ActivityRichTextContent content={activity.description} />
       </div>
 
-      {/* <Card className="mt-6 max-w-3xl">
-        <CardHeader>
-          <CardTitle className="text-base"></CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActivityRichTextContent content={activity.description} />
-        </CardContent>
-      </Card> */}
       {activity.attachments.length > 0 && (
-        <Card className='mt-4 max-w-3xl'>
+        <Card className='mt-4 w-full max-w-3xl'>
           <CardHeader>
             <CardTitle className='text-base'>Materiais de referência</CardTitle>
           </CardHeader>
@@ -92,20 +155,21 @@ export function ActivityDetailsPage() {
               <button
                 key={attachment.id}
                 type='button'
-                className='w-full flex flex-1 flex-row items-center gap-2 px-3 py-4 rounded bg-muted border border-muted-foreground/20 text-left text-base leading-tight hover:text-primary hover:underline'
+                className='flex w-full min-w-0 items-center gap-2 rounded border border-muted-foreground/20 bg-muted px-3 py-4 text-left text-base leading-tight hover:text-primary hover:underline'
                 aria-label={`Visualizar ${attachment.filename}`}
                 onClick={() => fetchAttachmentFile({ activity, attachment })}
               >
-                <File className='size-5' />
-                {attachment.filename}
+                <File className='size-5 shrink-0' />
+                <span className='truncate'>{attachment.filename}</span>
               </button>
             ))}
           </CardContent>
         </Card>
       )}
-      {user?.role === 'student' && (
+      {showSubmissionForm && (
         <SubmissionForm
           activity={activity}
+          formId={submissionFormId}
           onSubmitted={() => {
             void mutateSubmissions()
             if (canTrack) void mutatePipeline()
@@ -114,80 +178,8 @@ export function ActivityDetailsPage() {
       )}
 
       {canTrack && isLoadingPipeline && <ActivityPipelineSkeleton />}
-      {pipeline && (
-        <section className='mt-6'>
-          <div className='grid gap-3 sm:grid-cols-3'>
-            <Card>
-              <CardContent className='text-sm flex flex-row items-center justify-between'>
-                <div className='flex flex-row gap-4 items-center'>
-                  <div className='bg-amber-100/80 dark:bg-amber-100/10 text-amber-500 p-2 rounded-md'>
-                    <Eye />
-                  </div>{' '}
-                  Visualizaram
-                </div>{' '}
-                <strong>{pipeline.metrics.viewed}%</strong>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className='text-sm flex flex-row items-center justify-between'>
-                <div className='flex flex-row gap-4 items-center'>
-                  <div className='bg-emerald-100/80 dark:bg-emerald-100/10 text-emerald-500 p-2 rounded-md'>
-                    <ClipboardCheck />
-                  </div>{' '}
-                  Entregaram
-                </div>{' '}
-                <strong>{pipeline.metrics.submitted}%</strong>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className='text-sm flex flex-row items-center justify-between'>
-                <div className='flex flex-row gap-4 items-center'>
-                  <div className='bg-gray-100/80 dark:bg-gray-100/10 text-gray-500 p-2 rounded-md'>
-                    <EyeDashed />
-                  </div>{' '}
-                  Não visualizaram
-                </div>{' '}
-                <strong>{pipeline.metrics.notViewed}%</strong>
-              </CardContent>
-            </Card>
-          </div>
-          <div className='mt-4 flex gap-3 overflow-x-auto pb-2'>
-            {Object.entries(pipeline.columns).map(([status, groups]) => (
-              <Card key={status} className='min-w-56 flex-1'>
-                <CardHeader>
-                  <CardTitle className='text-sm'>
-                    {
-                      (
-                        {
-                          not_viewed: 'Não visualizaram',
-                          viewed: 'Visualizaram',
-                          not_submitted: 'Não entregaram',
-                          submitted: 'Entregaram',
-                          evaluated: 'Avaliadas',
-                        } as Record<string, string>
-                      )[status]
-                    }
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='grid gap-2'>
-                  {groups.length > 0 ? (
-                    groups.map((group) => (
-                      <GroupPipelineRow
-                        activityId={activity.id}
-                        key={group.group.id}
-                        group={group}
-                      />
-                    ))
-                  ) : (
-                    <span className='text-sm text-muted-foreground'>Nenhum grupo</span>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-      )}
-      {user?.role === 'student' && submissions && activityId && (
+      {pipeline && <ActivityPipeline activityId={activity.id} pipeline={pipeline} />}
+      {user?.role === 'student' && submissions && submissions.data.length > 0 && activityId && (
         <SubmissionHistory
           activityId={activityId}
           submissions={submissions.data}

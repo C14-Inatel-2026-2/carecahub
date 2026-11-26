@@ -1,4 +1,4 @@
-import { ArrowLeft, Box, Eye, Users } from 'lucide-react'
+import { ArrowLeft, Box, CircleUserRound, Eye, Users } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { useGet } from '@/api'
 import { Button } from '@/components/ui/button'
@@ -69,9 +69,6 @@ export function ActivityGroupDeliveryContent({
           <p className='text-sm text-muted-foreground'>{activity.title}</p>
           <h1 className='text-lg font-medium'>Entrega do {delivery.group.friendlyId}</h1>
         </div>
-        <p className='text-sm text-muted-foreground'>
-          Prazo: {new Date(activity.dueAt).toLocaleString('pt-BR')}
-        </p>
       </div>
 
       <div className='mt-6 grid gap-4 lg:grid-cols-2'>
@@ -108,10 +105,25 @@ export function ActivityGroupDeliveryContent({
           </CardHeader>
           <CardContent>
             {delivery.viewers.length ? (
-              <ul className='grid gap-1 text-sm'>
-                {delivery.viewers.map((viewer) => (
-                  <li key={viewer.id}>Visualizado por {viewer.name}</li>
-                ))}
+              <ul className='grid gap-2 text-sm'>
+                {delivery.viewers.map((viewer) => {
+                  const member = delivery.group.members.find((item) => item.id === viewer.id)
+
+                  return (
+                    <li key={viewer.id} className='flex items-center gap-3'>
+                      {member?.gitHubDetails?.avatarUrl ? (
+                        <img
+                          alt={viewer.name}
+                          className='size-8 rounded-full'
+                          src={member.gitHubDetails.avatarUrl}
+                        />
+                      ) : (
+                        <CircleUserRound className='size-8 text-highlight-soft-foreground' />
+                      )}
+                      <span>{viewer.name}</span>
+                    </li>
+                  )
+                })}
               </ul>
             ) : (
               <p className='text-sm text-muted-foreground'>

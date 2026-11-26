@@ -14,6 +14,11 @@ export type GitHubUserDetails = {
   publicRepos: number
 }
 
+export type RepositoryContributor = {
+  login: string
+  commits: number
+}
+
 export type RepositoryDetails = {
   id: number
   node_id: string

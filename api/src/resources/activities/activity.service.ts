@@ -30,6 +30,7 @@ import type {
   GetGroupDeliveryOutput,
   GetPipelineOutput,
   GetSubmissionFileDownloadOutput,
+  InvalidateSubmissionOutput,
   ListActivityOutput,
   ListSubmissionOutput,
   PipelineStatus,
@@ -167,10 +168,44 @@ export class ActivityService implements IActivityService {
       .offset(query.skip)
       .limit(query.take)
     const visible = groupId ? await this.filterAudience(rows, groupId) : rows
+    const submissionsByActivity = new Map<string, { id: string; submittedAt: Date; isLate: boolean }>()
+    if (groupId && visible.length) {
+      const submissions = await this.database.db
+        .select({
+          id: activitySubmissions.id,
+          activityId: activitySubmissions.activityId,
+          version: activitySubmissions.version,
+          submittedAt: activitySubmissions.submittedAt,
+          isLate: activitySubmissions.isLate,
+        })
+        .from(activitySubmissions)
+        .where(
+          and(
+            eq(activitySubmissions.groupId, groupId),
+            isNull(activitySubmissions.invalidatedAt),
+            inArray(
+              activitySubmissions.activityId,
+              visible.map((activity) => activity.id),
+            ),
+          ),
+        )
+        .orderBy(desc(activitySubmissions.version))
+      for (const submission of submissions) {
+        if (submissionsByActivity.has(submission.activityId)) continue
+        const { activityId, version: _version, ...summary } = submission
+        submissionsByActivity.set(activityId, summary)
+      }
+    }
     return {
       ok: true,
       totalCount: visible.length,
-      data: await Promise.all(visible.map((activity) => this.toDetailDto(activity))),
+      data: await Promise.all(
+        visible.map(async (activity) => {
+          const detail = await this.toDetailDto(activity)
+          if (!groupId) return detail
+          return { ...detail, submission: submissionsByActivity.get(activity.id) ?? null }
+        }),
+      ),
     }
   }
 
@@ -338,7 +373,10 @@ export class ActivityService implements IActivityService {
       const now = new Date()
       const isLate = now > activity.dueAt
       const previous = await tx
-        .select({ version: activitySubmissions.version })
+        .select({
+          version: activitySubmissions.version,
+          invalidatedAt: activitySubmissions.invalidatedAt,
+        })
         .from(activitySubmissions)
         .where(
           and(
@@ -348,7 +386,10 @@ export class ActivityService implements IActivityService {
         )
         .orderBy(desc(activitySubmissions.version))
         .limit(1)
-      if (isLate && (!activity.allowLateSubmissions || previous.length))
+      if (
+        previous.some((submission) => !submission.invalidatedAt) ||
+        (isLate && (!activity.allowLateSubmissions || previous.length))
+      )
         return { ok: false as const, errKey: ErrKeys.submissionClosed }
       if (
         (activity.submissionType === 'files' && !input.fileIds.length) ||
@@ -451,6 +492,56 @@ export class ActivityService implements IActivityService {
     })
   }
 
+  async invalidateSubmission(
+    activityId: string,
+    submissionId: string,
+    requester: UserMetadata,
+  ): Promise<InvalidateSubmissionOutput> {
+    if (requester.role !== 'student') return { ok: false, errKey: ErrKeys.forbidden }
+    return this.database.db.transaction(async (tx) => {
+      const [user] = await tx
+        .select({ groupId: users.groupId })
+        .from(users)
+        .where(
+          and(eq(users.id, requester.userId), eq(users.status, 'active'), isNull(users.deletedAt)),
+        )
+        .for('update')
+      if (!user?.groupId) return { ok: false as const, errKey: ErrKeys.forbidden }
+      const [activity] = await tx
+        .select({ dueAt: activities.dueAt })
+        .from(activities)
+        .where(
+          and(
+            eq(activities.id, activityId),
+            isNull(activities.deletedAt),
+            isNull(activities.archivedAt),
+          ),
+        )
+      if (!activity || new Date() >= activity.dueAt)
+        return { ok: false as const, errKey: ErrKeys.submissionClosed }
+      const [submission] = await tx
+        .select({ id: activitySubmissions.id })
+        .from(activitySubmissions)
+        .where(
+          and(
+            eq(activitySubmissions.id, submissionId),
+            eq(activitySubmissions.activityId, activityId),
+            eq(activitySubmissions.groupId, user.groupId),
+            isNull(activitySubmissions.invalidatedAt),
+          ),
+        )
+      if (!submission) return { ok: false as const, errKey: ErrKeys.notFound }
+      const invalidatedAt = new Date()
+      const [updated] = await tx
+        .update(activitySubmissions)
+        .set({ invalidatedAt, updatedAt: invalidatedAt })
+        .where(eq(activitySubmissions.id, submission.id))
+        .returning({ invalidatedAt: activitySubmissions.invalidatedAt })
+      if (!updated?.invalidatedAt) return { ok: false as const, errKey: ErrKeys.internalServerError }
+      return { ok: true as const, invalidatedAt: updated.invalidatedAt }
+    })
+  }
+
   async getAttachmentDownload(
     id: string,
     fileId: string,
@@ -545,6 +636,7 @@ export class ActivityService implements IActivityService {
         groupId: activitySubmissions.groupId,
         version: activitySubmissions.version,
         isLate: activitySubmissions.isLate,
+        invalidatedAt: activitySubmissions.invalidatedAt,
         submittedAt: activitySubmissions.submittedAt,
         score: activityEvaluations.score,
         submittedById: activitySubmissions.submittedById,
@@ -588,6 +680,7 @@ export class ActivityService implements IActivityService {
           groupId: submission.groupId,
           version: submission.version,
           isLate: submission.isLate,
+          invalidatedAt: submission.invalidatedAt ?? null,
           submittedAt: submission.submittedAt,
           score: submission.score,
           submittedBy: {
@@ -657,6 +750,7 @@ export class ActivityService implements IActivityService {
       .select({
         groupId: activitySubmissions.groupId,
         version: activitySubmissions.version,
+        invalidatedAt: activitySubmissions.invalidatedAt,
       })
       .from(activitySubmissions)
       .where(
@@ -666,6 +760,7 @@ export class ActivityService implements IActivityService {
         ),
       )
     if (!submission) return { ok: false, errKey: ErrKeys.notFound }
+    if (submission.invalidatedAt) return { ok: false, errKey: ErrKeys.submissionImmutable }
     const [latest] = await this.database.db
       .select({ version: activitySubmissions.version })
       .from(activitySubmissions)
@@ -673,6 +768,7 @@ export class ActivityService implements IActivityService {
         and(
           eq(activitySubmissions.activityId, activityId),
           eq(activitySubmissions.groupId, submission.groupId),
+            isNull(activitySubmissions.invalidatedAt),
         ),
       )
       .orderBy(desc(activitySubmissions.version))
@@ -737,7 +833,7 @@ export class ActivityService implements IActivityService {
         })
         .from(activitySubmissions)
         .innerJoin(users, eq(activitySubmissions.submittedById, users.id))
-        .where(eq(activitySubmissions.activityId, activityId)),
+        .where(and(eq(activitySubmissions.activityId, activityId), isNull(activitySubmissions.invalidatedAt))),
     ])
     const latest = new Map<
       string,
@@ -776,7 +872,6 @@ export class ActivityService implements IActivityService {
     const typedColumns: Record<PipelineStatus, ActivityPipelineRow[]> = {
       not_viewed: [],
       viewed: [],
-      not_submitted: [],
       submitted: [],
       evaluated: [],
     }
@@ -788,11 +883,9 @@ export class ActivityService implements IActivityService {
         ? evaluated.has(submission.id)
           ? 'evaluated'
           : 'submitted'
-        : new Date() > activity.dueAt
-          ? 'not_submitted'
-          : viewed.has(group.id)
-            ? 'viewed'
-            : 'not_viewed'
+        : viewed.has(group.id)
+          ? 'viewed'
+          : 'not_viewed'
       typedColumns[status].push({
         group,
         project: group.project,

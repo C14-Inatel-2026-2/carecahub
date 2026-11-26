@@ -2,6 +2,13 @@ import { z } from 'zod'
 import type { Repository } from './repository'
 import type { User } from './user'
 
+export type ProjectContribution = {
+  userId: string
+  name: string
+  githubName: string | null
+  commits: number
+}
+
 export const technologyOptions = [
   { value: 'html', label: 'HTML' },
   { value: 'css', label: 'CSS' },

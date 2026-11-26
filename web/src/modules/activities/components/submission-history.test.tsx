@@ -8,6 +8,7 @@ const submission: ActivitySubmission = {
   groupId: 'group-1',
   version: 1,
   isLate: false,
+  invalidatedAt: null,
   submittedAt: '2026-10-19T10:00:00.000Z',
   score: null,
   submittedBy: { id: 'student-1', name: 'Ana' },

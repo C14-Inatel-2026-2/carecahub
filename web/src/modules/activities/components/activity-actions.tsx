@@ -38,11 +38,15 @@ export function ActivityActions({
     onChanged()
   }
   return (
-    <div className='flex gap-2'>
+    <div className='flex flex-1 gap-2 sm:flex-none'>
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogTrigger
           render={
-            <Button size='lg' variant='outline' className='flex flex-row gap-3 items-center p-4' />
+            <Button
+              size='lg'
+              variant='outline'
+              className='flex flex-1 flex-row items-center gap-3 p-4 sm:flex-none'
+            />
           }
         >
           <Pencil /> Editar
@@ -58,7 +62,11 @@ export function ActivityActions({
       <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
         <DialogTrigger
           render={
-            <Button size='lg' variant='outline' className='flex flex-row gap-3 items-center p-4' />
+            <Button
+              size='lg'
+              variant='outline'
+              className='flex flex-1 flex-row items-center gap-3 p-4 sm:flex-none'
+            />
           }
         >
           <Archive /> Arquivar

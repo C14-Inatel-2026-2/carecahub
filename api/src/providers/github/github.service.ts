@@ -3,7 +3,12 @@ import axios, { type AxiosInstance } from 'axios'
 import type { EitherResponse } from '@/infra/http.types'
 import { env } from '@/providers/config/env'
 import { CustomLogger } from '@/providers/logger/custom-logger.service'
-import type { GitHubUserDetails, RepositoryBranchDetails, RepositoryDetails } from './github.types'
+import type {
+  GitHubUserDetails,
+  RepositoryBranchDetails,
+  RepositoryContributor,
+  RepositoryDetails,
+} from './github.types'
 
 type GitHubBranch = {
   name: string
@@ -12,6 +17,11 @@ type GitHubBranch = {
 
 type GitHubCommit = {
   sha: string
+}
+
+type GitHubContributorStats = {
+  total: number
+  author: { login: string } | null
 }
 
 type GitHubUserResponse = {
@@ -142,6 +152,23 @@ export class GitHubService {
         `Failed to get GitHub repository social preview: ${error instanceof Error ? error.message : String(error)}`,
       )
       return null
+    }
+  }
+
+  async getRepositoryContributors(repositoryUrl: string): Promise<RepositoryContributor[]> {
+    try {
+      const { owner, repository } = this.parseRepositoryUrl(repositoryUrl)
+      const response = await this.axios.get<GitHubContributorStats[]>(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/stats/contributors`,
+      )
+      return response.data.flatMap((contributor) =>
+        contributor.author ? [{ login: contributor.author.login, commits: contributor.total }] : [],
+      )
+    } catch (error) {
+      this.logger.error(
+        `Failed to get repository contributors: ${error instanceof Error ? error.message : String(error)}`,
+      )
+      return []
     }
   }
 

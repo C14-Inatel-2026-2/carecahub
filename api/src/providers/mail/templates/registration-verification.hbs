@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Confirme seu e-mail | CarecaHub</title>
+  </head>
+  <body style="margin:0; padding:0; background:#111113; font-family:Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#111113;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px; background:#18181b; border:1px solid #303035; border-radius:16px; overflow:hidden;">
+            <tr>
+              <td align="center" style="padding:32px 32px 12px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td align="center" valign="middle">
+                      <img
+                        src="{{logo}}"
+                        alt="CarecaHub"
+                        width="36"
+                        height="36"
+                        style="display:block; width:36px; height:36px; border-radius:10px; border:0; outline:none;"
+                      />
+                    </td>
+                    <td style="padding-left:10px; color:#ffffff; font-size:20px; font-weight:700;">CarecaHub</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px 36px; color:#f4f4f5; text-align:center;">
+                <p style="margin:0 0 8px; color:#a1a1aa; font-size:14px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Confirmação de e-mail</p>
+                <h1 style="margin:0; font-size:28px; line-height:36px; color:#ffffff;">Olá, {{firstName}}!</h1>
+                <p style="margin:16px auto 28px; max-width:400px; color:#c4c4ca; font-size:16px; line-height:24px;">Use este código para confirmar seu cadastro no CarecaHub.</p>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td align="center" style="padding:24px 16px; background:#222226; border:1px solid #3a3a40; border-radius:12px; color:{{color}}; font-family:monospace; font-size:32px; font-weight:700; letter-spacing:10px; line-height:40px;">{{code}}</td>
+                  </tr>
+                </table>
+                <p style="margin:18px 0 0; color:#a1a1aa; font-size:13px; line-height:20px;">Selecione e copie o código acima para usá-lo na tela de confirmação. Ele expira em 10 minutos.</p>
+                <p style="margin:24px 0 0; color:#71717a; font-size:12px; line-height:18px;">Se você não solicitou este cadastro, pode ignorar este e-mail.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

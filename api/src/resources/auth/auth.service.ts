@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { users } from '@db'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
@@ -17,6 +17,7 @@ import {
   ONE_DAY_IN_MS,
   ONE_DAY_IN_SECONDS,
   ONE_HOUR_IN_MS,
+  ONE_MINUTE_IN_MS,
   ONE_MINUTE_IN_SECONDS,
   ServiceOutput,
   UserMetadata,
@@ -26,6 +27,12 @@ import { IAuthService } from './auth.interface'
 import { LoginDto, LoginResponseDto, LogoutDto, TwoFactorAuthDto } from './dtos/login.dto'
 import { GetMeDto, UpdateMeDto } from './dtos/me.dto'
 import { ChangePasswordDto, RecoverPasswordDto, ResetPasswordDto } from './dtos/password.dto'
+import {
+  ConfirmRegistrationDto,
+  RegisterDto,
+  RegistrationStartResponse,
+  ResendRegistrationCodeDto,
+} from './dtos/register.dto'
 import { AuthTokens, RefreshTokenDto } from './dtos/tokens.dto'
 
 const sameSiteDict: Record<typeof env.ENV_SCOPE, CookieOptions['sameSite']> = {
@@ -58,6 +65,9 @@ const passwordColumns = {
   id: users.id,
   password: users.password,
 }
+
+const REGISTRATION_CODE_TTL = 10 * ONE_MINUTE_IN_MS
+const MAX_REGISTRATION_CODE_ATTEMPTS = 5
 
 type LoggedUserRecord = Pick<
   typeof users.$inferSelect,
@@ -207,6 +217,146 @@ export class AuthService implements IAuthService {
       twoFactorAuth: false,
       friendlyMessage: 'Login efetuado.',
     }
+  }
+
+  private createVerificationCode() {
+    return String(Math.floor(Math.random() * 1000000)).padStart(6, '0')
+  }
+
+  private hashVerificationCode(code: string) {
+    return createHmac('sha256', env.JWT_SECRET).update(code).digest('hex')
+  }
+
+  private isVerificationCodeValid(code: string, codeHash: string) {
+    const receivedHash = Buffer.from(this.hashVerificationCode(code))
+    const expectedHash = Buffer.from(codeHash)
+    return (
+      receivedHash.length === expectedHash.length && timingSafeEqual(receivedHash, expectedHash)
+    )
+  }
+
+  async register(input: RegisterDto): ServiceOutput<RegistrationStartResponse> {
+    const [existingUser] = await this.database.db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, input.email))
+
+    if (existingUser) {
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
+
+    const verificationId = randomBytes(32).toString('hex')
+    const code = this.createVerificationCode()
+    await this.cache.set({
+      key: CacheKey.registrationVerification,
+      scope: verificationId,
+      value: {
+        name: input.name,
+        email: input.email,
+        registration: input.registration,
+        passwordHash: await hashPassword(input.password),
+        codeHash: this.hashVerificationCode(code),
+        attempts: 0,
+      },
+      ttl: REGISTRATION_CODE_TTL,
+    })
+    await this.mailService.sendRegistrationVerificationCode({
+      email: input.email,
+      username: input.name,
+      code,
+    })
+
+    return { ok: true, verificationId }
+  }
+
+  async confirmRegistration(input: ConfirmRegistrationDto): ServiceOutput<LoginResponseDto> {
+    const pendingRegistration = await this.cache.get({
+      key: CacheKey.registrationVerification,
+      scope: input.verificationId,
+    })
+
+    if (!pendingRegistration || pendingRegistration.attempts >= MAX_REGISTRATION_CODE_ATTEMPTS) {
+      return { ok: false, errKey: ErrKeys.invalidCredentials }
+    }
+
+    if (!this.isVerificationCodeValid(input.code, pendingRegistration.codeHash)) {
+      await this.cache.set({
+        key: CacheKey.registrationVerification,
+        scope: input.verificationId,
+        value: { ...pendingRegistration, attempts: pendingRegistration.attempts + 1 },
+        ttl: REGISTRATION_CODE_TTL,
+      })
+      return { ok: false, errKey: ErrKeys.invalidCredentials }
+    }
+
+    const [existingUser] = await this.database.db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, pendingRegistration.email))
+
+    if (existingUser) {
+      await this.cache.delete({
+        key: CacheKey.registrationVerification,
+        scope: input.verificationId,
+      })
+      return { ok: false, errKey: ErrKeys.alreadyExists }
+    }
+
+    const [user] = await this.database.db
+      .insert(users)
+      .values({
+        name: pendingRegistration.name,
+        email: pendingRegistration.email,
+        registration: pendingRegistration.registration,
+        password: pendingRegistration.passwordHash,
+        role: 'student',
+      })
+      .returning(publicColumns)
+
+    await this.cache.delete({ key: CacheKey.registrationVerification, scope: input.verificationId })
+
+    const { accessToken, refreshToken } = await this.prepareNewTokens(user.id, {
+      userId: user.id,
+      name: user.name,
+      role: user.role,
+    })
+
+    return {
+      ok: true,
+      accessToken,
+      refreshToken,
+      user: this.toLoggedUser(user),
+      twoFactorAuth: false,
+      friendlyMessage: 'Cadastro efetuado.',
+    }
+  }
+
+  async resendRegistrationCode(
+    input: ResendRegistrationCodeDto,
+  ): ServiceOutput<RegistrationStartResponse> {
+    const pendingRegistration = await this.cache.get({
+      key: CacheKey.registrationVerification,
+      scope: input.verificationId,
+    })
+
+    if (!pendingRegistration) {
+      return { ok: false, errKey: ErrKeys.invalidCredentials }
+    }
+
+    const code = this.createVerificationCode()
+    await this.cache.set({
+      key: CacheKey.registrationVerification,
+      scope: input.verificationId,
+      value: { ...pendingRegistration, codeHash: this.hashVerificationCode(code), attempts: 0 },
+      ttl: REGISTRATION_CODE_TTL,
+    })
+    await this.mailService.sendRegistrationVerificationCode({
+      email: pendingRegistration.email,
+      username: pendingRegistration.name,
+      code,
+    })
+
+    return { ok: true, verificationId: input.verificationId }
   }
 
   async refresh({ oldRefreshToken }: RefreshTokenDto) {

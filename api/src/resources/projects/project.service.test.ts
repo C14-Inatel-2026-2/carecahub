@@ -4,11 +4,16 @@ import { ErrKeys, type UserMetadata } from '@/types'
 import { QueryResult } from '@/utils/mocks/query-result.mock'
 import { ProjectService } from './project.service'
 
-function createService(results: unknown[], githubResults: unknown[] = []) {
+function createService(
+  results: unknown[],
+  githubResults: unknown[] = [],
+  contributorResults: unknown[][] = [],
+) {
   const next = () => new QueryResult(results.shift())
   const database = { db: { select: next, insert: next, update: next } }
   const gitHubService = {
     getRepositoryFromUrl: async () => githubResults.shift(),
+    getRepositoryContributors: async () => contributorResults.shift() ?? [],
     getUserDetails: async () => ({
       login: 'member',
       avatarUrl: 'https://avatars.githubusercontent.com/u/1',
@@ -216,6 +221,46 @@ describe('ProjectService.findOneByName', () => {
     const result = await service.findOneByName('CarecaHub', student('outsider-id'))
 
     assert.deepEqual(result, { ok: false, errKey: ErrKeys.forbidden })
+  })
+})
+
+describe('ProjectService.getContributionSummary', () => {
+  it('sums repository commits for each active group member', async () => {
+    const service = createService(
+      [
+        [projectRecord],
+        [{ url: 'https://github.com/acme/web' }, { url: 'https://github.com/acme/api' }],
+        [
+          { id: 'member-id', name: 'Member', githubName: 'member' },
+          { id: 'second-member-id', name: 'Second member', githubName: 'second-member' },
+          { id: 'third-member-id', name: 'Third member', githubName: null },
+        ],
+      ],
+      [],
+      [
+        [
+          { login: 'member', commits: 4 },
+          { login: 'external', commits: 10 },
+        ],
+        [{ login: 'MEMBER', commits: 7 }],
+      ],
+    )
+
+    const result = await service.getContributionSummary(projectId, admin)
+
+    assert.deepEqual(result, {
+      ok: true,
+      data: [
+        { userId: 'member-id', name: 'Member', githubName: 'member', commits: 11 },
+        {
+          userId: 'second-member-id',
+          name: 'Second member',
+          githubName: 'second-member',
+          commits: 0,
+        },
+        { userId: 'third-member-id', name: 'Third member', githubName: null, commits: 0 },
+      ],
+    })
   })
 })
 

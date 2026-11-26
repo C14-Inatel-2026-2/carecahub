@@ -106,7 +106,8 @@
   --highlight-soft-foreground: #c0d9e4;
   --warning: #fbbf24;
   --warning-glow: 0 0 18px rgb(251 191 36 / 48%);
-  --background: oklch(30.369% 0.01224 258.414);
+  --background: #2E2E2E;
+  --orange-accent: #E87D3E;
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
