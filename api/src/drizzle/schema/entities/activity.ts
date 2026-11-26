@@ -104,6 +104,7 @@ const activitySubmissionTable = pgTable(
       .references(() => users.id, { onDelete: 'restrict' }),
     version: integer('version').notNull(),
     isLate: boolean('is_late').notNull().default(false),
+    invalidatedAt: timestamp('invalidated_at', { withTimezone: true }),
     submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -117,6 +118,9 @@ const activitySubmissionTable = pgTable(
       table.groupId,
       table.version,
     ),
+    uniqueIndex('ActivitySubmission_valid_unique')
+      .on(table.activityId, table.groupId)
+      .where(sql`${table.invalidatedAt} is null`),
   ],
 )
 
