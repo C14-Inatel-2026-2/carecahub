@@ -14,4 +14,5 @@ export type GetActivityDto = {
   createdAt: Date
   updatedAt: Date
   attachments: Array<{ id: string; filename: string; mimeType: string | null; size: number }>
+  submission?: { id: string; submittedAt: Date; isLate: boolean } | null
 }

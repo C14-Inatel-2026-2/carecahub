@@ -38,6 +38,7 @@ describe('ActivityCard', () => {
     expect(html).toContain('Entregue o protótipo da solução.')
     expect(html).toContain('Links e arquivos')
     expect(html).toContain('Entrega em atraso permitida')
+    expect(html).toContain('17 de outubro de 2026')
     expect(html).toContain('1 anexo')
     expect(html).toContain('href="/activities/activity-1"')
     expect(html).toContain('Ver detalhes')

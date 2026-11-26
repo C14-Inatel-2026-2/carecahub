@@ -33,7 +33,7 @@ export type GetGroupDeliveryOutput = ServiceOutput<{
   submissions: ActivitySubmissionDetail[]
 }>
 export type UpsertEvaluationOutput = ServiceOutput<{ score: number; evaluatedAt: Date }>
-export type PipelineStatus = 'not_viewed' | 'viewed' | 'not_submitted' | 'submitted' | 'evaluated'
+export type PipelineStatus = 'not_viewed' | 'viewed' | 'submitted' | 'evaluated'
 export type ActivityPipelineRow = {
   group: GetGroupDto
   project: GetProjectDto | null

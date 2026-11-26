@@ -10,6 +10,7 @@ export function LabeledInput({
   error,
   required,
   showRequiredIndicator = true,
+  showPasswordToggle = true,
   id,
   ...props
 }: {
@@ -17,6 +18,7 @@ export function LabeledInput({
   name: string
   error?: string
   showRequiredIndicator?: boolean
+  showPasswordToggle?: boolean
 } & React.ComponentProps<typeof Input>) {
   const InputComponent = props.type === 'password' ? PasswordInput : Input
   const generatedId = useId()
@@ -33,16 +35,30 @@ export function LabeledInput({
       >
         {label}
       </FormFieldLabel>
-      <InputComponent
-        {...props}
-        name={name}
-        id={inputId}
-        required={isRequired}
-        aria-invalid={!!error}
-        aria-describedby={
-          [props['aria-describedby'], error && errorId].filter(Boolean).join(' ') || undefined
-        }
-      />
+      {props.type === 'password' ? (
+        <PasswordInput
+          {...props}
+          showToggle={showPasswordToggle}
+          name={name}
+          id={inputId}
+          required={isRequired}
+          aria-invalid={!!error}
+          aria-describedby={
+            [props['aria-describedby'], error && errorId].filter(Boolean).join(' ') || undefined
+          }
+        />
+      ) : (
+        <InputComponent
+          {...props}
+          name={name}
+          id={inputId}
+          required={isRequired}
+          aria-invalid={!!error}
+          aria-describedby={
+            [props['aria-describedby'], error && errorId].filter(Boolean).join(' ') || undefined
+          }
+        />
+      )}
       <FieldError id={errorId} errors={[{ message: error }]} />
     </Field>
   )

@@ -1,6 +1,6 @@
 import { Attachment } from 'nodemailer/lib/mailer'
 
-export type Template = 'default'
+export type Template = 'default' | 'registration-verification'
 
 export type MailProps = {
   to: string
@@ -15,6 +15,8 @@ export type MailProps = {
     message?: string
     CTA?: string
     ctaUrl?: string
+    firstName?: string
+    code?: string
   }
   attachments?: Attachment[]
 }

@@ -11,6 +11,12 @@ export type Attachment = {
   size: number
 }
 
+export type ActivitySubmissionSummary = {
+  id: string
+  submittedAt: string
+  isLate: boolean
+}
+
 export type Activity = {
   id: string
   title: string
@@ -25,6 +31,7 @@ export type Activity = {
   createdAt: string
   updatedAt: string
   attachments: Attachment[]
+  submission?: ActivitySubmissionSummary | null
 }
 
 export type GroupRow = {
@@ -42,7 +49,7 @@ export type GroupRow = {
 
 export type ActivityPipeline = {
   metrics: { viewed: number; submitted: number; notViewed: number }
-  columns: Record<'not_viewed' | 'viewed' | 'not_submitted' | 'submitted' | 'evaluated', GroupRow[]>
+  columns: Record<'not_viewed' | 'viewed' | 'submitted' | 'evaluated', GroupRow[]>
 }
 
 export type ActivityGroupDelivery = {

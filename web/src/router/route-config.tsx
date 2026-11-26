@@ -1,26 +1,28 @@
-import { Navigate, type RouteObject } from 'react-router-dom'
-import { AuthLayout } from '@/components/layout/auth-layout'
-import { ActivitiesPage } from '@/modules/activities/activities-page'
-import { ActivityComposerPage } from '@/modules/activities/activity-composer-page'
-import { ActivityDetailsPage } from '@/modules/activities/activity-details-page'
-import { ActivityGroupDeliveryPage } from '@/modules/activities/activity-group-delivery-page'
-import { LoginPage } from '@/modules/auth/login-page'
-import { GroupsPage } from '@/modules/groups/groups-page'
-import { HomePage } from '@/modules/home/home-page'
-import { MentorsPage } from '@/modules/mentors/mentors-page'
-import { MyProfilePage } from '@/modules/my-profile/my-profile-page'
-import { CreateProjectPage } from '@/modules/my-project/create-project-page'
-import { MyProjectPage } from '@/modules/my-project/my-project-page'
-import { NotificationsPage } from '@/modules/notifications/notifications-page'
-import { ProfilePage } from '@/modules/profile/profile-page'
-import { ProjectCustomizePage } from '@/modules/projects/project-customize-page'
-import { ProjectDetailsPage } from '@/modules/projects/project-details-page'
-import { ProjectsPage } from '@/modules/projects/projects-page'
-import { UsersPage } from '@/modules/users/users-page'
-import { appRoutes } from './routes'
+import { Navigate, type RouteObject } from "react-router-dom";
+import { AuthLayout } from "@/components/layout/auth-layout";
+import { ActivitiesPage } from "@/modules/activities/activities-page";
+import { ActivityComposerPage } from "@/modules/activities/activity-composer-page";
+import { ActivityDetailsPage } from "@/modules/activities/activity-details-page";
+import { ActivityGroupDeliveryPage } from "@/modules/activities/activity-group-delivery-page";
+import { LoginPage } from "@/modules/auth/login-page";
+import { GroupsPage } from "@/modules/groups/groups-page";
+import { HomePage } from "@/modules/home/home-page";
+import { MentorsPage } from "@/modules/mentors/mentors-page";
+import { MyProfilePage } from "@/modules/my-profile/my-profile-page";
+import { CreateProjectPage } from "@/modules/my-project/create-project-page";
+import { MyProjectPage } from "@/modules/my-project/my-project-page";
+import { NotificationsPage } from "@/modules/notifications/notifications-page";
+import { ProfilePage } from "@/modules/profile/profile-page";
+import { ProjectCustomizePage } from "@/modules/projects/project-customize-page";
+import { ProjectDetailsPage } from "@/modules/projects/project-details-page";
+import { ProjectsPage } from "@/modules/projects/projects-page";
+import { UsersPage } from "@/modules/users/users-page";
+import { appRoutes } from "./routes";
+import { RegisterPage } from "@/modules/auth/register-page";
 
 export const appRouterRoutes = [
   { path: appRoutes.login, Component: LoginPage },
+  { path: appRoutes.register, Component: RegisterPage },
   {
     Component: AuthLayout,
     children: [
@@ -40,20 +42,20 @@ export const appRouterRoutes = [
         path: appRoutes.projects,
         children: [
           { index: true, Component: ProjectsPage },
-          { path: ':projectName', Component: ProjectDetailsPage },
-          { path: ':projectName/customize', Component: ProjectCustomizePage },
+          { path: ":projectName", Component: ProjectDetailsPage },
+          { path: ":projectName/customize", Component: ProjectCustomizePage },
         ],
       },
       {
         path: appRoutes.activities,
         children: [
           { index: true, Component: ActivitiesPage },
-          { path: 'new', Component: ActivityComposerPage },
+          { path: "new", Component: ActivityComposerPage },
           {
-            path: ':activityId/groups/:groupId',
+            path: ":activityId/groups/:groupId",
             Component: ActivityGroupDeliveryPage,
           },
-          { path: ':activityId', Component: ActivityDetailsPage },
+          { path: ":activityId", Component: ActivityDetailsPage },
         ],
       },
       {
@@ -82,5 +84,5 @@ export const appRouterRoutes = [
       },
     ],
   },
-  { path: '*', element: <Navigate to={appRoutes.login} replace /> },
-] satisfies RouteObject[]
+  { path: "*", element: <Navigate to={appRoutes.login} replace /> },
+] satisfies RouteObject[];
