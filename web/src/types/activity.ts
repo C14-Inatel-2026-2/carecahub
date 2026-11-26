@@ -64,6 +64,7 @@ export type ActivitySubmission = {
   groupId: string
   version: number
   isLate: boolean
+  invalidatedAt: string | null
   submittedAt: string
   score: number | null
   submittedBy: { id: string; name: string }

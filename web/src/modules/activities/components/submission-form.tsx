@@ -98,7 +98,7 @@ export function SubmissionForm({
   return (
     <form
       id={formId}
-      className="mt-6 max-w-3xl rounded-lg border bg-card p-5"
+      className="mt-6 w-full max-w-3xl rounded-lg border bg-card p-4 sm:p-5"
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
@@ -111,7 +111,7 @@ export function SubmissionForm({
           {repositories.map((repository) => (
             <label
               key={repository.id}
-              className="flex items-center gap-2 text-sm"
+              className="flex min-w-0 items-center gap-2 text-sm"
             >
               <Checkbox
                 className="cursor-pointer"
@@ -124,12 +124,12 @@ export function SubmissionForm({
                   )
                 }
               />
-              {repository.url}
+              <span className="break-all">{repository.url}</span>
             </label>
           ))}
           <p className="pt-2 text-sm font-medium">Links adicionais</p>
           {links.map((link, index) => (
-            <div key={index} className="flex gap-2">
+            <div key={index} className="flex flex-col gap-2 sm:flex-row">
               <Input
                 value={link}
                 placeholder="https://..."
@@ -143,8 +143,10 @@ export function SubmissionForm({
               />
               {links.length > 1 && (
                 <Button
+                  type="button"
                   size="icon-sm"
                   variant="ghost"
+                  className="self-end sm:self-auto"
                   onClick={() =>
                     setLinks((current) =>
                       current.filter((_, position) => position !== index),
@@ -157,8 +159,10 @@ export function SubmissionForm({
             </div>
           ))}
           <Button
+            type="button"
             size="sm"
             variant="outline"
+            className="w-full sm:w-fit"
             onClick={() => setLinks((current) => [...current, ""])}
           >
             <Plus />
@@ -202,11 +206,11 @@ export function SubmissionForm({
                 {files.map((file, index) => (
                   <li
                     key={`${file.name}-${index}`}
-                    className="flex items-stretch gap-2"
+                    className="flex min-w-0 items-stretch gap-2"
                   >
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2 rounded-md border border-border/70 bg-muted/30 px-3 py-2 text-left text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                      className="flex w-[87%] sm:w-full items-center gap-2 rounded-md border border-border/70 bg-muted/30 px-3 py-2 text-left text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                       aria-label={`Abrir ${file.name}`}
                       onClick={() => previewFile(file)}
                     >
@@ -220,7 +224,7 @@ export function SubmissionForm({
                       type="button"
                       size="icon-sm"
                       variant="ghost"
-                      className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive my-auto p-5"
+                      className="my-auto shrink-0 w-[13%] sm:w-fit p-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
                       aria-label={`Remover ${file.name}`}
                       onClick={() =>
                         setFiles((current) =>

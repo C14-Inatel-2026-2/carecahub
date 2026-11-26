@@ -2,7 +2,10 @@ import { z } from "zod";
 import { registrationSchema, type UserRole } from "@/types/user";
 
 export type LoginRequest = z.infer<typeof loginSchema>;
-export type RegisterRequest = Omit<z.infer<typeof registerSchema>, "passwordConfirmation">;
+export type RegisterRequest = Omit<
+  z.infer<typeof registerSchema>,
+  "passwordConfirmation"
+>;
 
 export type TwoFactorAuthRequest = {
   email: string;
@@ -27,19 +30,25 @@ export const loginSchema = z.object({
   password: passwordSchema,
 });
 
-export const registerSchema = z.object({
-  name: z.string().min(3, "Informe seu nome completo."),
-  email: z.email("Informe um e-mail válido."),
-  registration: registrationSchema.refine(
-    (registration) => registration !== undefined,
-    "Informe uma matrícula válida.",
-  ),
-  password: passwordSchema,
-  passwordConfirmation: z.string(),
-}).refine(({ password, passwordConfirmation }) => password === passwordConfirmation, {
-  message: "As senhas não coincidem.",
-  path: ["passwordConfirmation"],
-});
+export const registerSchema = z
+  .object({
+    name: z.string().min(3, "Informe seu nome completo."),
+    classroom: z.string().max(1, "Informe a sua turma da disciplina."),
+    email: z.email("Informe um e-mail válido."),
+    registration: registrationSchema.refine(
+      (registration) => registration !== undefined,
+      "Informe uma matrícula válida.",
+    ),
+    password: passwordSchema,
+    passwordConfirmation: z.string(),
+  })
+  .refine(
+    ({ password, passwordConfirmation }) => password === passwordConfirmation,
+    {
+      message: "As senhas não coincidem.",
+      path: ["passwordConfirmation"],
+    },
+  );
 
 export const passwordChangeSchema = z.object({
   oldPassword: z.string().min(1, "A senha atual é obrigatória."),

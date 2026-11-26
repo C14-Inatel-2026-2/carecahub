@@ -7,6 +7,15 @@ vi.mock('./app-sidebar', () => ({
   AppSidebar: () => <aside data-slot='app-sidebar' />,
 }))
 
+vi.mock('@/api', () => ({
+  useList: () => ({ unreadCount: 2 }),
+  useGet: () => ({
+    data: {
+      gitHubDetails: { avatarUrl: 'https://avatars.githubusercontent.com/u/1' },
+    },
+  }),
+}))
+
 vi.mock('@/stores/use-user', () => ({
   useUser: () => ({
     user: { id: 'student-1', name: 'Ana', email: 'ana@example.com', role: 'student' },
@@ -40,6 +49,14 @@ describe('AuthLayout', () => {
     expect(html).toContain('ring-sidebar-border')
     expect(html).toContain('h-svh')
     expect(html).toContain('overflow-y-auto')
+    expect(html).toContain('data-slot="mobile-navigation-header"')
+    expect(html).toContain('aria-label="Abrir menu"')
+    expect(html).toContain('aria-label="Ver notificações"')
+    expect(html).toContain('aria-label="Abrir menu da conta"')
+    expect(html).toContain('2 notificações não lidas')
+    expect(html).toContain('href="/notifications"')
+    expect(html).toContain('src="https://avatars.githubusercontent.com/u/1"')
+    expect(html).toContain('alt="Ana"')
     expect(html).toContain('Página interna')
   })
 })

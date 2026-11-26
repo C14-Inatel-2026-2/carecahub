@@ -115,12 +115,12 @@ export function ProjectCard({
           <DropdownMenuContent
             align="start"
             sideOffset={6}
-            className="z-50 max-h-64 min-w-64 max-w-96 overflow-y-auto"
+            className="z-50 max-h-64 w-full overflow-y-auto"
           >
             {project.repositories.map((repository) => (
               <DropdownMenuItem
                 key={repository.id}
-                className="cursor-pointer"
+                className="cursor-pointer w-full"
                 render={
                   <a href={repository.url} target="_blank" rel="noreferrer" />
                 }

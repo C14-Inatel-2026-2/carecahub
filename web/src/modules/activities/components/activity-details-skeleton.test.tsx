@@ -7,7 +7,7 @@ describe('ActivityDetailsSkeleton', () => {
     const html = renderToStaticMarkup(<ActivityDetailsSkeleton />)
 
     expect((html.match(/h-20/g) ?? []).length).toBe(3)
-    expect((html.match(/min-w-56/g) ?? []).length).toBe(5)
+    expect((html.match(/min-w-72/g) ?? []).length).toBe(5)
     expect((html.match(/h-16/g) ?? []).length).toBeGreaterThanOrEqual(5)
   })
 

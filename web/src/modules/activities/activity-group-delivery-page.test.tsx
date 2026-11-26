@@ -26,7 +26,30 @@ const delivery: ActivityGroupDelivery = {
     friendlyId: 'Grupo 1',
     leaderId: 'leader-1',
     tags: ['space_available'],
-    members: [],
+    members: [
+      {
+        id: 'student-1',
+        groupId: 'group-1',
+        name: 'Ana',
+        registration: 1,
+        githubName: 'ana',
+        classroom: 'A1',
+        email: 'ana@example.com',
+        role: 'student',
+        status: 'active',
+        twoFactor: false,
+        createdAt: '2026-10-10T10:00:00.000Z',
+        updatedAt: '2026-10-10T10:00:00.000Z',
+        gitHubDetails: {
+          login: 'ana',
+          avatarUrl: 'https://avatars.githubusercontent.com/u/1',
+          profileUrl: 'https://github.com/ana',
+          bio: null,
+          createdAt: '2020-01-01T10:00:00.000Z',
+          publicRepos: 1,
+        },
+      },
+    ],
     project: null,
     createdAt: '2026-10-10T10:00:00.000Z',
     updatedAt: '2026-10-10T10:00:00.000Z',
@@ -49,6 +72,7 @@ const delivery: ActivityGroupDelivery = {
       groupId: 'group-1',
       version: 1,
       isLate: false,
+      invalidatedAt: null,
       submittedAt: '2026-10-12T10:00:00.000Z',
       score: null,
       submittedBy: { id: 'student-1', name: 'Ana' },
@@ -69,7 +93,8 @@ describe('ActivityGroupDeliveryContent', () => {
     expect(html).toContain('Entrega final')
     expect(html).toContain('Grupo 1')
     expect(html).toContain('CarecaHub')
-    expect(html).toContain('Visualizado por Ana')
+    expect(html).toContain('src="https://avatars.githubusercontent.com/u/1"')
+    expect(html).toContain('alt="Ana"')
     expect(html).toContain('Entrega versão 1')
     expect(html).not.toContain('Avaliar')
   })

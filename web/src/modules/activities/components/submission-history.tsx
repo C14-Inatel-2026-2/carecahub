@@ -1,3 +1,4 @@
+import { FileText } from "lucide-react";
 import { useState } from "react";
 import { API_BASE_URL } from "@/api/fetchers";
 import { writer } from "@/api/writer";
@@ -5,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ActivitySubmission } from "@/types/activity";
-import { FileText } from "lucide-react";
 
 export function SubmissionHistory({
   activityId,
@@ -33,59 +33,68 @@ export function SubmissionHistory({
     if (result.ok) onUpdated();
   }
   return (
-    <section className="mt-6 max-w-3xl">
+    <section className="mt-6 w-full max-w-3xl">
       <h2 className="mb-3 font-medium">Histórico de entregas</h2>
       <div className="grid gap-3">
         {submissions.map((submission) => (
           <article
             key={submission.id}
-            className="rounded-lg border bg-card p-4"
+            className="rounded-lg border bg-card p-3 sm:p-4"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="w-full">
-                <p className="flex flex-row justify-between items-center font-medium">
-                  Entrega {submission.version}
-                  <div className="flex flex-row gap-2 justify-center items-center">
-                    {submission.score !== null && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 font-medium">
+                  <span>Entrega versão {submission.version}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {submission.score !== null && !submission.invalidatedAt && (
                       <Badge>Nota: {submission.score}</Badge>
                     )}
+                    {submission.invalidatedAt && (
+                      <Badge variant="destructive">Invalidada</Badge>
+                    )}
+                    {submission.isLate && (
+                      <Badge className="bg-amber-200 text-amber-700">
+                        Em atraso
+                      </Badge>
+                    )}
                   </div>
-                  {submission.isLate && (
-                    <Badge className="bg-amber-200 text-amber-700">
-                      Em atraso
-                    </Badge>
-                  )}
-                </p>
+                </div>
 
-                <p className="text-sm text-muted-foreground">
+                <p className="mt-3 text-sm text-muted-foreground">
                   Enviada por {submission.submittedBy.name} ·{" "}
                   {new Date(submission.submittedAt).toLocaleString("pt-BR")}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                {submission.score === null && canEvaluate && (
-                  <>
-                    <Input
-                      className="w-20"
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={scores[submission.id] ?? submission.score ?? ""}
-                      onChange={(event) =>
-                        setScores((current) => ({
-                          ...current,
-                          [submission.id]: event.target.value,
-                        }))
-                      }
-                    />
-                    <Button size="sm" onClick={() => void evaluate(submission)}>
-                      Avaliar
-                    </Button>
-                  </>
-                )}
+              <div className="flex w-full items-center gap-2 sm:w-auto">
+                {submission.score === null &&
+                  !submission.invalidatedAt &&
+                  canEvaluate && (
+                    <>
+                      <Input
+                        className="w-full sm:w-20"
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={scores[submission.id] ?? submission.score ?? ""}
+                        onChange={(event) =>
+                          setScores((current) => ({
+                            ...current,
+                            [submission.id]: event.target.value,
+                          }))
+                        }
+                      />
+                      <Button
+                        className="shrink-0"
+                        size="sm"
+                        onClick={() => void evaluate(submission)}
+                      >
+                        Avaliar
+                      </Button>
+                    </>
+                  )}
               </div>
             </div>
-            <div className="mt-3 grid gap-1 text-sm">
+            <div className="mt-2 grid gap-1 text-sm">
               {submission.links.map((link) => (
                 <a
                   key={link.id}

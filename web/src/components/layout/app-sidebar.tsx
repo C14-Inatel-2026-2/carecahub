@@ -8,16 +8,12 @@ import {
   CircleUserRound,
   ClipboardList,
   Home,
-  KeyRound,
-  LogOut,
   User,
-  UserRound,
   Users,
 } from "lucide-react";
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useList } from "@/api";
-import { writer } from "@/api/writer";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -30,24 +26,12 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { logoutMockUser } from "@/mocks/auth";
 import { isMockAPIEnabled } from "@/mocks/config";
-import { ChangePasswordDialog } from "@/modules/auth/dialogs/change-password-dialog";
 import { appRoutes } from "@/router/routes";
-import { useUser } from "@/stores/use-user";
 import type { LoggedUser } from "@/types/auth";
 import { userRoleLabels } from "@/types/user";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import { pagesByRole } from "./auth-layout";
-import { ThemeSelector } from "./theme-selector";
+import { UserAccountMenu } from "./user-account-menu";
 import { cn } from "@/lib/utils";
 
 export function NotificationNavLabel({ unreadCount }: { unreadCount: number }) {
@@ -66,31 +50,29 @@ export function NotificationNavLabel({ unreadCount }: { unreadCount: number }) {
   );
 }
 
-export function AppSidebar({ user }: { user: LoggedUser }) {
+export function AppSidebar({
+  user,
+  avatarUrl,
+}: {
+  user: LoggedUser;
+  avatarUrl?: string | null;
+}) {
   const location = useLocation();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar();
   const usersLabel = user.role === "admin" ? "Usuários" : "Alunos";
-  const navigate = useNavigate();
-  const clearUser = useUser((state) => state.clearUser);
-  const [passwordOpen, setPasswordOpen] = useState(false);
   const { unreadCount } = useList({
     endpoint: "/notifications",
     params: { skip: 0, take: 100 },
     disabled: isMockAPIEnabled,
   });
 
-  async function logout() {
-    if (isMockAPIEnabled) {
-      logoutMockUser(localStorage);
-    } else {
-      await writer("POST /auth/logout", { body: undefined, silent: true });
-    }
-    clearUser();
-    navigate(appRoutes.login, { replace: true });
-  }
+  useEffect(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [isMobile, location.pathname, setOpenMobile]);
 
   return (
     <Sidebar
+      mobileSide="left"
       variant="floating"
       collapsible="icon"
       className="border-sidebar-border/70"
@@ -228,79 +210,45 @@ export function AppSidebar({ user }: { user: LoggedUser }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarSeparator className="w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-12!" />
-      <SidebarFooter className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-1">
-        <div className="flex flex-wrap items-center justify-start gap-2 py-2 text-sm group-data-[collapsible=icon]:justify-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  size="xl"
-                  aria-label="Abrir menu da conta"
-                  variant="ghost"
-                  className="font-normal group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:p-0!"
-                />
-              }
-            >
-              <CircleUserRound className="size-8" />
-              <div className="hidden flex-col items-start gap-1 leading-tight sm:flex group-data-[collapsible=icon]:hidden!">
-                <span className="text-xs uppercase text-muted-foreground">
-                  {userRoleLabels[user.role]}
-                </span>
-                <span className="text-sm font-semibold">{user.name}</span>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              side="top"
-              sideOffset={8}
-              className="w-64 min-w-56 max-w-[calc(100vw-2rem)] p-1.5"
-            >
-              <DropdownMenuGroup className="mb-1 rounded-md bg-muted/50">
-                <DropdownMenuLabel className="px-2.5 py-3">
-                  <span className="block truncate text-sm font-semibold text-foreground">
-                    {user.name}
-                  </span>
-                  <span
-                    className="mt-1 block truncate text-xs font-normal text-muted-foreground"
-                    title={user.email}
+
+      {!isMobile && (
+        <>
+          <SidebarSeparator className="w-[15.3rem]! mx-auto group-data-[collapsible=icon]:w-12!" />
+          <SidebarFooter className="px-4 pt-3 pb-2 group-data-[collapsible=icon]:px-1">
+            <div className="flex flex-wrap items-center justify-start gap-2 py-2 text-sm group-data-[collapsible=icon]:justify-center">
+              <UserAccountMenu
+                user={user}
+                align="start"
+                side="top"
+                trigger={
+                  <Button
+                    size="xl"
+                    aria-label="Abrir menu da conta"
+                    variant="ghost"
+                    className="font-normal group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:p-0!"
                   >
-                    {user.email}
-                  </span>
-                </DropdownMenuLabel>
-              </DropdownMenuGroup>
-              <DropdownMenuItem
-                className="min-h-9 gap-2.5 px-2.5 font-normal"
-                render={<Link to={appRoutes.profile} />}
-              >
-                <UserRound className="text-muted-foreground" />
-                Meu perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="min-h-9 gap-2.5 px-2.5 font-normal"
-                onClick={() => setPasswordOpen(true)}
-              >
-                <KeyRound className="text-muted-foreground" />
-                Alterar senha
-              </DropdownMenuItem>
-              <ThemeSelector />
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                className="min-h-9 gap-2.5 px-2.5 font-normal"
-                onClick={() => void logout()}
-              >
-                <LogOut />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <ChangePasswordDialog
-            open={passwordOpen}
-            onOpenChange={setPasswordOpen}
-          />
-        </div>
-      </SidebarFooter>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={user.name}
+                        className="size-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <CircleUserRound className="size-8 text-highlight-soft-foreground" />
+                    )}
+                    <div className="hidden flex-col items-start gap-1 leading-tight sm:flex group-data-[collapsible=icon]:hidden!">
+                      <span className="text-xs uppercase text-muted-foreground">
+                        {userRoleLabels[user.role]}
+                      </span>
+                      <span className="text-sm font-semibold">{user.name}</span>
+                    </div>
+                  </Button>
+                }
+              />
+            </div>
+          </SidebarFooter>
+        </>
+      )}
     </Sidebar>
   );
 }

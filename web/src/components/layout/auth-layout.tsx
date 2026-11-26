@@ -1,10 +1,19 @@
+import { Bell, CircleUserRound, Menu } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { useGet, useList } from "@/api";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { UserAccountMenu } from "@/components/layout/user-account-menu";
+import { Button } from "@/components/ui/button";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { type AppRoute, appRoutes } from "@/router/routes";
+import { isMockAPIEnabled } from "@/mocks/config";
 import { useUser } from "@/stores/use-user";
 import type { UserRole } from "@/types/user";
 
@@ -81,6 +90,13 @@ export function AuthLayout() {
   const { pathname } = useLocation();
   const contentPanelRef = useRef<HTMLDivElement>(null);
   const [showScrollFade, setShowScrollFade] = useState(false);
+  const { unreadCount } = useList({
+    endpoint: "/notifications",
+    params: { skip: 0, take: 100 },
+    disabled: isMockAPIEnabled,
+  });
+  const { data: currentUser } = useGet("/users/:id", user?.id);
+  const avatarUrl = currentUser?.gitHubDetails?.avatarUrl;
 
   useEffect(() => {
     void loadUser();
@@ -136,11 +152,63 @@ export function AuthLayout() {
 
   return (
     <SidebarProvider style={{ "--sidebar-width": "19rem" } as CSSProperties}>
-      <AppSidebar user={user} />
+      <AppSidebar user={user} avatarUrl={avatarUrl} />
       <SidebarInset className="flex h-svh min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background p-2 md:pl-0">
+        <header
+          data-slot="mobile-navigation-header"
+          className="flex h-14 shrink-0 items-center gap-3 rounded-lg bg-card px-3 text-card-foreground shadow-sm ring-1 ring-border md:hidden"
+        >
+          <SidebarTrigger
+            aria-label="Abrir menu"
+            className="size-9 [&_svg]:size-5 shrink-0"
+          >
+            <Menu />
+          </SidebarTrigger>
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              aria-label="Ver notificações"
+              className="relative"
+              render={<Link to={appRoutes.notifications} />}
+              size="icon-lg"
+              variant="ghost"
+            >
+              <Bell className="size-5" />
+              {unreadCount > 0 && (
+                <span
+                  aria-label={`${unreadCount} notificações não lidas`}
+                  className="pointer-events-none absolute right-1 top-1 size-2 rounded-full bg-highlight ring-2 ring-card"
+                />
+              )}
+            </Button>
+            <UserAccountMenu
+              user={user}
+              trigger={
+                <Button
+                  aria-label="Abrir menu da conta"
+                  size="icon-lg"
+                  variant="ghost"
+                >
+                  {avatarUrl ? (
+                    <img
+                      alt={user.name}
+                      className="size-6 rounded-full object-cover"
+                      src={avatarUrl}
+                    />
+                  ) : (
+                    <CircleUserRound className="size-6" />
+                  )}
+                </Button>
+              }
+            />
+          </div>
+        </header>
         <div
           data-slot="app-content-panel"
-          className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg bg-sidebar text-sidebar-foreground shadow-sm ring-1 ring-sidebar-border"
+          className="relative mt-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg bg-sidebar text-sidebar-foreground shadow-sm ring-1 ring-sidebar-border md:mt-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at bottom right, color-mix(in srgb, var(--highlight) 25%, transparent), transparent 70%)",
+          }}
         >
           <div
             ref={contentPanelRef}

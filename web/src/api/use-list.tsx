@@ -11,7 +11,7 @@ import type {
 import type { PaginateParams, PaginateResponse } from '@/types/api'
 import type { GetGroupResponse } from '@/types/group'
 import type { Notification } from '@/types/notification'
-import type { GetProjectResponse } from '@/types/project'
+import type { GetProjectResponse, ProjectContribution } from '@/types/project'
 import type { GetRepositoryResponse } from '@/types/repository'
 import type { GetUserResponse } from '@/types/user'
 
@@ -36,6 +36,7 @@ type ResponseTypeMap = {
   '/projects/:id': GetProjectResponse
   '/projects/by-name/:id': GetProjectResponse
   '/projects/:id/activities': { data: ProjectActivityDelivery[] }
+  '/projects/:id/contributions': { data: ProjectContribution[] }
   '/repositories': GetRepositoryResponse
   '/repositories/:id': GetRepositoryResponse
   '/notifications': Notification
@@ -105,7 +106,5 @@ export function useGet<T extends keyof ResponseTypeMap>(
       ? `${basePath}${buildQueryString(query)}`
       : basePath
 
-  return useSWR<ResponseTypeMap[T]>(
-    disabled || !basePath ? null : url ? { url, userId } : null
-  )
+  return useSWR<ResponseTypeMap[T]>(disabled || !basePath ? null : url ? { url, userId } : null)
 }

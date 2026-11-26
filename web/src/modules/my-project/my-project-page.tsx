@@ -130,7 +130,7 @@ export function MyProjectPage() {
 
             <div className="mt-4">
               {group.project ? (
-                <div className="flex flex-row gap-5">
+                <div className="flex flex-col md:flex-row gap-5">
                   <div className="max-w-xl">
                     <ProjectCard group={group} project={group.project} />
                   </div>
@@ -149,7 +149,7 @@ export function MyProjectPage() {
                       {group.project.repositories.map((repository) => (
                         <div
                           key={repository.id}
-                          className="flex flex-wrap items-center justify-between gap-3"
+                          className="flex overflow-hidden flex-wrap items-center justify-between gap-3"
                         >
                           <a
                             className="flex min-w-0 items-center gap-3 text-sm text-muted-foreground hover:text-foreground hover:underline"

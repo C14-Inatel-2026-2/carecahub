@@ -37,7 +37,7 @@ export function ActivityPipelineSkeleton() {
       </div>
       <div className='mt-4 flex gap-3 overflow-x-auto pb-2'>
         {pipelineColumns.map((_, columnIndex) => (
-          <div key={columnIndex} className='min-w-56 flex-1 rounded-lg border bg-card'>
+          <div key={columnIndex} className='min-w-72 flex-none rounded-lg border bg-card lg:flex-1'>
             <div className='p-6'>
               <Skeleton className='h-4 w-28' />
             </div>
