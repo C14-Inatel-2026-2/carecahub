@@ -59,11 +59,7 @@ jobs:
               case "$file" in
                 api/*) api_changed=true ;;
                 web/*) web_changed=true ;;
-                *)
-                  # Arquivos fora de api/ e web/ podem afetar os dois projetos.
-                  api_changed=true
-                  web_changed=true
-                  ;;
+                *) ;;
               esac
             done < "$diff_file"
           fi
