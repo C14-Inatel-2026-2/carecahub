@@ -11,6 +11,7 @@ import { AuthService } from './auth.service'
 import { LoginDto, LoginResponseDto, TwoFactorAuthDto } from './dtos/login.dto'
 import { UpdateMeDto } from './dtos/me.dto'
 import { ChangePasswordDto, RecoverPasswordDto, ResetPasswordDto } from './dtos/password.dto'
+import { ConfirmRegistrationDto, RegisterDto, ResendRegistrationCodeDto } from './dtos/register.dto'
 import { RefreshTokenResponseDto } from './dtos/tokens.dto'
 
 @ApiController('auth', 'Auth')
@@ -42,6 +43,43 @@ export class AuthController {
     }
 
     return responseWithoutTokens
+  }
+
+  @Post('register')
+  @Public()
+  @ApiResponse({ type: Object })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async register(@Body() body: RegisterDto) {
+    return this.authService.register(body)
+  }
+
+  @Post('register/confirm')
+  @Public()
+  @ApiResponse({ type: LoginResponseDto })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  async confirmRegistration(
+    @Res({ passthrough: true }) response: Response,
+    @Body() body: ConfirmRegistrationDto,
+  ) {
+    const serviceResponse = await this.authService.confirmRegistration(body)
+
+    if (!serviceResponse.ok) {
+      return serviceResponse
+    }
+
+    const { accessToken, refreshToken, ...responseWithoutTokens } = serviceResponse
+    if (accessToken && refreshToken) {
+      this.authService.setResponseWithTokens(response, { accessToken, refreshToken })
+    }
+
+    return responseWithoutTokens
+  }
+
+  @Post('register/resend')
+  @Public()
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  async resendRegistrationCode(@Body() body: ResendRegistrationCodeDto) {
+    return this.authService.resendRegistrationCode(body)
   }
 
   @Post('two-factor-auth')

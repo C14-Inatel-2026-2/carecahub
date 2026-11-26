@@ -14,6 +14,10 @@ describe('AuthService', () => {
   let sign: ReturnType<typeof vi.fn>
   let verifyAsync: ReturnType<typeof vi.fn>
   let queryResults: unknown[]
+  let cacheGet: ReturnType<typeof vi.fn>
+  let cacheSet: ReturnType<typeof vi.fn>
+  let cacheDelete: ReturnType<typeof vi.fn>
+  let sendRegistrationVerificationCode: ReturnType<typeof vi.fn>
 
   class QueryResult<T> implements PromiseLike<T> {
     constructor(private readonly result: T) {}
@@ -24,6 +28,9 @@ describe('AuthService', () => {
       return this
     }
     set() {
+      return this
+    }
+    values() {
       return this
     }
     returning() {
@@ -55,13 +62,17 @@ describe('AuthService', () => {
       return calls === 1 ? 'access-token' : 'refresh-token'
     })
     verifyAsync = vi.fn(async () => makePayload())
+    cacheGet = vi.fn()
+    cacheSet = vi.fn()
+    cacheDelete = vi.fn()
+    sendRegistrationVerificationCode = vi.fn()
     service = new AuthService(
       {
-        db: { select: nextQuery, update: nextQuery },
+        db: { select: nextQuery, insert: nextQuery, update: nextQuery },
       } as unknown as DrizzleService,
-      {} as CacheService,
+      { get: cacheGet, set: cacheSet, delete: cacheDelete } as unknown as CacheService,
       { sign, verifyAsync } as unknown as JwtService,
-      {} as MailService,
+      { sendRegistrationVerificationCode } as unknown as MailService,
       {
         create: vi.fn(() => ({
           log: vi.fn(),
@@ -80,6 +91,72 @@ describe('AuthService', () => {
       refreshToken: 'refresh-token',
     })
     assert.strictEqual(sign.mock.calls.length, 2)
+  })
+
+  it('sends a code and keeps a registration pending until the email is confirmed', async () => {
+    queryResults.push([])
+
+    const result = await service.register({
+      name: 'Ana Silva',
+      email: 'ana@example.com',
+      registration: 12345,
+      password: 'SenhaSegura1',
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(cacheSet.mock.calls.length, 1)
+    assert.equal(sendRegistrationVerificationCode.mock.calls.length, 1)
+    assert.match(sendRegistrationVerificationCode.mock.calls[0][0].code, /^\d{6}$/)
+    assert.equal(cacheSet.mock.calls[0][0].value.code, undefined)
+    assert.equal(queryResults.length, 0)
+  })
+
+  it('creates and authenticates the student only after a valid registration code', async () => {
+    const createdAt = new Date('2026-01-01T00:00:00Z')
+    const updatedAt = new Date('2026-01-01T00:00:00Z')
+    let pendingRegistration: unknown
+    cacheSet.mockImplementation(async ({ value }) => {
+      pendingRegistration = value
+    })
+    cacheGet.mockImplementation(async () => pendingRegistration)
+    queryResults.push(
+      [],
+      [],
+      [
+        {
+          id: 'student-1',
+          groupId: null,
+          name: 'Ana Silva',
+          email: 'ana@example.com',
+          role: 'student',
+          status: 'active',
+          two_factor: false,
+          createdAt,
+          updatedAt,
+          deletedAt: null,
+        },
+      ],
+    )
+
+    const startResult = await service.register({
+      name: 'Ana Silva',
+      email: 'ana@example.com',
+      registration: 12345,
+      password: 'SenhaSegura1',
+    })
+
+    assert.equal(startResult.ok, true)
+    const code = sendRegistrationVerificationCode.mock.calls[0][0].code
+    const verificationId = cacheSet.mock.calls[0][0].scope
+    const result = await service.confirmRegistration({ verificationId, code })
+
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(result.user?.id, 'student-1')
+      assert.equal(result.user?.role, 'student')
+      assert.equal(result.twoFactorAuth, false)
+    }
+    assert.equal(cacheDelete.mock.calls.length, 1)
   })
 
   it('refreshes tokens with authentication claims instead of profile data', async () => {

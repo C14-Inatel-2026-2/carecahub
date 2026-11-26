@@ -3,10 +3,21 @@ import { ServiceOutput, UserMetadata } from '@/types'
 import { LoginDto, LoginResponseDto, LogoutDto, TwoFactorAuthDto } from './dtos/login.dto'
 import { GetMeDto, UpdateMeDto } from './dtos/me.dto'
 import { RecoverPasswordDto, ResetPasswordDto } from './dtos/password.dto'
+import {
+  ConfirmRegistrationDto,
+  RegisterDto,
+  RegistrationStartResponse,
+  ResendRegistrationCodeDto,
+} from './dtos/register.dto'
 import { AuthTokens, RefreshTokenDto } from './dtos/tokens.dto'
 
 export abstract class IAuthService {
   abstract login(input: LoginDto): ServiceOutput<LoginResponseDto>
+  abstract register(input: RegisterDto): ServiceOutput<RegistrationStartResponse>
+  abstract confirmRegistration(input: ConfirmRegistrationDto): ServiceOutput<LoginResponseDto>
+  abstract resendRegistrationCode(
+    input: ResendRegistrationCodeDto,
+  ): ServiceOutput<RegistrationStartResponse>
   abstract me(userId: string): ServiceOutput<GetMeDto>
   abstract updateMe(userId: string, input: UpdateMeDto): ServiceOutput<GetMeDto>
   abstract twoFactorAuth(input: TwoFactorAuthDto): ServiceOutput<AuthTokens>
