@@ -77,7 +77,6 @@ jobs:
   validate:
     name: Validar ${{ matrix.project }}
     needs: changes
-    if: ${{ needs.changes.outputs.projects != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -155,17 +154,17 @@ jobs:
           fi
 
           case "$PROJECTS" in
-            '[]') expected=skipped ;;
-            '["api"]'|'["web"]'|'["api","web"]') expected=success ;;
+            '[]') ;;
+            '["api"]'|'["web"]'|'["api","web"]')
+              if [[ "$VALIDATE_RESULT" != "success" ]]; then
+                echo "::error::CI reprovado. Resultado da validacao: $VALIDATE_RESULT"
+                exit 1
+              fi
+              ;;
             *)
               echo "::error::A selecao de projetos e invalida."
               exit 1
               ;;
           esac
-
-          if [[ "$VALIDATE_RESULT" != "$expected" ]]; then
-            echo "::error::CI reprovado. Resultado da validacao: $VALIDATE_RESULT"
-            exit 1
-          fi
 
           echo "CI aprovado para os projetos selecionados."
