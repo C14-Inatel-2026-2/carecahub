@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { activitySubmissionTypeEnum } from '../enums/activityEnums'
 import { bucketFiles } from './bucketFile'
+import { classrooms } from './classroom'
 import { groups } from './group'
 import { repositories } from './repository'
 import { users } from './user'
@@ -51,6 +52,26 @@ const activityGroupTable = pgTable(
   },
   (table) => [
     uniqueIndex('ActivityGroup_activity_group_unique').on(table.activityId, table.groupId),
+  ],
+)
+
+const activityClassroomTable = pgTable(
+  'ActivityClassroom',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    activityId: uuid('activity_id')
+      .notNull()
+      .references(() => activityTable.id, { onDelete: 'restrict' }),
+    classroomId: uuid('classroom_id')
+      .notNull()
+      .references(() => classrooms.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('ActivityClassroom_activity_classroom_unique').on(
+      table.activityId,
+      table.classroomId,
+    ),
   ],
 )
 
@@ -183,6 +204,7 @@ const activityEvaluationTable = pgTable(
 
 export {
   activityAttachmentTable as activityAttachments,
+  activityClassroomTable as activityClassrooms,
   activityEvaluationTable as activityEvaluations,
   activityGroupTable as activityGroups,
   activitySubmissionFileTable as activitySubmissionFiles,

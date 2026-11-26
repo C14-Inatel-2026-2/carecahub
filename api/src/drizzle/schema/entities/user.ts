@@ -9,6 +9,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 import { userRoleEnum, userStatusEnum } from '../enums/userEnums'
+import { classrooms } from './classroom'
 import { groups } from './group'
 
 const userTable = pgTable('User', {
@@ -19,7 +20,9 @@ const userTable = pgTable('User', {
   }),
   registration: integer('registration').unique(),
   githubName: varchar('github_name', { length: 39 }).unique(),
-  classroom: varchar('classroom', { length: 2 }),
+  classroomId: uuid('classroom_id').references((): AnyPgColumn => classrooms.id, {
+    onDelete: 'set null',
+  }),
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password'),
   role: userRoleEnum('role').notNull().default('student'),
@@ -39,7 +42,7 @@ export const userPublicColumns = {
   name: userTable.name,
   registration: userTable.registration,
   githubName: userTable.githubName,
-  classroom: userTable.classroom,
+  classroomId: userTable.classroomId,
   email: userTable.email,
   role: userTable.role,
   status: userTable.status,

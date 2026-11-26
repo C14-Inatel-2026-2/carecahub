@@ -1,6 +1,7 @@
 import {
   activities,
   activityAttachments,
+  activityClassrooms,
   activityEvaluations,
   activityGroups,
   activitySubmissionFiles,
@@ -8,6 +9,7 @@ import {
   activitySubmissions,
   activityViews,
   bucketFiles,
+  classrooms,
   groupInvites,
   groups,
   notifications,
@@ -39,6 +41,7 @@ export {
 export {
   activities,
   activityAttachments,
+  activityClassrooms,
   activityEvaluations,
   activityGroups,
   activitySubmissionFiles,
@@ -46,6 +49,7 @@ export {
   activitySubmissions,
   activityViews,
   bucketFiles,
+  classrooms,
   groupInvites,
   groups,
   notifications,
@@ -58,6 +62,7 @@ export {
 
 export type User = typeof users.$inferSelect
 export type Activity = typeof activities.$inferSelect
+export type Classroom = typeof classrooms.$inferSelect
 export type NewActivity = typeof activities.$inferInsert
 export type ActivityGroup = typeof activityGroups.$inferSelect
 export type ActivitySubmission = typeof activitySubmissions.$inferSelect

@@ -1,4 +1,5 @@
 import { type AnyPgColumn, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core'
+import { classrooms } from './classroom'
 import { users } from './user'
 
 const groupTable = pgTable('Group', {
@@ -7,6 +8,9 @@ const groupTable = pgTable('Group', {
   leaderId: uuid('leader_id')
     .references((): AnyPgColumn => users.id)
     .notNull(),
+  classroomId: uuid('classroom_id').references((): AnyPgColumn => classrooms.id, {
+    onDelete: 'set null',
+  }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
@@ -19,6 +23,7 @@ export const groupPublicColumns = {
   id: groupTable.id,
   friendlyId: groupTable.friendlyId,
   leaderId: groupTable.leaderId,
+  classroomId: groupTable.classroomId,
   createdAt: groupTable.createdAt,
   updatedAt: groupTable.updatedAt,
   deletedAt: groupTable.deletedAt,

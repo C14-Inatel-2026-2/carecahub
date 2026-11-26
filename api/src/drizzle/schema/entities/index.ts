@@ -1,5 +1,6 @@
 export * from './activity'
 export * from './bucketFile'
+export * from './classroom'
 export * from './group'
 export * from './notification'
 export * from './project'
