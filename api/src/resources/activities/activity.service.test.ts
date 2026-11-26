@@ -117,6 +117,71 @@ describe('ActivityService.create', () => {
 })
 
 describe('ActivityService.findAll', () => {
+  it('includes the requester group submission status for student activity lists', async () => {
+    const submittedAt = new Date('2026-11-20T20:00:00.000Z')
+    const activities = [
+      {
+        id: activityId,
+        title: input.title,
+        description: input.description,
+        dueAt: new Date(input.dueAt),
+        allowLateSubmissions: false,
+        submissionType: 'both' as const,
+        createdById: 'teacher-id',
+        publishedAt: new Date(),
+        deadlineRevision: 1,
+        archivedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      },
+      {
+        id: '510a8f36-3a79-4f7f-85aa-f7cfdd0e2476',
+        title: 'Atividade pendente',
+        description: input.description,
+        dueAt: new Date('2026-11-22T23:59:00.000Z'),
+        allowLateSubmissions: false,
+        submissionType: 'files' as const,
+        createdById: 'teacher-id',
+        publishedAt: new Date(),
+        deadlineRevision: 1,
+        archivedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      },
+    ]
+    const service = createService([
+      [{ groupId }],
+      activities,
+      activities.map((activity) => ({ activityId: activity.id })),
+      [
+        { id: 'submission-id', activityId, version: 2, submittedAt, isLate: false },
+        {
+          id: 'previous-submission-id',
+          activityId,
+          version: 1,
+          submittedAt: new Date('2026-11-19T20:00:00.000Z'),
+          isLate: true,
+        },
+      ],
+      [],
+      [],
+    ])
+
+    const result = await service.findAll({ skip: 0, take: 20 }, requester('student'))
+
+    assert.equal(result.ok, true)
+    if (!result.ok) return
+    assert.deepEqual(
+      result.data.map((activity) => activity.submission),
+      [
+        { id: 'submission-id', submittedAt, isLate: false },
+        null,
+      ],
+    )
+  })
+
   it('includes reference attachments for every listed activity', async () => {
     const activity = {
       id: activityId,
